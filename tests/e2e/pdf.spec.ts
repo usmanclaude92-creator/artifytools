@@ -170,3 +170,41 @@ test.describe("Compress PDF", () => {
     await expect(page.getByRole("button", { name: "تنزيل الملف المضغوط" })).toHaveCount(0);
   });
 });
+
+test.describe("Compress Image", () => {
+  test("hits a target size, keeps transparency, and keeps an already-optimised PNG", async ({ page }) => {
+    test.setTimeout(90_000);
+    await open(page, "/tools/compress-image");
+    await page.getByRole("radio", { name: "By target size" }).click();
+    await page.getByRole("button", { name: "50 KB" }).click();
+    await page.locator('input[type="file"]').setInputFiles([fixture("noisy-photo.jpg"), fixture("noisy-alpha.png")]);
+    const photoRow = page.locator("li", { hasText: "noisy-photo.jpg" });
+    await expect(photoRow.getByText(/% smaller$/)).toBeVisible({ timeout: 30_000 });
+    const [jpg] = await Promise.all([page.waitForEvent("download"), photoRow.getByRole("button", { name: "Download" }).click()]);
+    expect(jpg.suggestedFilename()).toBe("noisy-photo-compressed.jpg");
+    expect(readFileSync((await jpg.path())!).length).toBeLessThanOrEqual(50_000);
+
+    // A transparent PNG with a size target becomes WebP (keeps transparency) — or PNG where WebP can't be written
+    const pngRow = page.locator("li", { hasText: "noisy-alpha.png" });
+    await expect(pngRow.getByRole("button", { name: "Download" })).toBeVisible({ timeout: 30_000 });
+    const [png] = await Promise.all([page.waitForEvent("download"), pngRow.getByRole("button", { name: "Download" }).click()]);
+    expect(png.suggestedFilename()).toMatch(/^noisy-alpha-compressed\.(webp|png)$/);
+
+    // Back to quality mode: a tiny, already-optimised PNG that wouldn't shrink is kept as-is
+    await page.getByRole("radio", { name: "By quality" }).click();
+    await page.locator('input[type="file"]').setInputFiles(fixture("logo-transparent.png"));
+    await expect(page.locator("li", { hasText: "logo-transparent.png" }).getByText("Already optimised: original kept")).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole("button", { name: "Download all (.zip)" })).toBeEnabled();
+  });
+
+  test("Arabic labels and target size in Arabic digits", async ({ page }) => {
+    await open(page, "/ar/tools/compress-image");
+    await expect(page.locator("h1")).toHaveText("ضغط الصور");
+    await page.getByRole("radio", { name: "حسب الحجم المطلوب" }).click();
+    await page.getByLabel("الحجم المطلوب", { exact: true }).fill("٤٠ ك.ب");
+    await page.locator('input[type="file"]').setInputFiles(fixture("noisy-photo.jpg"));
+    await expect(page.getByText(/أصغر بنسبة/).first()).toBeVisible({ timeout: 30_000 });
+    const [d] = await Promise.all([page.waitForEvent("download"), page.locator("li").getByRole("button", { name: "تنزيل" }).click()]);
+    expect(readFileSync((await d.path())!).length).toBeLessThanOrEqual(40_000);
+  });
+});

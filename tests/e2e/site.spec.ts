@@ -36,8 +36,10 @@ test.describe("pages", () => {
     }
   });
 
-  test("planned categories are not published", async ({ page }) => {
-    expect((await page.goto("/categories/images"))?.status()).toBe(404);
+  test("categories are published once they have a tool; unknown ones 404", async ({ page }) => {
+    expect((await page.goto("/categories/images"))?.status()).toBe(200);
+    await expect(page.getByRole("heading", { name: "Compress Image" })).toBeVisible();
+    expect((await page.goto("/categories/video"))?.status()).toBe(404);
   });
 
   test("every internal link on key pages resolves", async ({ page, request }) => {
@@ -218,7 +220,7 @@ test.describe("directory", () => {
   test("filters by category, combines with search, syncs the URL, and clears", async ({ page }) => {
     await page.goto("/tools");
     const count = page.getByRole("status").filter({ hasText: /tools?(\s|$)/ }).first();
-    await expect(count).toContainText("20 tools");
+    await expect(count).toContainText("21 tools");
     await page.getByRole("button", { name: /^Calculators/ }).click();
     await expect(page).toHaveURL(/category=calculators/);
     await expect(count).toContainText("3 tools");
@@ -227,7 +229,7 @@ test.describe("directory", () => {
     await expect(count).toContainText("1 tool");
     await expect(page.getByRole("button", { name: /Category: Calculators/ })).toBeVisible();
     await page.getByRole("button", { name: "Clear all" }).click();
-    await expect(count).toContainText("20 tools");
+    await expect(count).toContainText("21 tools");
     await expect(page.getByLabel("Search all tools")).toHaveValue("");
   });
 
@@ -247,7 +249,7 @@ test.describe("directory", () => {
     await expect(page).toHaveURL(/kind=pdf/);
     await expect(page.locator("article h2")).toHaveText(["Merge PDF", "Compress PDF", "Split PDF"]);
     await page.getByLabel("Works with").selectOption("images");
-    await expect(page.locator("article h2")).toHaveText(["JPG to PDF"]);
+    await expect(page.locator("article h2")).toHaveText(["JPG to PDF", "Compress Image"]);
   });
 
   test("paginates beyond 12 tools", async ({ page }) => {
@@ -255,7 +257,7 @@ test.describe("directory", () => {
     await expect(page.locator("article")).toHaveCount(12);
     await page.getByRole("button", { name: "Page 2" }).click();
     await expect(page).toHaveURL(/page=2/);
-    await expect(page.locator("article")).toHaveCount(8);
+    await expect(page.locator("article")).toHaveCount(9);
   });
 
   test("search from header while on /tools updates the directory", async ({ page }) => {

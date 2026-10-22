@@ -45,7 +45,7 @@ describe("tool registry integrity", () => {
   });
   it("only publishes categories that contain tools", () => {
     const published = getPublishedCategories();
-    expect(published.map((c) => c.id)).not.toContain("images");
+    expect(published.map((c) => c.id)).toContain("images");
     expect(published.length).toBeGreaterThanOrEqual(4);
   });
   it("curates popular tools and always has related tools", () => {
@@ -66,6 +66,8 @@ describe("Arabic search", () => {
     expect(top("تحويل jpg الى pdf")[0]).toBe("jpg-to-pdf");
     expect(top("ضغط pdf")[0]).toBe("compress-pdf");
     expect(top("تصغير حجم pdf")[0]).toBe("compress-pdf");
+    expect(top("ضغط الصور")[0]).toBe("compress-image");
+    expect(top("تصغير حجم الصورة")[0]).toBe("compress-image");
   });
 });
 
@@ -100,6 +102,9 @@ describe("search", () => {
     expect(top("png to pdf")[0]).toBe("jpg-to-pdf");
     expect(top("compress pdf")[0]).toBe("compress-pdf");
     expect(top("reduce pdf size")[0]).toBe("compress-pdf");
+    expect(top("compress image")[0]).toBe("compress-image");
+    expect(top("image to 100kb")[0]).toBe("compress-image");
+    expect(top("compress jpg")[0]).toBe("compress-image");
   });
   it("ranks exact name matches above weaker matches", () => {
     expect(top("password generator")[0]).toBe("password-generator");

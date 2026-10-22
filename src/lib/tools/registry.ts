@@ -26,6 +26,7 @@ import { meta as mergePdf } from "@/tools/merge-pdf/meta";
 import { meta as splitPdf } from "@/tools/split-pdf/meta";
 import { meta as jpgToPdf } from "@/tools/jpg-to-pdf/meta";
 import { meta as compressPdf } from "@/tools/compress-pdf/meta";
+import { meta as compressImage } from "@/tools/compress-image/meta";
 
 /**
  * Single source of truth for every tool. Directory cards, categories, search,
@@ -54,6 +55,7 @@ export const tools: readonly ToolDefinition[] = [
   splitPdf,
   jpgToPdf,
   compressPdf,
+  compressImage,
 ];
 
 const bySlug = new Map(tools.map((t) => [t.slug, t]));
