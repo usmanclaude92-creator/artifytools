@@ -2,6 +2,8 @@ export const siteConfig = {
   name: "Artify Tools",
   url: "https://artifytools.com",
   tagline: "Powerful tools. Beautifully simple.",
+  /** Slim announcement bar shown above the header. */
+  announcement: "Free tools. No sign-up. Most run privately in your browser.",
   supporting: "Your everyday digital workspace.",
   description:
     "Discover thoughtfully designed online tools that help you create, calculate, convert, organize, and get more done — without unnecessary complexity.",

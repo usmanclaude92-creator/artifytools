@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { buttonClasses } from "@/components/ui/button";
 import { cx } from "@/components/ui/cx";
 import { Icon } from "@/components/ui/icon";
@@ -17,6 +17,61 @@ interface Props {
   items: SearchItem[];
   categories: SearchCategoryLink[];
   suggestions: SearchItem[];
+}
+
+function CategoriesMenu({ categories, active }: { categories: SearchCategoryLink[]; active: boolean }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("mousedown", onDown); document.removeEventListener("keydown", onKey); };
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <div className="inline-flex items-center">
+        <Link
+          href="/categories"
+          aria-current={active ? "page" : undefined}
+          className={cx("inline-flex min-h-10 items-center rounded-md pl-3 pr-1 text-[0.95rem] font-medium transition-colors hover:text-fg", active ? "text-fg" : "text-muted")}
+        >
+          Categories
+          {active && <span className="sr-only"> (current page)</span>}
+        </Link>
+        <button
+          type="button"
+          aria-label="Show category menu"
+          aria-expanded={open}
+          aria-controls="categories-menu"
+          onClick={() => setOpen((v) => !v)}
+          className="grid size-10 place-items-center rounded-md text-muted transition-colors hover:text-fg"
+        >
+          <Icon name="chevron-down" size={15} className={cx("transition-transform", open && "rotate-180")} />
+        </button>
+      </div>
+      {open && (
+        <ul id="categories-menu" className="card absolute left-0 top-full z-overlay mt-2 w-64 p-2 shadow-overlay">
+          {categories.map((c) => (
+            <li key={c.slug}>
+              <Link href={`/categories/${c.slug}`} className="flex min-h-10 items-center rounded-md px-3 text-sm font-medium hover:bg-surface-2">
+                {c.name}
+              </Link>
+            </li>
+          ))}
+          <li>
+            <Link href="/categories" className="flex min-h-10 items-center rounded-md px-3 text-sm font-semibold text-accent-text hover:bg-surface-2">
+              All categories
+            </Link>
+          </li>
+        </ul>
+      )}
+    </div>
+  );
 }
 
 export function Header({ items, categories, suggestions }: Props) {
@@ -39,7 +94,11 @@ export function Header({ items, categories, suggestions }: Props) {
 
         <nav aria-label="Primary" className="ml-6 hidden lg:block">
           <ul className="flex items-center gap-1">
-            {primaryNav.map((l) => (
+            {primaryNav.map((l) => l.href === "/categories" ? (
+              <li key={l.href}>
+                <CategoriesMenu key={pathname} categories={categories} active={isActive(l.href)} />
+              </li>
+            ) : (
               <li key={l.href}>
                 <Link
                   href={l.href}

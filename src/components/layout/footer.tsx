@@ -12,6 +12,11 @@ export function Footer() {
             <Logo />
           </Link>
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted">{siteConfig.tagline} Thoughtfully designed online tools for writing, calculating, and building — most of them running right in your browser.</p>
+          {siteConfig.contactEmail && (
+            <p className="mt-4 text-sm text-muted">
+              Contact: <a href={`mailto:${siteConfig.contactEmail}`} className="font-medium text-accent-text underline underline-offset-2">{siteConfig.contactEmail}</a>
+            </p>
+          )}
         </div>
         {footerGroups.map((g) => (
           <nav key={g.title} aria-label={g.title}>

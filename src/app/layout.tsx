@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { GeistSans } from "geist/font/sans";
 import { Inter } from "next/font/google";
 import { GeistMono } from "geist/font/mono";
+import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { ToastProvider } from "@/components/ui/toast";
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           >
             Skip to main content
           </a>
+          <AnnouncementBar />
           <Header items={items} categories={categories} suggestions={suggestions} />
           <main id="main" tabIndex={-1} className="flex-1 outline-none">
             {children}

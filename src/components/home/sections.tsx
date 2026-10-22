@@ -4,7 +4,9 @@ import { ToolGrid } from "@/components/tools/tool-card";
 import { ButtonLink } from "@/components/ui/button";
 import { Icon, type IconName } from "@/components/ui/icon";
 import { Badge } from "@/components/ui/misc";
-import { getPopularTools, getPublishedCategories, getPublishedTools, toDirectoryItem } from "@/lib/tools/registry";
+import { IconTile } from "@/components/ui/misc";
+import { categoryTones } from "@/lib/tools/tones";
+import { getPopularTools, getPublishedCategories, getPublishedTools, getToolsByCategory, toDirectoryItem } from "@/lib/tools/registry";
 
 function SectionTitle({ id, title, description, linkHref, linkLabel }: { id: string; title: string; description?: string; linkHref?: string; linkLabel?: string }) {
   return (
@@ -19,6 +21,62 @@ function SectionTitle({ id, title, description, linkHref, linkLabel }: { id: str
         </Link>
       )}
     </div>
+  );
+}
+
+/** Three large category promo cards right under the hero (the categories with the most tools). */
+export function CategoryPromoCards() {
+  const top = getPublishedCategories()
+    .map((c) => ({ c, count: getToolsByCategory(c.id).length }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3);
+  return (
+    <section aria-label="Featured categories" className="container-page pt-2 sm:pt-4">
+      <ul className="grid gap-4 md:grid-cols-3">
+        {top.map(({ c, count }) => (
+          <li key={c.id}>
+            <article className="card card-interactive relative flex h-full items-center gap-4 p-5 focus-within:ring-2 focus-within:ring-[var(--focus)]">
+              <IconTile name={c.icon} tone={categoryTones[c.id]} className="size-14" size={26} />
+              <div>
+                <h2 className="text-lg font-semibold leading-snug">
+                  <Link href={`/categories/${c.slug}`} className="after:absolute after:inset-0 after:rounded-lg focus-visible:outline-none">
+                    {c.name}
+                  </Link>
+                </h2>
+                <p className="mt-1 text-sm text-muted">{c.description}</p>
+                <p className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-accent-text">
+                  {count} tool{count === 1 ? "" : "s"} <Icon name="arrow-right" size={14} />
+                </p>
+              </div>
+            </article>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+const trustPoints: { icon: IconName; title: string; text: string }[] = [
+  { icon: "zap", title: "Instant results", text: "Open a tool and use it right away." },
+  { icon: "lock", title: "Private by default", text: "Most tools run in your browser." },
+  { icon: "check", title: "Free, no sign-up", text: "No account or payment needed." },
+];
+
+export function TrustStrip() {
+  return (
+    <section aria-label="Why Artify Tools" className="container-page py-6 sm:py-8">
+      <ul className="grid gap-4 rounded-2xl border border-line bg-surface-violet p-5 sm:grid-cols-3 sm:p-6">
+        {trustPoints.map((t) => (
+          <li key={t.title} className="flex items-start gap-3">
+            <IconTile name={t.icon} className="bg-surface" />
+            <div>
+              <h2 className="text-[0.95rem] font-semibold">{t.title}</h2>
+              <p className="text-sm text-muted">{t.text}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

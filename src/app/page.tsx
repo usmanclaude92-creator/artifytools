@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Hero } from "@/components/home/hero";
-import { AiShowcase, CategoriesSection, ClosingCta, HowItWorks, PopularTools, PrivacySection, PromoBanner } from "@/components/home/sections";
+import { AiShowcase, CategoriesSection, CategoryPromoCards, ClosingCta, HowItWorks, PopularTools, PrivacySection, PromoBanner, TrustStrip } from "@/components/home/sections";
 import { JsonLd } from "@/components/ui/json-ld";
 import { absoluteUrl, siteConfig } from "@/lib/config";
 import { getPublishedCategories, getSearchItems } from "@/lib/tools/registry";
@@ -32,7 +32,9 @@ export default function HomePage() {
         }}
       />
       <Hero items={getSearchItems()} categories={categories} />
+      <CategoryPromoCards />
       <PopularTools />
+      <TrustStrip />
       <CategoriesSection />
       <PromoBanner />
       <HowItWorks />
