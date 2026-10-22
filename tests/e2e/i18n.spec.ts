@@ -1,10 +1,11 @@
 import { expect, test } from "@playwright/test";
 
-test.describe("Arabic routing (unpublished)", () => {
-  test("/ar pages render right-to-left in Arabic and are noindex", async ({ page, request }) => {
+test.describe("Arabic site", () => {
+  test("/ar pages render right-to-left in Arabic and are indexable", async ({ page, request }) => {
     const res = await page.goto("/ar/tools");
     expect(res?.status()).toBe(200);
-    expect(res?.headers()["x-robots-tag"]).toContain("noindex");
+    expect(res?.headers()["x-robots-tag"]).toBeUndefined();
+    await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
     await expect(page.locator("html")).toHaveAttribute("lang", "ar");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
     // internal links keep the visitor in Arabic
@@ -101,11 +102,18 @@ test.describe("Arabic routing (unpublished)", () => {
     await expect(page.getByText("تعذّرت قراءة هذا اللون", { exact: false }).first()).toBeVisible();
   });
 
-  test("English pages are unchanged: ltr, no switcher, no robots header", async ({ page }) => {
+  test("English pages stay ltr and link to their Arabic version", async ({ page }) => {
     const res = await page.goto("/tools/word-counter");
     expect(res?.headers()["x-robots-tag"]).toBeUndefined();
     await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
-    await expect(page.getByRole("link", { name: "العربية" })).toHaveCount(0);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://tools.artifysols.com/tools/word-counter");
+    await expect(page.locator('link[rel="alternate"][hreflang="ar"]')).toHaveAttribute("href", "https://tools.artifysols.com/ar/tools/word-counter");
+    await expect(page.locator('link[rel="alternate"][hreflang="x-default"]')).toHaveAttribute("href", "https://tools.artifysols.com/tools/word-counter");
+    await page.getByRole("link", { name: "العربية" }).click();
+    await expect(page).toHaveURL(/\/ar\/tools\/word-counter$/);
+    await expect(page.locator("h1")).toHaveText("عدّاد الكلمات");
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://tools.artifysols.com/ar/tools/word-counter");
+    await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute("href", "https://tools.artifysols.com/tools/word-counter");
   });
 
   test("/en URLs redirect to the unprefixed English URL", async ({ request }) => {
@@ -119,7 +127,11 @@ test.describe("Arabic routing (unpublished)", () => {
     expect((await request.get("/fr/tools")).status()).toBe(404);
   });
 
-  test("Arabic is kept out of the sitemap", async ({ request }) => {
-    expect(await (await request.get("/sitemap.xml")).text()).not.toContain("/ar");
+  test("sitemap lists both languages with hreflang links", async ({ request }) => {
+    const sm = await (await request.get("/sitemap.xml")).text();
+    expect(sm).toContain("<loc>https://tools.artifysols.com/ar/tools/word-counter</loc>");
+    expect(sm).toContain("<loc>https://tools.artifysols.com/ar</loc>");
+    expect(sm).toContain('hreflang="ar" href="https://tools.artifysols.com/ar/tools/word-counter"');
+    expect(sm).not.toContain("ai-text-summarizer");
   });
 });

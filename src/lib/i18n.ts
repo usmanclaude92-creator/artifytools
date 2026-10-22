@@ -10,7 +10,7 @@ export const defaultLocale: Locale = "en";
  * Arabic stays hidden (noindex, no switcher, no hreflang, not in the sitemap)
  * until its translations are published. Flip to true when they ship.
  */
-export const arabicPublic = false;
+export const arabicPublic = true;
 
 export function isLocale(value: string): value is Locale {
   return (locales as readonly string[]).includes(value);

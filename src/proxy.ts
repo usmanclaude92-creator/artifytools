@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { arabicPublic, defaultLocale, locales } from "@/lib/i18n";
 
 /**
- * - /ar/...      served as is (noindex while Arabic is unpublished)
+ * - /ar/...      served as is (noindex only while Arabic is unpublished)
  * - /en/...      redirected to the unprefixed English URL (except generated images)
  * - everything else is English: rewritten to /en/... internally, URL unchanged
  */

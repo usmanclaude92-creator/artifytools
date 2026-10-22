@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
 import { absoluteUrl, siteConfig } from "@/lib/config";
-import { localizeHref, type Locale } from "@/lib/i18n";
+import { arabicPublic, localizeHref, type Locale } from "@/lib/i18n";
+
+/** hreflang links: each page and its translation point at each other; English is the default. */
+export function languageAlternates(path: string): Record<string, string> | undefined {
+  if (!arabicPublic) return undefined;
+  const en = absoluteUrl(path);
+  return { en, ar: absoluteUrl(localizeHref(path, "ar")), "x-default": en };
+}
 
 /** Builds consistent page metadata with an https://tools.artifysols.com canonical URL. */
 export function pageMetadata({
@@ -24,7 +31,7 @@ export function pageMetadata({
   return {
     title: absoluteTitle ? { absolute: title } : title,
     description,
-    alternates: { canonical: url },
+    alternates: { canonical: url, languages: languageAlternates(path) },
     robots: noindex ? { index: false, follow: true } : undefined,
     openGraph: {
       type: "website",
