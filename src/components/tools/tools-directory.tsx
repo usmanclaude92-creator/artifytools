@@ -28,6 +28,7 @@ interface Filters {
   category: string;
   ai: boolean;
   processing: string;
+  kind: string;
   sort: Sort;
   page: number;
 }
@@ -39,6 +40,7 @@ function readFilters(params: URLSearchParams): Filters {
     category: params.get("category") ?? "",
     ai: params.get("ai") === "1",
     processing: params.get("processing") ?? "",
+    kind: params.get("kind") ?? "",
     sort: sort === "az" || sort === "za" || sort === "new" ? sort : "recommended",
     page: Math.max(1, Number(params.get("page")) || 1),
   };
@@ -50,6 +52,7 @@ function buildQuery(f: Filters): string {
   if (f.category) p.set("category", f.category);
   if (f.ai) p.set("ai", "1");
   if (f.processing) p.set("processing", f.processing);
+  if (f.kind) p.set("kind", f.kind);
   if (f.sort !== "recommended") p.set("sort", f.sort);
   if (f.page > 1) p.set("page", String(f.page));
   return p.toString();
@@ -92,6 +95,7 @@ export function ToolsDirectory({ tools, categories }: Props) {
   const hasAi = tools.some((t) => t.aiPowered);
   const distinctDates = new Set(tools.map((t) => t.lastUpdated)).size > 1;
   const modes = [...new Set(tools.map((t) => t.processingMode))];
+  const kinds = [...new Set(tools.map((t) => t.inputKind))];
   const categoryCounts = useMemo(() => {
     const m = new Map<string, number>();
     for (const t of tools) m.set(t.categorySlug, (m.get(t.categorySlug) ?? 0) + 1);
@@ -105,6 +109,7 @@ export function ToolsDirectory({ tools, categories }: Props) {
     if (filters.category) list = list.filter((t) => t.categorySlug === filters.category);
     if (filters.ai) list = list.filter((t) => t.aiPowered);
     if (filters.processing) list = list.filter((t) => t.processingMode === filters.processing);
+    if (filters.kind) list = list.filter((t) => t.inputKind === filters.kind);
     const q = filters.q.trim();
     if (q) {
       const matched = searchTools(list, q);
@@ -117,7 +122,7 @@ export function ToolsDirectory({ tools, categories }: Props) {
     else if (sort === "new") sorted.sort((a, b) => b.lastUpdated.localeCompare(a.lastUpdated) || a.name.localeCompare(b.name));
     else sorted.sort((a, b) => a.popularRank - b.popularRank || a.name.localeCompare(b.name));
     return sorted;
-  }, [tools, filters.category, filters.ai, filters.processing, filters.q, sort, locale]);
+  }, [tools, filters.category, filters.ai, filters.processing, filters.kind, filters.q, sort, locale]);
 
   const pageCount = Math.max(1, Math.ceil(results.length / PAGE_SIZE));
   const page = Math.min(filters.page, pageCount);
@@ -133,8 +138,9 @@ export function ToolsDirectory({ tools, categories }: Props) {
   if (filters.processing && filters.processing in labels) {
     activeChips.push({ key: "processing", label: labels[filters.processing as ProcessingMode].label, clear: () => update({ processing: "" }) });
   }
+  if (filters.kind && d.kinds[filters.kind]) activeChips.push({ key: "kind", label: d.kinds[filters.kind]!, clear: () => update({ kind: "" }) });
   const clearAll = () => {
-    update({ q: "", category: "", ai: false, processing: "", sort: "recommended" });
+    update({ q: "", category: "", ai: false, processing: "", kind: "", sort: "recommended" });
   };
 
   const chip = (active: boolean) =>
@@ -198,6 +204,17 @@ export function ToolsDirectory({ tools, categories }: Props) {
           <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
             <div className="flex flex-wrap items-center gap-x-5">
               {hasAi && <Checkbox label={d.aiOnly} checked={filters.ai} onChange={(e) => update({ ai: e.target.checked })} />}
+              {kinds.length > 1 && (
+                <label className="flex items-center gap-2 text-sm">
+                  <span className="font-medium">{d.worksWith}</span>
+                  <Select value={filters.kind} onChange={(e) => update({ kind: e.target.value })} className="!min-h-10 !w-auto py-1.5">
+                    <option value="">{d.any}</option>
+                    {(["text", "images", "pdf", "files"] as const).filter((k) => kinds.includes(k)).map((k) => (
+                      <option key={k} value={k}>{d.kinds[k]}</option>
+                    ))}
+                  </Select>
+                </label>
+              )}
               {modes.length > 1 && (
                 <label className="flex items-center gap-2 text-sm">
                   <span className="font-medium">{d.processing}</span>

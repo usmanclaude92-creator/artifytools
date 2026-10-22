@@ -35,6 +35,25 @@ export interface ToolFaq {
   answer: string;
 }
 
+/** File-input details for tools that work on files (images, PDFs…). Format names are language-neutral. */
+export interface ToolFileSpec {
+  /** Accepted input formats as shown to people, e.g. ["JPG", "PNG", "WebP"]. */
+  inputFormats: string[];
+  /** Matching MIME types / extensions for the file picker, e.g. ["image/jpeg", ".jpg"]. */
+  accept: string[];
+  /** What the tool produces, e.g. ["JPG", "PNG", "WebP"] or ["PDF"]. */
+  outputFormats: string[];
+  /** Largest single file, in bytes. */
+  maxFileBytes: number;
+  /** Most files at once (1 for single-file tools). */
+  maxFiles: number;
+  /** Largest combined size, in bytes, when several files are allowed. */
+  maxTotalBytes?: number;
+}
+
+/** What a tool works on, used for directory filters. Derived from `files`, never set by hand. */
+export type InputKind = "text" | "images" | "pdf" | "files";
+
 export interface ToolDefinition {
   id: string;
   slug: string;
@@ -66,6 +85,8 @@ export interface ToolDefinition {
   popularRank?: number;
   /** Curated ordering for the featured section (lower first). */
   featuredRank?: number;
+  /** Set for tools that take files. Drives the file picker limits, the tool-page facts and directory filters. */
+  files?: ToolFileSpec;
   /** Explicit related tool ids; falls back to same-category tools. */
   related?: string[];
 }

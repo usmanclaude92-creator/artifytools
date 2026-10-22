@@ -3,7 +3,9 @@ import type { ReactNode } from "react";
 import { Icon, type IconName } from "@/components/ui/icon";
 import { categoryTones } from "@/lib/tools/tones";
 import { Badge, IconTile } from "@/components/ui/misc";
-import { getT } from "@/lib/locale-server";
+import { getLocale, getT } from "@/lib/locale-server";
+import { formatBytes } from "@/lib/files/size";
+import { formatList } from "@/lib/tools/file-spec";
 import type { DirectoryItem } from "@/lib/tools/registry";
 import type { ToolDefinition } from "@/lib/tools/types";
 
@@ -125,6 +127,8 @@ export async function RelatedTools({ tools }: { tools: DirectoryItem[] }) {
 /** Icon, title, status and a quick-facts card: the identity block at the top of every tool page. */
 export async function ToolHeader({ tool, categoryName, categorySlug }: { tool: ToolDefinition; categoryName: string; categorySlug: string }) {
   const t = await getT();
+  const locale = await getLocale();
+  const files = tool.files;
   const mode = t.processing[tool.processingMode];
   const modeIcon = tool.processingMode === "browser-local" ? "laptop" : tool.processingMode === "server-side" ? "server" : "cloud";
   return (
@@ -152,6 +156,22 @@ export async function ToolHeader({ tool, categoryName, categorySlug }: { tool: T
           <dt className="w-24 shrink-0 text-muted">{t.toolPage.processing}</dt>
           <dd className="inline-flex items-center gap-1.5 font-medium"><Icon name={modeIcon} size={15} className="text-accent-text" /> {mode.label}</dd>
         </div>
+        {files && (
+          <>
+            <div className="flex items-start gap-3 px-4 py-3">
+              <dt className="w-24 shrink-0 text-muted">{t.toolPage.formats}</dt>
+              <dd className="font-medium leading-snug">
+                {t.toolPage.formatsValue(formatList(files.inputFormats, locale), formatList(files.outputFormats, locale))}
+              </dd>
+            </div>
+            <div className="flex items-start gap-3 px-4 py-3">
+              <dt className="w-24 shrink-0 text-muted">{t.toolPage.limits}</dt>
+              <dd className="font-medium leading-snug">
+                {t.toolPage.limitsValue(formatBytes(files.maxFileBytes, locale), files.maxFiles, files.maxTotalBytes ? formatBytes(files.maxTotalBytes, locale) : "")}
+              </dd>
+            </div>
+          </>
+        )}
         <div className="flex items-start gap-3 px-4 py-3">
           <dt className="w-24 shrink-0 text-muted">{t.toolPage.privacy}</dt>
           <dd className="font-medium leading-snug">{tool.privacyNote}</dd>

@@ -3,6 +3,8 @@ import type { Category, CategoryId, ToolDefinition } from "./types";
 import type { SearchableTool } from "../search";
 import type { Locale } from "../i18n";
 import { localizeCategory, localizeTool } from "./localize";
+import { inputKindOf } from "./file-spec";
+import type { InputKind } from "./types";
 
 import { meta as wordCounter } from "@/tools/word-counter/meta";
 import { meta as caseConverter } from "@/tools/case-converter/meta";
@@ -114,6 +116,7 @@ export interface DirectoryItem extends SearchableTool {
   aiPowered: boolean;
   lastUpdated: string;
   popularRank: number;
+  inputKind: InputKind;
 }
 
 export type SearchItem = DirectoryItem;
@@ -127,7 +130,8 @@ export function toDirectoryItem(tool: ToolDefinition, locale: Locale = "en"): Di
     name: t.name,
     description: t.description,
     tags: t.tags,
-    keywords: t.keywords,
+    // File formats are searchable too ("compress jpg", "pdf").
+    keywords: t.files ? [...t.keywords, ...t.files.inputFormats, ...t.files.outputFormats].map((k) => k.toLowerCase()) : t.keywords,
     icon: t.icon,
     categoryId: cat.id,
     categoryName: cat.name,
@@ -137,6 +141,7 @@ export function toDirectoryItem(tool: ToolDefinition, locale: Locale = "en"): Di
     aiPowered: Boolean(t.aiPowered),
     lastUpdated: t.lastUpdated,
     popularRank: t.popularRank ?? 999,
+    inputKind: inputKindOf(t),
   };
 }
 

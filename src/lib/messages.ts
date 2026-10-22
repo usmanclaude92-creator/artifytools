@@ -166,6 +166,10 @@ const en = {
     comingSoonText: "We’re adding fair-use limits before switching it on. In the meantime, every other Artify tool is free to use.",
     betaText: "This tool is still being refined.",
     unavailable: "This tool isn't available yet.",
+    formats: "Formats",
+    formatsValue: (inputs: string, outputs: string) => (inputs === outputs ? inputs : `${inputs} → ${outputs}`),
+    limits: "Limits",
+    limitsValue: (size: string, files: number, total: string) => (files > 1 ? `Up to ${files} files, ${size} each${total ? `, ${total} in total` : ""}` : `One file, up to ${size}`),
   },
   ui: {
     clear: "Clear",
@@ -211,6 +215,8 @@ const en = {
     emptyTitle: "No tools match your filters",
     emptyText: "Try a different search, or remove some filters.",
     clearFilters: "Clear all filters",
+    worksWith: "Works with",
+    kinds: { text: "Text & numbers", images: "Images", pdf: "PDFs", files: "Other files" } as Record<string, string>,
   },
   files: {
     dropTitle: (multiple: boolean): string => (multiple ? "Drop files here" : "Drop a file here"),
@@ -477,6 +483,10 @@ const ar: Messages = {
     comingSoonText: "نضيف حدودًا للاستخدام العادل قبل تشغيلها. وإلى ذلك الحين، كل أدوات Artify الأخرى مجانية.",
     betaText: "ما زلنا نحسّن هذه الأداة.",
     unavailable: "هذه الأداة غير متاحة بعد.",
+    formats: "الصيغ",
+    formatsValue: (inputs: string, outputs: string) => (inputs === outputs ? inputs : `${inputs} ← ${outputs}`),
+    limits: "الحدود",
+    limitsValue: (size: string, files: number, total: string) => (files > 1 ? `حتى ${arCount(files, "ملف واحد", "ملفين", "ملفات", "ملفًا", "ملف")}، ${size} لكل ملف${total ? `، و${total} إجمالًا` : ""}` : `ملف واحد، حتى ${size}`),
   },
   ui: {
     clear: "مسح",
@@ -522,6 +532,8 @@ const ar: Messages = {
     emptyTitle: "لا توجد أدوات تطابق عوامل التصفية",
     emptyText: "جرّب بحثًا مختلفًا، أو أزل بعض عوامل التصفية.",
     clearFilters: "مسح كل عوامل التصفية",
+    worksWith: "تعمل مع",
+    kinds: { text: "النصوص والأرقام", images: "الصور", pdf: "ملفات PDF", files: "ملفات أخرى" } as Record<string, string>,
   },
   files: {
     dropTitle: (multiple: boolean) => (multiple ? "أفلت الملفات هنا" : "أفلت الملف هنا"),
