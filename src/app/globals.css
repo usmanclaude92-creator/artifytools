@@ -6,45 +6,47 @@
    ------------------------------------------------------------------ */
 :root {
   /* Colour — light (cool white canvas, deep navy type, electric violet/blue accents) */
-  --canvas: #fbfbfe;
+  --canvas: #fcf6fe;
   --surface: #ffffff;
-  --surface-2: #f6f7fc; /* recessed / subtle fills */
-  --surface-violet: #f1f0ff; /* pale blue-violet sections */
-  --fg: #10172f; /* deep navy */
-  --muted: #596480; /* secondary text (5.7:1 on canvas, 5.2:1 on pale violet) */
-  --line: #e7eaf3;
-  --line-strong: #d9deeb;
-  --accent: #6547ff; /* electric violet — fills, white text 5.6:1 */
-  --accent-hover: #4930e8;
+  --surface-2: #f7f0fb; /* recessed / subtle fills */
+  --surface-violet: #f5ebff; /* pale blue-violet sections */
+  --fg: #1f1630; /* deep plum */
+  --muted: #5f5873; /* secondary text (5.7:1 on canvas, 5.2:1 on pale violet) */
+  --line: #eadcf5;
+  --line-strong: #dcc8ee;
+  --accent: #7c3aed; /* violet — fills, white text 5.7:1 */
+  --accent-hover: #6d28d9;
   --accent-fg: #ffffff;
-  --accent-text: #4930e8; /* accent as text on canvas/surface */
-  --accent-soft: #f1f0ff;
-  --blue: #3895ff;
-  --blue-soft: #eaf3ff;
-  --navy: #0c1230;
-  --navy-2: #151d42;
+  --accent-text: #6d28d9; /* accent as text on canvas/surface */
+  --accent-soft: #f3e8ff;
+  --blue: #ec4899;
+  --blue-soft: #fdeaf5;
+  --navy: #1e1033;
+  --navy-2: #2a1748;
   --success: #0f7a4d;
   --success-soft: #e4f6ec;
   --warning: #96560a;
   --warning-soft: #fdf1dc;
   --danger: #b42318;
   --danger-soft: #fdeceb;
-  --focus: #6547ff;
+  --focus: #7c3aed;
 
   /* Soft tinted icon tiles */
   --tint-blue-bg: #e8f1ff;   --tint-blue-fg: #2563eb;
-  --tint-violet-bg: #efecff; --tint-violet-fg: #5a3df0;
+  --tint-violet-bg: #f1e7ff; --tint-violet-fg: #6d28d9;
   --tint-green-bg: #e3f6ec;  --tint-green-fg: #0f7a4d;
   --tint-pink-bg: #fdeaf3;   --tint-pink-fg: #c0306f;
   --tint-amber-bg: #fdf0dc;  --tint-amber-fg: #a35d08;
 
-  --gradient-text: linear-gradient(90deg, #5a3df0 0%, #3895ff 100%);
-  --gradient-cta: linear-gradient(120deg, #e9e5ff 0%, #e4ecff 55%, #dff1ff 100%);
+  --gradient-text: linear-gradient(90deg, #9333ea 0%, #db2777 100%);
+  --gradient-btn: linear-gradient(90deg, #7c3aed 0%, #db2777 100%);
+  --gradient-btn-hover: linear-gradient(90deg, #6d28d9 0%, #be185d 100%);
+  --gradient-cta: linear-gradient(120deg, #f1e4ff 0%, #f8e6f8 55%, #fde4f0 100%);
 
   /* Shadow */
-  --shadow-sm: 0 3px 14px rgb(20 31 70 / 0.045);
-  --shadow-md: 0 12px 34px rgb(46 48 112 / 0.09);
-  --shadow-lg: 0 24px 60px -12px rgb(46 48 112 / 0.2);
+  --shadow-sm: 0 3px 14px rgb(124 58 237 / 0.06);
+  --shadow-md: 0 12px 34px rgb(124 58 237 / 0.13);
+  --shadow-lg: 0 24px 60px -12px rgb(124 58 237 / 0.28);
 
   /* Motion */
   --duration-fast: 120ms;
@@ -60,39 +62,41 @@
 }
 
 :root[data-theme="dark"] {
-  --canvas: #0b1028;
-  --surface: #131a3a;
-  --surface-2: #1a2347;
-  --surface-violet: #171d4a;
-  --fg: #f4f6ff;
-  --muted: #a3adcb;
-  --line: #252e57;
-  --line-strong: #36406e;
-  --accent: #6c52ff; /* white text 4.9:1 */
-  --accent-hover: #8068ff;
+  --canvas: #0d0716;
+  --surface: #170e26;
+  --surface-2: #20143a;
+  --surface-violet: #261650;
+  --fg: #f6f0ff;
+  --muted: #b3a8cc;
+  --line: #2d1f4d;
+  --line-strong: #43306e;
+  --accent: #7c3aed; /* white text 5.7:1 */
+  --accent-hover: #6d28d9;
   --accent-fg: #ffffff;
-  --accent-text: #b4a8ff;
-  --accent-soft: #232a62;
-  --blue: #6ea8ff;
-  --blue-soft: #16264d;
-  --navy: #070b1f;
-  --navy-2: #131a3a;
+  --accent-text: #c4b5fd;
+  --accent-soft: #2c1b5c;
+  --blue: #f472b6;
+  --blue-soft: #3a1530;
+  --navy: #080413;
+  --navy-2: #170e26;
   --success: #4cd08f;
   --success-soft: #11291f;
   --warning: #f0b45a;
   --warning-soft: #33250f;
   --danger: #ff8f84;
   --danger-soft: #3a1714;
-  --focus: #b4a8ff;
+  --focus: #c4b5fd;
 
   --tint-blue-bg: #17284f;   --tint-blue-fg: #7fb0ff;
-  --tint-violet-bg: #251f5c; --tint-violet-fg: #b4a8ff;
+  --tint-violet-bg: #2d1c63; --tint-violet-fg: #c4b5fd;
   --tint-green-bg: #12332a;  --tint-green-fg: #4cd08f;
   --tint-pink-bg: #3b1f35;   --tint-pink-fg: #ff9ac6;
   --tint-amber-bg: #3a2c12;  --tint-amber-fg: #f0b45a;
 
-  --gradient-text: linear-gradient(90deg, #a898ff 0%, #6ea8ff 100%);
-  --gradient-cta: linear-gradient(120deg, #1d2160 0%, #1a2a70 55%, #17356f 100%);
+  --gradient-text: linear-gradient(90deg, #c084fc 0%, #f472b6 100%);
+  --gradient-btn: linear-gradient(90deg, #7c3aed 0%, #db2777 100%);
+  --gradient-btn-hover: linear-gradient(90deg, #6d28d9 0%, #be185d 100%);
+  --gradient-cta: linear-gradient(120deg, #2a1660 0%, #3a1a6e 55%, #4a1a60 100%);
 
   --shadow-sm: 0 3px 14px rgb(0 0 0 / 0.28);
   --shadow-md: 0 12px 34px rgb(0 0 0 / 0.4);
@@ -125,13 +129,13 @@
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
 
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: var(--font-inter), var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.25rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.5rem;
 
   --shadow-card: var(--shadow-sm);
   --shadow-raised: var(--shadow-md);
@@ -302,8 +306,8 @@
 /* Dark promotional banner */
 .banner-navy {
   background:
-    radial-gradient(60% 120% at 85% 50%, rgb(101 71 255 / 0.5), transparent 70%),
-    radial-gradient(40% 80% at 100% 0%, rgb(56 149 255 / 0.35), transparent 70%),
+    radial-gradient(60% 120% at 85% 50%, rgb(124 58 237 / 0.5), transparent 70%),
+    radial-gradient(40% 80% at 100% 0%, rgb(236 72 153 / 0.3), transparent 70%),
     var(--navy);
   color: #f4f6ff;
 }

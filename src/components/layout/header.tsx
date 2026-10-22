@@ -31,7 +31,7 @@ export function Header({ items, categories, suggestions }: Props) {
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
   return (
-    <header className="sticky top-0 z-header border-b border-line bg-surface/90 backdrop-blur supports-[backdrop-filter]:bg-surface/80">
+    <header className="sticky top-0 z-header border-b border-line/80 bg-surface/85 backdrop-blur-lg supports-[backdrop-filter]:bg-surface/75">
       <div className="container-page flex h-16 items-center gap-4">
         <Link href="/" aria-label="Artify Tools home" className="-ml-1 rounded-md p-1">
           <Logo />
@@ -61,7 +61,7 @@ export function Header({ items, categories, suggestions }: Props) {
           <SearchDialog items={items} categories={categories} suggestions={suggestions} />
           <ThemeToggle />
           <span className="hidden md:block">
-            <Link href="/tools" className={buttonClasses({ size: "md", className: "rounded-full px-5 shadow-[0_8px_22px_-8px_rgba(101,71,255,0.7)]" })}>
+            <Link href="/tools" className={buttonClasses({ size: "md", className: "rounded-full px-5 shadow-[0_8px_22px_-8px_rgba(124,58,237,0.65)]" })}>
               Explore Tools <Icon name="arrow-right" size={16} />
             </Link>
           </span>

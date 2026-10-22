@@ -67,7 +67,7 @@ export function PromoBanner() {
           </p>
           <Link
             href="/tools"
-            className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-full bg-accent px-5 text-sm font-semibold text-accent-fg shadow-[0_10px_30px_-8px_rgba(101,71,255,0.8)] transition-colors hover:bg-accent-hover"
+            className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-full bg-accent bg-(image:--gradient-btn) px-5 text-sm font-semibold text-accent-fg shadow-[0_10px_30px_-8px_rgba(124,58,237,0.7)] transition-colors hover:bg-(image:--gradient-btn-hover)"
           >
             View all tools <Icon name="arrow-right" size={16} />
           </Link>

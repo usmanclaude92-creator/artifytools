@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { GeistSans } from "geist/font/sans";
+import { Inter } from "next/font/google";
 import { GeistMono } from "geist/font/mono";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
@@ -8,6 +9,8 @@ import { themeInitScript } from "@/components/ui/theme";
 import { siteConfig } from "@/lib/config";
 import { getPopularTools, getPublishedCategories, getSearchItems, toDirectoryItem } from "@/lib/tools/registry";
 import "./globals.css";
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -22,8 +25,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fbfbfe" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b1028" },
+    { media: "(prefers-color-scheme: light)", color: "#fcf6fe" },
+    { media: "(prefers-color-scheme: dark)", color: "#0d0716" },
   ],
 };
 
@@ -33,7 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const suggestions = getPopularTools(6).map(toDirectoryItem);
 
   return (
-    <html lang="en" suppressHydrationWarning className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${GeistSans.variable} ${GeistMono.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
