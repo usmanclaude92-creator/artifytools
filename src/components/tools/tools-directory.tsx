@@ -148,14 +148,14 @@ export function ToolsDirectory({ tools, categories }: Props) {
   return (
     <div>
       <div className="relative">
-        <Icon name="search" size={20} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
+        <Icon name="search" size={20} className="pointer-events-none absolute start-4 top-1/2 -translate-y-1/2 text-muted" />
         <input
           type="search"
           aria-label="Search all tools"
           placeholder="Search tools by name, task, or keyword"
           value={filters.q}
           onChange={(e) => update({ q: e.target.value })}
-          className="field-control h-14 rounded-xl pl-12 text-base shadow-[var(--shadow-sm)]"
+          className="field-control h-14 rounded-xl ps-12 text-base shadow-[var(--shadow-sm)]"
           autoComplete="off"
         />
       </div>
@@ -218,7 +218,7 @@ export function ToolsDirectory({ tools, categories }: Props) {
           </div>
 
           <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-line pt-5">
-            <p role="status" aria-live="polite" className="mr-2 text-sm font-medium">
+            <p role="status" aria-live="polite" className="me-2 text-sm font-medium">
               {results.length} tool{results.length === 1 ? "" : "s"}
               {results.length > PAGE_SIZE && <span className="font-normal text-muted"> · page {page} of {pageCount}</span>}
             </p>

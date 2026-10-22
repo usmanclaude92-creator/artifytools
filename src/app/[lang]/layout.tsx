@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { GeistSans } from "geist/font/sans";
-import { Inter } from "next/font/google";
+import { IBM_Plex_Sans_Arabic, Inter } from "next/font/google";
+import { notFound } from "next/navigation";
 import { GeistMono } from "geist/font/mono";
 import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { Header } from "@/components/layout/header";
@@ -10,9 +11,18 @@ import { ToastProvider } from "@/components/ui/toast";
 import { themeInitScript } from "@/components/ui/theme";
 import { siteConfig } from "@/lib/config";
 import { getPopularTools, getPublishedCategories, getSearchItems, toDirectoryItem } from "@/lib/tools/registry";
-import "./globals.css";
+import { LocaleProvider } from "@/components/i18n/locale-provider";
+import { dirOf, isLocale, locales } from "@/lib/i18n";
+import "../globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+const arabic = IBM_Plex_Sans_Arabic({ subsets: ["arabic"], weight: ["400", "500", "600", "700"], variable: "--font-arabic", display: "swap", preload: false });
+
+export const dynamicParams = false;
+
+export function generateStaticParams() {
+  return locales.map((lang) => ({ lang }));
+}
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -32,21 +42,24 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children, params }: { children: React.ReactNode; params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  if (!isLocale(lang)) notFound();
   const items = getSearchItems();
   const categories = getPublishedCategories().map((c) => ({ name: c.name, slug: c.slug }));
   const suggestions = getPopularTools(6).map(toDirectoryItem);
 
   return (
-    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${GeistSans.variable} ${GeistMono.variable}`}>
+    <html lang={lang} dir={dirOf(lang)} suppressHydrationWarning className={`${inter.variable} ${GeistSans.variable} ${GeistMono.variable}${lang === "ar" ? ` ${arabic.variable}` : ""}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body className="flex min-h-dvh flex-col">
+        <LocaleProvider locale={lang}>
         <ToastProvider>
           <a
             href="#main"
-            className="sr-only-focusable fixed left-4 top-4 z-toast rounded-md bg-accent px-4 py-2.5 font-medium text-accent-fg"
+            className="sr-only-focusable fixed start-4 top-4 z-toast rounded-md bg-accent px-4 py-2.5 font-medium text-accent-fg"
           >
             Skip to main content
           </a>
@@ -57,6 +70,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </main>
           <Footer />
         </ToastProvider>
+        </LocaleProvider>
         <SiteAnalytics />
       </body>
     </html>

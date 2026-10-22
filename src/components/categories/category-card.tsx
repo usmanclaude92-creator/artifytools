@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/locale-link";
 import { IconTile } from "@/components/ui/misc";
 import { categoryTones } from "@/lib/tools/tones";
 import type { Category } from "@/lib/tools/types";

@@ -65,7 +65,7 @@ export default function UuidGenerator() {
         ) : (
           <ul className="flex flex-col gap-2" aria-live="polite">
             {shown.map((u, i) => (
-              <li key={`${i}-${u}`} className="flex items-center justify-between gap-3 rounded-md bg-surface-2 py-1.5 pl-4 pr-2">
+              <li key={`${i}-${u}`} className="flex items-center justify-between gap-3 rounded-md bg-surface-2 py-1.5 ps-4 pe-2">
                 <code className="min-w-0 break-all font-mono text-[0.9rem]">{u}</code>
                 <CopyButton value={u} label="Copy" ariaLabel={`Copy UUID ${i + 1}`} />
               </li>

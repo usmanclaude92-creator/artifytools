@@ -319,3 +319,13 @@
   box-shadow: var(--shadow-md);
   backdrop-filter: blur(6px);
 }
+
+/* Arabic: Arabic-script font first, Latin fallback for numbers and brand names. */
+html[lang="ar"] body {
+  font-family: var(--font-arabic), var(--font-sans);
+  font-feature-settings: normal;
+}
+/* Directional icons (arrows, chevrons) point the other way in right-to-left layouts. */
+[dir="rtl"] .icon-directional {
+  transform: scaleX(-1);
+}

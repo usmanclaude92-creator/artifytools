@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/locale-link";
 import { CategoryCard } from "@/components/categories/category-card";
 import { ToolGrid } from "@/components/tools/tool-card";
 import { ButtonLink } from "@/components/ui/button";
@@ -130,16 +130,16 @@ export function PromoBanner() {
             View all tools <Icon name="arrow-right" size={16} />
           </Link>
         </div>
-        <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 hidden w-[52%] md:block">
-          <span className="motion-float-delayed absolute right-[44%] top-[14%] grid size-[4.25rem] place-items-center rounded-2xl border border-white/15 bg-white/10 text-white backdrop-blur"><Icon name="code" size={28} /></span>
-          <span className="motion-float absolute right-[14%] top-[10%] grid size-[4.25rem] place-items-center rounded-2xl border border-white/15 bg-white/10 text-white backdrop-blur"><Icon name="image" size={28} /></span>
-          <span className="motion-float absolute right-[34%] top-[38%] grid size-24 place-items-center rounded-[1.6rem] bg-gradient-to-br from-[#7b5cff] to-[#4a35f0] shadow-[0_20px_50px_-8px_rgba(101,71,255,0.9)] ring-1 ring-white/30">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 end-0 hidden w-[52%] md:block">
+          <span className="motion-float-delayed absolute end-[44%] top-[14%] grid size-[4.25rem] place-items-center rounded-2xl border border-white/15 bg-white/10 text-white backdrop-blur"><Icon name="code" size={28} /></span>
+          <span className="motion-float absolute end-[14%] top-[10%] grid size-[4.25rem] place-items-center rounded-2xl border border-white/15 bg-white/10 text-white backdrop-blur"><Icon name="image" size={28} /></span>
+          <span className="motion-float absolute end-[34%] top-[38%] grid size-24 place-items-center rounded-[1.6rem] bg-gradient-to-br from-[#7b5cff] to-[#4a35f0] shadow-[0_20px_50px_-8px_rgba(101,71,255,0.9)] ring-1 ring-white/30">
             <svg viewBox="0 0 32 32" className="size-14" fill="none">
               <path d="M8 24 16 7l8 17" stroke="#fff" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
               <path d="M11.2 18.5h9.6" stroke="#fff" strokeWidth="2.8" strokeLinecap="round" />
             </svg>
           </span>
-          <span className="motion-float-delayed absolute bottom-[8%] right-[10%] grid size-[4.25rem] place-items-center rounded-2xl border border-white/15 bg-white/10 text-white backdrop-blur"><Icon name="file-text" size={28} /></span>
+          <span className="motion-float-delayed absolute bottom-[8%] end-[10%] grid size-[4.25rem] place-items-center rounded-2xl border border-white/15 bg-white/10 text-white backdrop-blur"><Icon name="file-text" size={28} /></span>
         </div>
       </div>
     </section>

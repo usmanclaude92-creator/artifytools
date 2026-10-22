@@ -56,7 +56,7 @@ export function TextArea({ className, ...props }: ComponentProps<"textarea">) {
 
 export function Select({ className, children, ...props }: ComponentProps<"select">) {
   return (
-    <select className={cx("field-control appearance-auto pr-8", className)} {...props}>
+    <select className={cx("field-control appearance-auto pe-8", className)} {...props}>
       {children}
     </select>
   );

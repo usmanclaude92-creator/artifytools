@@ -70,5 +70,6 @@ export type IconName = keyof typeof icons;
 
 export function Icon({ name, size = 20, className }: { name: IconName; size?: number; className?: string }) {
   const Cmp = icons[name];
-  return <Cmp aria-hidden="true" focusable="false" width={size} height={size} strokeWidth={1.75} className={className} />;
+  const directional = name === "arrow-right" || name === "chevron-right";
+  return <Cmp aria-hidden="true" focusable="false" width={size} height={size} strokeWidth={1.75} className={directional ? (className ? `${className} icon-directional` : "icon-directional") : className} />;
 }

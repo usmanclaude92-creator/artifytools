@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/locale-link";
 import { SearchCombobox, type SearchCategoryLink } from "@/components/search/search-combobox";
 import { getTool, type SearchItem } from "@/lib/tools/registry";
 import { HeroVisual } from "./hero-visual";

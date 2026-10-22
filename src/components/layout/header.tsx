@@ -1,7 +1,8 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/ui/locale-link";
 import { usePathname } from "next/navigation";
+import { stripLocale } from "@/lib/i18n";
 import { useEffect, useRef, useState } from "react";
 import { buttonClasses } from "@/components/ui/button";
 import { cx } from "@/components/ui/cx";
@@ -10,6 +11,7 @@ import { ThemeToggle } from "@/components/ui/theme";
 import { SearchDialog } from "@/components/search/search-dialog";
 import type { SearchCategoryLink } from "@/components/search/search-combobox";
 import type { SearchItem } from "@/lib/tools/registry";
+import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { Logo } from "./logo";
 import { primaryNav } from "./nav-links";
 
@@ -38,7 +40,7 @@ function CategoriesMenu({ categories, active }: { categories: SearchCategoryLink
         <Link
           href="/categories"
           aria-current={active ? "page" : undefined}
-          className={cx("inline-flex min-h-10 items-center rounded-md pl-3 pr-1 text-[0.95rem] font-medium transition-colors hover:text-fg", active ? "text-fg" : "text-muted")}
+          className={cx("inline-flex min-h-10 items-center rounded-md ps-3 pe-1 text-[0.95rem] font-medium transition-colors hover:text-fg", active ? "text-fg" : "text-muted")}
         >
           Categories
           {active && <span className="sr-only"> (current page)</span>}
@@ -55,7 +57,7 @@ function CategoriesMenu({ categories, active }: { categories: SearchCategoryLink
         </button>
       </div>
       {open && (
-        <ul id="categories-menu" className="card absolute left-0 top-full z-overlay mt-2 w-64 p-2 shadow-overlay">
+        <ul id="categories-menu" className="card absolute start-0 top-full z-overlay mt-2 w-64 p-2 shadow-overlay">
           {categories.map((c) => (
             <li key={c.slug}>
               <Link href={`/categories/${c.slug}`} className="flex min-h-10 items-center rounded-md px-3 text-sm font-medium hover:bg-surface-2">
@@ -75,7 +77,7 @@ function CategoriesMenu({ categories, active }: { categories: SearchCategoryLink
 }
 
 export function Header({ items, categories, suggestions }: Props) {
-  const pathname = usePathname();
+  const pathname = stripLocale(usePathname());
   const menuRef = useRef<HTMLDialogElement>(null);
 
   // Close the mobile menu after any navigation.
@@ -88,11 +90,11 @@ export function Header({ items, categories, suggestions }: Props) {
   return (
     <header className="sticky top-0 z-header border-b border-line/80 bg-surface/85 backdrop-blur-lg supports-[backdrop-filter]:bg-surface/75">
       <div className="container-page flex h-16 items-center gap-4">
-        <Link href="/" aria-label="Artify Tools home" className="-ml-1 rounded-md p-1">
+        <Link href="/" aria-label="Artify Tools home" className="-ms-1 rounded-md p-1">
           <Logo />
         </Link>
 
-        <nav aria-label="Primary" className="ml-6 hidden lg:block">
+        <nav aria-label="Primary" className="ms-6 hidden lg:block">
           <ul className="flex items-center gap-1">
             {primaryNav.map((l) => l.href === "/categories" ? (
               <li key={l.href}>
@@ -116,8 +118,9 @@ export function Header({ items, categories, suggestions }: Props) {
           </ul>
         </nav>
 
-        <div className="ml-auto flex items-center gap-1 sm:gap-2">
+        <div className="ms-auto flex items-center gap-1 sm:gap-2">
           <SearchDialog items={items} categories={categories} suggestions={suggestions} />
+          <LanguageSwitcher />
           <ThemeToggle />
           <span className="hidden md:block">
             <Link href="/tools" className={buttonClasses({ size: "md", className: "rounded-full px-5 shadow-[0_8px_22px_-8px_rgba(124,58,237,0.65)]" })}>
@@ -140,7 +143,7 @@ export function Header({ items, categories, suggestions }: Props) {
         ref={menuRef}
         aria-label="Menu"
         onClick={(e) => { if (e.target === menuRef.current) menuRef.current?.close(); }}
-        className="m-0 ml-auto h-dvh max-h-none w-[min(22rem,100vw)] max-w-none border-l border-line bg-canvas p-0 text-fg shadow-overlay backdrop:bg-black/50"
+        className="m-0 ms-auto h-dvh max-h-none w-[min(22rem,100vw)] max-w-none border-l border-line bg-canvas p-0 text-fg shadow-overlay backdrop:bg-black/50"
       >
         <div className="flex h-full flex-col p-5">
           <div className="flex items-center justify-between">

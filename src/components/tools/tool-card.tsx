@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/locale-link";
 import { Badge, IconTile } from "@/components/ui/misc";
 import { cx } from "@/components/ui/cx";
 import { categoryTones } from "@/lib/tools/tones";

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/ui/locale-link";
 import { siteConfig } from "@/lib/config";
 import { Icon } from "@/components/ui/icon";
 

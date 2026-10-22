@@ -1,7 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/ui/locale-link";
 import { useRouter } from "next/navigation";
+import { useLocale } from "@/components/i18n/locale-provider";
+import { localizeHref } from "@/lib/i18n";
 import { useId, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/ui/icon";
 import { cx } from "@/components/ui/cx";
@@ -27,6 +29,7 @@ interface Props {
 
 export function SearchCombobox({ items, categories, suggestions, variant, autoFocus, onNavigate, placeholder = "What do you need to do today?", inputId }: Props) {
   const router = useRouter();
+  const locale = useLocale();
   const uid = useId();
   const listId = `${uid}-list`;
   const inputRef = useRef<HTMLInputElement>(null);
@@ -43,7 +46,7 @@ export function SearchCombobox({ items, categories, suggestions, variant, autoFo
   function go(href: string) {
     setOpen(false);
     onNavigate?.();
-    router.push(href);
+    router.push(localizeHref(href, locale));
   }
 
   function submit() {
@@ -89,7 +92,7 @@ export function SearchCombobox({ items, categories, suggestions, variant, autoFo
   return (
     <div className="relative">
       <div className="relative">
-        <Icon name="search" size={20} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
+        <Icon name="search" size={20} className="pointer-events-none absolute start-4 top-1/2 -translate-y-1/2 text-muted" />
         <input
           ref={inputRef}
           id={inputId}
@@ -119,8 +122,8 @@ export function SearchCombobox({ items, categories, suggestions, variant, autoFo
           }}
           onKeyDown={onKeyDown}
           className={cx(
-            "w-full border border-line-strong bg-surface pl-12 text-base shadow-sm transition-shadow placeholder:text-muted focus-visible:border-accent focus-visible:shadow-[0_0_0_4px_var(--accent-soft)] focus-visible:outline-none",
-            variant === "hero" ? "h-14 rounded-2xl pr-28 shadow-[var(--shadow-md)] sm:h-[3.75rem]" : "h-14 rounded-lg pr-12",
+            "w-full border border-line-strong bg-surface ps-12 text-base shadow-sm transition-shadow placeholder:text-muted focus-visible:border-accent focus-visible:shadow-[0_0_0_4px_var(--accent-soft)] focus-visible:outline-none",
+            variant === "hero" ? "h-14 rounded-2xl pe-28 shadow-[var(--shadow-md)] sm:h-[3.75rem]" : "h-14 rounded-lg pe-12",
           )}
         />
         {query && (
@@ -128,7 +131,7 @@ export function SearchCombobox({ items, categories, suggestions, variant, autoFo
             type="button"
             aria-label="Clear search"
             onClick={() => { setQuery(""); setActiveIndex(0); inputRef.current?.focus(); }}
-            className={cx("absolute top-1/2 grid size-10 -translate-y-1/2 place-items-center rounded-md text-muted hover:bg-surface-2 hover:text-fg", variant === "hero" ? "right-16" : "right-2")}
+            className={cx("absolute top-1/2 grid size-10 -translate-y-1/2 place-items-center rounded-md text-muted hover:bg-surface-2 hover:text-fg", variant === "hero" ? "end-16" : "end-2")}
           >
             <Icon name="x" size={18} />
           </button>
@@ -138,7 +141,7 @@ export function SearchCombobox({ items, categories, suggestions, variant, autoFo
             type="button"
             aria-label="Search"
             onClick={submit}
-            className="absolute right-2.5 top-1/2 grid h-10 w-12 -translate-y-1/2 place-items-center rounded-xl bg-accent text-accent-fg shadow-sm transition-colors hover:bg-accent-hover sm:h-11 sm:w-14"
+            className="absolute end-2.5 top-1/2 grid h-10 w-12 -translate-y-1/2 place-items-center rounded-xl bg-accent text-accent-fg shadow-sm transition-colors hover:bg-accent-hover sm:h-11 sm:w-14"
           >
             <Icon name="arrow-right" size={20} />
           </button>
@@ -175,7 +178,7 @@ export function SearchCombobox({ items, categories, suggestions, variant, autoFo
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-medium">
                     {r.name}
-                    {r.status !== "active" && <span className="ml-2 rounded-full bg-warning-soft px-2 py-0.5 text-xs font-medium text-warning">{r.status === "beta" ? "Beta" : "Coming soon"}</span>}
+                    {r.status !== "active" && <span className="ms-2 rounded-full bg-warning-soft px-2 py-0.5 text-xs font-medium text-warning">{r.status === "beta" ? "Beta" : "Coming soon"}</span>}
                   </span>
                   <span className="block truncate text-sm text-muted">{r.description}</span>
                 </span>
