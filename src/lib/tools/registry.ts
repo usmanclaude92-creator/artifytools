@@ -29,6 +29,7 @@ import { meta as compressPdf } from "@/tools/compress-pdf/meta";
 import { meta as compressImage } from "@/tools/compress-image/meta";
 import { meta as amountInWords } from "@/tools/amount-in-words/meta";
 import { meta as chequePrinter } from "@/tools/cheque-printer/meta";
+import { meta as pdfToJpg } from "@/tools/pdf-to-jpg/meta";
 
 /**
  * Single source of truth for every tool. Directory cards, categories, search,
@@ -60,6 +61,7 @@ export const tools: readonly ToolDefinition[] = [
   compressImage,
   amountInWords,
   chequePrinter,
+  pdfToJpg,
 ];
 
 const bySlug = new Map(tools.map((t) => [t.slug, t]));

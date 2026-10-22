@@ -208,3 +208,29 @@ test.describe("Compress Image", () => {
     expect(readFileSync((await d.path())!).length).toBeLessThanOrEqual(40_000);
   });
 });
+
+test.describe("PDF to JPG", () => {
+  test("renders chosen pages to images and refuses locked PDFs", async ({ page }) => {
+    await open(page, "/tools/pdf-to-jpg");
+    await page.locator('input[type="file"]').setInputFiles(fixture("locked.pdf"));
+    await expect(page.getByText("This PDF is password-protected. Unlock it first, then choose it again.")).toBeVisible();
+    await page.getByRole("button", { name: "Choose another file" }).click();
+    await page.locator('input[type="file"]').setInputFiles(fixture("plain-3-pages.pdf"));
+    await expect(page.getByText("3 pages", { exact: false })).toBeVisible();
+    await expect(page.getByText("This creates 3 images.")).toBeVisible();
+    await page.getByRole("radio", { name: "Choose pages" }).check({ force: true });
+    await page.getByLabel("Page numbers").fill("2-3");
+    await expect(page.getByText("This creates 2 images.")).toBeVisible();
+    await page.getByRole("radio", { name: "PNG (sharpest)" }).check({ force: true });
+    await page.getByRole("button", { name: "Convert to images" }).click();
+    await expect(page.getByRole("img", { name: "Page 3" })).toBeVisible();
+    await expect(page.getByRole("img", { name: "Page 2" })).toBeVisible();
+    const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: /Download/ }).nth(1).click()]);
+    expect(download.suggestedFilename()).toMatch(/^plain-3-pages-page-[23]\.png$/);
+    const bytes = readFileSync((await download.path())!);
+    expect([...bytes.subarray(0, 4)]).toEqual([0x89, 0x50, 0x4e, 0x47]);
+    // Changing settings marks results as stale.
+    await page.getByRole("radio", { name: "JPG (smaller)" }).check({ force: true });
+    await expect(page.getByText("Settings changed. Convert again to update the images.")).toBeVisible();
+  });
+});

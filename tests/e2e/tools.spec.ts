@@ -18,7 +18,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("every published tool page renders its workspace", async ({ page }) => {
-  const slugs = ["word-counter", "case-converter", "text-cleaner", "remove-duplicate-lines", "percentage-calculator", "vat-calculator", "discount-calculator", "json-formatter", "url-encoder-decoder", "base64-encoder-decoder", "uuid-generator", "password-generator", "qr-code-generator", "date-difference", "color-converter", "ai-text-summarizer", "merge-pdf", "split-pdf", "jpg-to-pdf", "compress-pdf", "compress-image", "amount-in-words", "cheque-printer"];
+  const slugs = ["word-counter", "case-converter", "text-cleaner", "remove-duplicate-lines", "percentage-calculator", "vat-calculator", "discount-calculator", "json-formatter", "url-encoder-decoder", "base64-encoder-decoder", "uuid-generator", "password-generator", "qr-code-generator", "date-difference", "color-converter", "ai-text-summarizer", "merge-pdf", "split-pdf", "jpg-to-pdf", "compress-pdf", "compress-image", "amount-in-words", "cheque-printer", "pdf-to-jpg"];
   for (const slug of slugs) {
     const errors: string[] = [];
     const h = (m: import("@playwright/test").ConsoleMessage) => (m.type() === "error" || m.type() === "warning") && errors.push(m.text());
