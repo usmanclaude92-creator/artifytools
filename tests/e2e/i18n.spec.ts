@@ -87,6 +87,20 @@ test.describe("Arabic routing (unpublished)", () => {
     await expect(page.getByRole("textbox", { name: "النتيجة" })).toHaveValue("2YXYsdit2KjYpw==");
   });
 
+  test("Arabic password, QR and colour tools", async ({ page }) => {
+    await page.goto("/ar/tools/password-generator");
+    await page.waitForLoadState("networkidle");
+    await expect(page.getByText(/^القوة: /)).toBeVisible();
+    await page.goto("/ar/tools/qr-code-generator");
+    await page.waitForLoadState("networkidle");
+    await page.getByRole("textbox", { name: "النص أو الرابط" }).fill("https://tools.artifysols.com/ar");
+    await expect(page.getByRole("img", { name: "رمز QR المُنشأ" })).toBeVisible();
+    await page.goto("/ar/tools/color-converter");
+    await page.waitForLoadState("networkidle");
+    await page.getByRole("textbox", { name: "قيمة اللون" }).fill("#12");
+    await expect(page.getByText("تعذّرت قراءة هذا اللون", { exact: false }).first()).toBeVisible();
+  });
+
   test("English pages are unchanged: ltr, no switcher, no robots header", async ({ page }) => {
     const res = await page.goto("/tools/word-counter");
     expect(res?.headers()["x-robots-tag"]).toBeUndefined();

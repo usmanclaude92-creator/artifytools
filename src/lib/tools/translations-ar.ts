@@ -11,6 +11,10 @@ import { metaAr as jsonFormatter } from "@/tools/json-formatter/meta.ar";
 import { metaAr as urlEncoderDecoder } from "@/tools/url-encoder-decoder/meta.ar";
 import { metaAr as base64EncoderDecoder } from "@/tools/base64-encoder-decoder/meta.ar";
 import { metaAr as uuidGenerator } from "@/tools/uuid-generator/meta.ar";
+import { metaAr as passwordGenerator } from "@/tools/password-generator/meta.ar";
+import { metaAr as qrCodeGenerator } from "@/tools/qr-code-generator/meta.ar";
+import { metaAr as colorConverter } from "@/tools/color-converter/meta.ar";
+import { metaAr as aiTextSummarizer } from "@/tools/ai-text-summarizer/meta.ar";
 
 /** Arabic text for each tool, keyed by tool id. Tools missing here are shown in English. */
 export const toolTranslationsAr: Record<string, ToolTranslation> = {
@@ -26,4 +30,8 @@ export const toolTranslationsAr: Record<string, ToolTranslation> = {
   "url-encoder-decoder": urlEncoderDecoder,
   "base64-encoder-decoder": base64EncoderDecoder,
   "uuid-generator": uuidGenerator,
+  "password-generator": passwordGenerator,
+  "qr-code-generator": qrCodeGenerator,
+  "color-converter": colorConverter,
+  "ai-text-summarizer": aiTextSummarizer,
 };

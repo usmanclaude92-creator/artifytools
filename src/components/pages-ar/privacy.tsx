@@ -2,6 +2,7 @@ import NextLink from "next/link";
 import Link from "@/components/ui/locale-link";
 import { PageHeader } from "@/components/layout/page-header";
 import { getUsableTools } from "@/lib/tools/registry";
+import { localizeTool } from "@/lib/tools/localize";
 import type { ProcessingMode } from "@/lib/tools/types";
 
 export const privacyMetaAr = {
@@ -25,7 +26,7 @@ const modeLabels: Record<ProcessingMode, { label: string; description: string }>
 };
 
 export function PrivacyAr() {
-  const tools = getUsableTools();
+  const tools = getUsableTools().map((t) => localizeTool(t, "ar"));
   const modes: ProcessingMode[] = ["browser-local", "server-side", "external-provider"];
   return (
     <>
