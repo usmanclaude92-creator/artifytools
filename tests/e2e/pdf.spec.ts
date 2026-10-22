@@ -131,3 +131,42 @@ test.describe("JPG to PDF", () => {
     expect((await pdfSizes(download)).length).toBe(1);
   });
 });
+
+test.describe("Compress PDF", () => {
+  async function photoPdf(): Promise<Buffer> {
+    const doc = await PDFDocument.create();
+    const jpg = await doc.embedJpg(readFileSync(fixture("noisy-photo.jpg")));
+    const png = await doc.embedPng(readFileSync(fixture("noisy-alpha.png")));
+    for (let i = 0; i < 3; i++) {
+      const page = doc.addPage([600, 800]);
+      page.drawImage(jpg, { x: 0, y: 350, width: 600, height: 450 });
+      page.drawImage(png, { x: 0, y: 0, width: 300, height: 200 });
+    }
+    return Buffer.from(await doc.save());
+  }
+
+  test("shrinks a photo-heavy PDF and keeps every page", async ({ page }) => {
+    const input = await photoPdf();
+    await open(page, "/tools/compress-pdf");
+    await page.locator('input[type="file"]').setInputFiles({ name: "scan.pdf", mimeType: "application/pdf", buffer: input });
+    await page.getByRole("radio", { name: "Strong" }).click();
+    await page.getByRole("button", { name: "Compress PDF" }).click();
+    await expect(page.getByText(/% smaller$/)).toBeVisible();
+    await expect(page.getByText("2 of 3 images re-compressed.")).toBeVisible();
+    const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download compressed PDF" }).click()]);
+    expect(download.suggestedFilename()).toBe("scan-compressed.pdf");
+    const out = readFileSync((await download.path())!);
+    expect(out.length).toBeLessThan(input.length * 0.6);
+    expect((await PDFDocument.load(out)).getPageCount()).toBe(3);
+  });
+
+  test("says so when a text-only PDF can't be made smaller (Arabic)", async ({ page }) => {
+    const doc = await PDFDocument.create();
+    doc.addPage().drawText("Plain text");
+    await open(page, "/ar/tools/compress-pdf");
+    await page.locator('input[type="file"]').setInputFiles({ name: "text.pdf", mimeType: "application/pdf", buffer: Buffer.from(await doc.save({ useObjectStreams: true })) });
+    await page.getByRole("button", { name: "ضغط الملف" }).click();
+    await expect(page.getByText("هذا الملف صغير أصلًا", { exact: false })).toBeVisible();
+    await expect(page.getByRole("button", { name: "تنزيل الملف المضغوط" })).toHaveCount(0);
+  });
+});

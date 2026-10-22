@@ -25,6 +25,7 @@ import { meta as aiTextSummarizer } from "@/tools/ai-text-summarizer/meta";
 import { meta as mergePdf } from "@/tools/merge-pdf/meta";
 import { meta as splitPdf } from "@/tools/split-pdf/meta";
 import { meta as jpgToPdf } from "@/tools/jpg-to-pdf/meta";
+import { meta as compressPdf } from "@/tools/compress-pdf/meta";
 
 /**
  * Single source of truth for every tool. Directory cards, categories, search,
@@ -52,6 +53,7 @@ export const tools: readonly ToolDefinition[] = [
   mergePdf,
   splitPdf,
   jpgToPdf,
+  compressPdf,
 ];
 
 const bySlug = new Map(tools.map((t) => [t.slug, t]));

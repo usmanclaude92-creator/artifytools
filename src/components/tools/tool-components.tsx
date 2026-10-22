@@ -39,6 +39,7 @@ const components: Record<string, ComponentType> = {
   "merge-pdf": load(() => import("@/tools/merge-pdf/ui")),
   "split-pdf": load(() => import("@/tools/split-pdf/ui")),
   "jpg-to-pdf": load(() => import("@/tools/jpg-to-pdf/ui")),
+  "compress-pdf": load(() => import("@/tools/compress-pdf/ui")),
 };
 
 export function ToolWorkspace({ toolId }: { toolId: string }) {

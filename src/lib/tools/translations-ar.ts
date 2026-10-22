@@ -18,6 +18,7 @@ import { metaAr as aiTextSummarizer } from "@/tools/ai-text-summarizer/meta.ar";
 import { metaAr as mergePdf } from "@/tools/merge-pdf/meta.ar";
 import { metaAr as splitPdf } from "@/tools/split-pdf/meta.ar";
 import { metaAr as jpgToPdf } from "@/tools/jpg-to-pdf/meta.ar";
+import { metaAr as compressPdf } from "@/tools/compress-pdf/meta.ar";
 
 /** Arabic text for each tool, keyed by tool id. Tools missing here are shown in English. */
 export const toolTranslationsAr: Record<string, ToolTranslation> = {
@@ -40,4 +41,5 @@ export const toolTranslationsAr: Record<string, ToolTranslation> = {
   "merge-pdf": mergePdf,
   "split-pdf": splitPdf,
   "jpg-to-pdf": jpgToPdf,
+  "compress-pdf": compressPdf,
 };

@@ -64,6 +64,8 @@ describe("Arabic search", () => {
     expect(top("فصل صفحات pdf")[0]).toBe("split-pdf");
     expect(top("تحويل الصور الى pdf")[0]).toBe("jpg-to-pdf");
     expect(top("تحويل jpg الى pdf")[0]).toBe("jpg-to-pdf");
+    expect(top("ضغط pdf")[0]).toBe("compress-pdf");
+    expect(top("تصغير حجم pdf")[0]).toBe("compress-pdf");
   });
 });
 
@@ -96,6 +98,8 @@ describe("search", () => {
     expect(top("jpg to pdf")[0]).toBe("jpg-to-pdf");
     expect(top("image to pdf")[0]).toBe("jpg-to-pdf");
     expect(top("png to pdf")[0]).toBe("jpg-to-pdf");
+    expect(top("compress pdf")[0]).toBe("compress-pdf");
+    expect(top("reduce pdf size")[0]).toBe("compress-pdf");
   });
   it("ranks exact name matches above weaker matches", () => {
     expect(top("password generator")[0]).toBe("password-generator");
