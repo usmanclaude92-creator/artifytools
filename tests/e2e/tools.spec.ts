@@ -213,7 +213,7 @@ test("password generator", async ({ page }) => {
 test("QR code generator renders a real code and downloads PNG/SVG", async ({ page }) => {
   await open(page, "qr-code-generator");
   await expect(page.getByText("Enter text or a link")).toBeVisible();
-  await page.getByLabel("Text or URL").fill("https://artifytools.com");
+  await page.getByLabel("Text or URL").fill("https://tools.artifysols.com");
   const img = page.getByRole("img", { name: "Generated QR code" });
   await expect(img).toBeVisible();
   await expect(img).toHaveAttribute("src", /^data:image\/svg\+xml/);

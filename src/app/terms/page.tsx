@@ -16,7 +16,7 @@ export default function TermsPage() {
       <div className="container-page py-10">
         <div className="prose-artify">
           <h2 className="!mt-0">Using Artify Tools</h2>
-          <p>By using artifytools.com you agree to these terms. If you don’t agree, please don’t use the site.</p>
+          <p>By using tools.artifysols.com you agree to these terms. If you don’t agree, please don’t use the site.</p>
 
           <h2>Acceptable use</h2>
           <ul>

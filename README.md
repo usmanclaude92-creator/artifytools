@@ -1,6 +1,6 @@
 # Artify Tools
 
-**Powerful tools. Beautifully simple.** — https://artifytools.com
+**Powerful tools. Beautifully simple.** — https://tools.artifysols.com
 
 A premium collection of online tools built with Next.js (App Router), TypeScript, and Tailwind CSS v4.
 Most tools run entirely in the browser; every tool page discloses exactly where data is processed.
@@ -35,7 +35,7 @@ src/
     tools/              types.ts, categories.ts, registry.ts (single source of truth), labels.ts
     search.ts           Local ranked search (no external service)
     decimal.ts          Exact BigInt decimal arithmetic for calculators
-    seo/ config.ts      Metadata helper, canonical URLs (https://artifytools.com)
+    seo/ config.ts      Metadata helper, canonical URLs (https://tools.artifysols.com)
     ai/                 Provider interface, Anthropic provider, request validation, rate limiter
   tools/<slug>/         meta.ts (registry entry + page content), logic.ts (pure, tested), ui.tsx (client workspace)
 tests/e2e/              Playwright specs (site, tools, a11y)

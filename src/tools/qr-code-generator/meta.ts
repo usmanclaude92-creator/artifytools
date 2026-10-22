@@ -26,7 +26,7 @@ export const meta: ToolDefinition = {
     "Test the code with a phone camera before printing.",
   ],
   examples: [
-    { label: "Website link", input: "https://artifytools.com", output: "QR code that opens the site" },
+    { label: "Website link", input: "https://tools.artifysols.com", output: "QR code that opens the site" },
   ],
   faqs: [
     { question: "Do these QR codes expire?", answer: "No. The data is encoded directly in the image, so the code works as long as the destination does. There is no tracking redirect." },

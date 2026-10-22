@@ -20,7 +20,7 @@ test.describe("pages", () => {
       await expect(page.locator("h1")).toHaveCount(1);
       await expect(page).toHaveTitle(/\S/);
       const canonical = await page.locator('link[rel="canonical"]').getAttribute("href");
-      expect(canonical).toBe(`https://artifytools.com${route === "/" ? "" : route}`);
+      expect(canonical).toBe(`https://tools.artifysols.com${route === "/" ? "" : route}`);
       expect(await page.locator('meta[name="description"]').getAttribute("content")).toBeTruthy();
       expect(await page.locator('meta[property="og:title"]').count()).toBeGreaterThan(0);
       expect(issues).toEqual([]);
@@ -55,12 +55,12 @@ test.describe("pages", () => {
 
   test("sitemap and robots are served with canonical domain", async ({ request }) => {
     const sm = await (await request.get("/sitemap.xml")).text();
-    expect(sm).toContain("https://artifytools.com/tools/word-counter");
-    expect(sm).toContain("https://artifytools.com/categories/calculators");
+    expect(sm).toContain("https://tools.artifysols.com/tools/word-counter");
+    expect(sm).toContain("https://tools.artifysols.com/categories/calculators");
     expect(sm).not.toContain("ai-text-summarizer"); // beta tools aren't promoted
     expect(sm).not.toContain("localhost");
     const robots = await (await request.get("/robots.txt")).text();
-    expect(robots).toContain("Sitemap: https://artifytools.com/sitemap.xml");
+    expect(robots).toContain("Sitemap: https://tools.artifysols.com/sitemap.xml");
     expect(robots).toContain("Disallow: /api/");
   });
 

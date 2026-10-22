@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { absoluteUrl, siteConfig } from "@/lib/config";
 
-/** Builds consistent page metadata with an https://artifytools.com canonical URL. */
+/** Builds consistent page metadata with an https://tools.artifysols.com canonical URL. */
 export function pageMetadata({
   title,
   description,
