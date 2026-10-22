@@ -73,6 +73,20 @@ test.describe("Arabic routing (unpublished)", () => {
     await expect(page.getByRole("region", { name: "الفرق" }).getByText("4 سنوات، شهران، 5 أيام")).toBeVisible();
   });
 
+  test("Arabic developer tools translate errors and keep code left-to-right", async ({ page }) => {
+    await page.goto("/ar/tools/json-formatter");
+    await page.waitForLoadState("networkidle");
+    const input = page.getByRole("textbox", { name: "مدخل JSON" });
+    await expect(input).toHaveAttribute("dir", "ltr");
+    await input.fill('{"a": 1,}');
+    await expect(page.getByText("JSON غير صالح — السطر 1، العمود 9")).toBeVisible();
+    await expect(page.getByText("فاصلة زائدة — احذف الفاصلة قبل القوس المعقوف الختامي }")).toBeVisible();
+    await page.goto("/ar/tools/base64-encoder-decoder");
+    await page.waitForLoadState("networkidle");
+    await page.getByRole("textbox", { name: "النص المراد ترميزه" }).fill("مرحبا");
+    await expect(page.getByRole("textbox", { name: "النتيجة" })).toHaveValue("2YXYsdit2KjYpw==");
+  });
+
   test("English pages are unchanged: ltr, no switcher, no robots header", async ({ page }) => {
     const res = await page.goto("/tools/word-counter");
     expect(res?.headers()["x-robots-tag"]).toBeUndefined();

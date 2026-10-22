@@ -70,11 +70,11 @@ export async function Examples({ examples }: { examples: ToolDefinition["example
             <dl className="space-y-3 p-4 text-sm">
               <div>
                 <dt className="text-muted">{t.toolPage.input}</dt>
-                <dd><pre className="mt-1 whitespace-pre-wrap break-words font-mono text-[0.85rem]">{ex.input}</pre></dd>
+                <dd><pre dir="auto" className="mt-1 whitespace-pre-wrap break-words font-mono text-[0.85rem]">{ex.input}</pre></dd>
               </div>
               <div>
                 <dt className="text-muted">{t.toolPage.result}</dt>
-                <dd><pre className="mt-1 whitespace-pre-wrap break-words font-mono text-[0.85rem] font-medium">{ex.output}</pre></dd>
+                <dd><pre dir="auto" className="mt-1 whitespace-pre-wrap break-words font-mono text-[0.85rem] font-medium">{ex.output}</pre></dd>
               </div>
             </dl>
           </figure>

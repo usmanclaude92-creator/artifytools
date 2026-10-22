@@ -51,7 +51,8 @@ export function TextInput({ className, ...props }: ComponentProps<"input">) {
 }
 
 export function TextArea({ className, ...props }: ComponentProps<"textarea">) {
-  return <textarea className={cx("field-control resize-y font-mono text-[0.9rem] leading-relaxed", className)} {...props} />;
+  // dir="auto": text follows its own direction (Arabic right-to-left, code and English left-to-right).
+  return <textarea dir="auto" className={cx("field-control resize-y font-mono text-[0.9rem] leading-relaxed", className)} {...props} />;
 }
 
 export function Select({ className, children, ...props }: ComponentProps<"select">) {
