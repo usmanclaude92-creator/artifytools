@@ -1,0 +1,317 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   Artify Tools design tokens
+   Light is the default theme. Dark values are applied via [data-theme].
+   ------------------------------------------------------------------ */
+:root {
+  /* Colour — light (cool white canvas, deep navy type, electric violet/blue accents) */
+  --canvas: #fbfbfe;
+  --surface: #ffffff;
+  --surface-2: #f6f7fc; /* recessed / subtle fills */
+  --surface-violet: #f1f0ff; /* pale blue-violet sections */
+  --fg: #10172f; /* deep navy */
+  --muted: #596480; /* secondary text (5.7:1 on canvas, 5.2:1 on pale violet) */
+  --line: #e7eaf3;
+  --line-strong: #d9deeb;
+  --accent: #6547ff; /* electric violet — fills, white text 5.6:1 */
+  --accent-hover: #4930e8;
+  --accent-fg: #ffffff;
+  --accent-text: #4930e8; /* accent as text on canvas/surface */
+  --accent-soft: #f1f0ff;
+  --blue: #3895ff;
+  --blue-soft: #eaf3ff;
+  --navy: #0c1230;
+  --navy-2: #151d42;
+  --success: #0f7a4d;
+  --success-soft: #e4f6ec;
+  --warning: #96560a;
+  --warning-soft: #fdf1dc;
+  --danger: #b42318;
+  --danger-soft: #fdeceb;
+  --focus: #6547ff;
+
+  /* Soft tinted icon tiles */
+  --tint-blue-bg: #e8f1ff;   --tint-blue-fg: #2563eb;
+  --tint-violet-bg: #efecff; --tint-violet-fg: #5a3df0;
+  --tint-green-bg: #e3f6ec;  --tint-green-fg: #0f7a4d;
+  --tint-pink-bg: #fdeaf3;   --tint-pink-fg: #c0306f;
+  --tint-amber-bg: #fdf0dc;  --tint-amber-fg: #a35d08;
+
+  --gradient-text: linear-gradient(90deg, #5a3df0 0%, #3895ff 100%);
+  --gradient-cta: linear-gradient(120deg, #e9e5ff 0%, #e4ecff 55%, #dff1ff 100%);
+
+  /* Shadow */
+  --shadow-sm: 0 3px 14px rgb(20 31 70 / 0.045);
+  --shadow-md: 0 12px 34px rgb(46 48 112 / 0.09);
+  --shadow-lg: 0 24px 60px -12px rgb(46 48 112 / 0.2);
+
+  /* Motion */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 360ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Layout */
+  --container-page: 76rem;
+  --container-prose: 44rem;
+  --header-h: 4rem;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --canvas: #0b1028;
+  --surface: #131a3a;
+  --surface-2: #1a2347;
+  --surface-violet: #171d4a;
+  --fg: #f4f6ff;
+  --muted: #a3adcb;
+  --line: #252e57;
+  --line-strong: #36406e;
+  --accent: #6c52ff; /* white text 4.9:1 */
+  --accent-hover: #8068ff;
+  --accent-fg: #ffffff;
+  --accent-text: #b4a8ff;
+  --accent-soft: #232a62;
+  --blue: #6ea8ff;
+  --blue-soft: #16264d;
+  --navy: #070b1f;
+  --navy-2: #131a3a;
+  --success: #4cd08f;
+  --success-soft: #11291f;
+  --warning: #f0b45a;
+  --warning-soft: #33250f;
+  --danger: #ff8f84;
+  --danger-soft: #3a1714;
+  --focus: #b4a8ff;
+
+  --tint-blue-bg: #17284f;   --tint-blue-fg: #7fb0ff;
+  --tint-violet-bg: #251f5c; --tint-violet-fg: #b4a8ff;
+  --tint-green-bg: #12332a;  --tint-green-fg: #4cd08f;
+  --tint-pink-bg: #3b1f35;   --tint-pink-fg: #ff9ac6;
+  --tint-amber-bg: #3a2c12;  --tint-amber-fg: #f0b45a;
+
+  --gradient-text: linear-gradient(90deg, #a898ff 0%, #6ea8ff 100%);
+  --gradient-cta: linear-gradient(120deg, #1d2160 0%, #1a2a70 55%, #17356f 100%);
+
+  --shadow-sm: 0 3px 14px rgb(0 0 0 / 0.28);
+  --shadow-md: 0 12px 34px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 24px 60px -12px rgb(0 0 0 / 0.6);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-text: var(--accent-text);
+  --color-accent-soft: var(--accent-soft);
+  --color-surface-violet: var(--surface-violet);
+  --color-navy: var(--navy);
+  --color-navy-2: var(--navy-2);
+  --color-blue: var(--blue);
+  --color-blue-soft: var(--blue-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+
+  --shadow-card: var(--shadow-sm);
+  --shadow-raised: var(--shadow-md);
+  --shadow-overlay: var(--shadow-lg);
+
+  --breakpoint-xs: 30rem;
+}
+
+/* Z-index scale (documented tokens; used via utilities z-header / z-overlay / z-toast) */
+@utility z-header { z-index: 40; }
+@utility z-overlay { z-index: 60; }
+@utility z-toast { z-index: 80; }
+
+@layer base {
+  html {
+    background: var(--canvas);
+    scroll-padding-top: calc(var(--header-h) + 1rem);
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--canvas);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01";
+    line-height: 1.6;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 {
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    text-wrap: balance;
+  }
+  p { text-wrap: pretty; }
+  ::selection { background: var(--accent-soft); color: var(--fg); }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  input:focus-visible, textarea:focus-visible, select:focus-visible {
+    outline-offset: 0;
+    border-radius: var(--radius-md);
+  }
+  button, [role="button"], a, select, summary { touch-action: manipulation; }
+  dialog::backdrop { background: rgb(14 13 19 / 0.55); backdrop-filter: blur(2px); }
+}
+
+/* Reusable component classes — keep markup readable and visuals consistent */
+@layer components {
+  .container-page {
+    width: 100%;
+    max-width: var(--container-page);
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+  @media (min-width: 48rem) { .container-page { padding-inline: 2rem; } }
+
+  .eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent-text);
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+  }
+  .card-interactive {
+    transition: border-color var(--duration-base) var(--ease-out),
+      box-shadow var(--duration-base) var(--ease-out),
+      transform var(--duration-base) var(--ease-out);
+  }
+  .card-interactive:hover {
+    border-color: var(--line-strong);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+
+  .field-control {
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0.625rem 0.875rem;
+    background: var(--surface);
+    color: var(--fg);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-md);
+    font: inherit;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
+  }
+  .field-control::placeholder { color: var(--muted); opacity: 0.8; }
+  .field-control:hover { border-color: var(--muted); }
+  .field-control:focus-visible { border-color: var(--focus); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .field-control[aria-invalid="true"] { border-color: var(--danger); }
+  .field-control:disabled { opacity: 0.55; cursor: not-allowed; }
+
+  .prose-artify { max-width: var(--container-prose); }
+  .prose-artify h2 { font-size: 1.5rem; margin-top: 2.5rem; margin-bottom: 0.75rem; font-weight: 650; }
+  .prose-artify h3 { font-size: 1.15rem; margin-top: 1.75rem; margin-bottom: 0.5rem; font-weight: 650; }
+  .prose-artify p, .prose-artify li { color: var(--muted); }
+  .prose-artify p { margin-top: 0.75rem; }
+  .prose-artify ul, .prose-artify ol { margin-top: 0.75rem; padding-left: 1.25rem; }
+  .prose-artify ul { list-style: disc; }
+  .prose-artify ol { list-style: decimal; }
+  .prose-artify li { margin-top: 0.35rem; }
+  .prose-artify a { color: var(--accent-text); text-decoration: underline; text-underline-offset: 3px; }
+  .prose-artify strong { color: var(--fg); font-weight: 600; }
+  .prose-artify code { font-family: var(--font-mono); font-size: 0.875em; background: var(--surface-2); padding: 0.1em 0.35em; border-radius: 0.35rem; }
+}
+
+/* Hero brand visual: a gentle drift on the connected tool modules */
+@keyframes artify-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.motion-float { animation: artify-float 7s ease-in-out infinite; }
+.motion-float-delayed { animation: artify-float 8s ease-in-out -3s infinite; }
+
+@keyframes artify-rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.motion-rise { animation: artify-rise var(--duration-slow) var(--ease-out) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.sr-only-focusable:not(:focus):not(:focus-within) {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+/* Gradient emphasis in headlines (violet → blue) */
+.text-gradient {
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Soft tinted icon tiles */
+.tile-blue { background: var(--tint-blue-bg); color: var(--tint-blue-fg); }
+.tile-violet { background: var(--tint-violet-bg); color: var(--tint-violet-fg); }
+.tile-green { background: var(--tint-green-bg); color: var(--tint-green-fg); }
+.tile-pink { background: var(--tint-pink-bg); color: var(--tint-pink-fg); }
+.tile-amber { background: var(--tint-amber-bg); color: var(--tint-amber-fg); }
+
+/* Hero atmosphere: a very soft blue-violet wash behind the illustration */
+.hero-wash {
+  background:
+    radial-gradient(60% 70% at 78% 40%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%),
+    radial-gradient(40% 50% at 95% 10%, color-mix(in srgb, var(--blue) 12%, transparent), transparent 70%);
+}
+
+/* Dark promotional banner */
+.banner-navy {
+  background:
+    radial-gradient(60% 120% at 85% 50%, rgb(101 71 255 / 0.5), transparent 70%),
+    radial-gradient(40% 80% at 100% 0%, rgb(56 149 255 / 0.35), transparent 70%),
+    var(--navy);
+  color: #f4f6ff;
+}
+
+/* Glass tile used in floating illustrations */
+.glass-tile {
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 80%, white);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(6px);
+}

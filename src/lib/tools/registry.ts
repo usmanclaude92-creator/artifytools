@@ -1,0 +1,145 @@
+import { categories, getCategory } from "./categories";
+import type { Category, CategoryId, ToolDefinition } from "./types";
+import type { SearchableTool } from "../search";
+
+import { meta as wordCounter } from "@/tools/word-counter/meta";
+import { meta as caseConverter } from "@/tools/case-converter/meta";
+import { meta as textCleaner } from "@/tools/text-cleaner/meta";
+import { meta as removeDuplicateLines } from "@/tools/remove-duplicate-lines/meta";
+import { meta as percentageCalculator } from "@/tools/percentage-calculator/meta";
+import { meta as vatCalculator } from "@/tools/vat-calculator/meta";
+import { meta as discountCalculator } from "@/tools/discount-calculator/meta";
+import { meta as jsonFormatter } from "@/tools/json-formatter/meta";
+import { meta as urlEncoderDecoder } from "@/tools/url-encoder-decoder/meta";
+import { meta as base64EncoderDecoder } from "@/tools/base64-encoder-decoder/meta";
+import { meta as uuidGenerator } from "@/tools/uuid-generator/meta";
+import { meta as passwordGenerator } from "@/tools/password-generator/meta";
+import { meta as qrCodeGenerator } from "@/tools/qr-code-generator/meta";
+import { meta as dateDifference } from "@/tools/date-difference/meta";
+import { meta as colorConverter } from "@/tools/color-converter/meta";
+import { meta as aiTextSummarizer } from "@/tools/ai-text-summarizer/meta";
+
+/**
+ * Single source of truth for every tool. Directory cards, categories, search,
+ * related links, featured sections, sitemap and metadata are all derived from
+ * this list. To add a tool: create src/tools/<slug>/{meta,logic,ui}, register the
+ * meta here and the UI in src/components/tools/tool-components.tsx.
+ */
+export const tools: readonly ToolDefinition[] = [
+  wordCounter,
+  caseConverter,
+  textCleaner,
+  removeDuplicateLines,
+  percentageCalculator,
+  vatCalculator,
+  discountCalculator,
+  jsonFormatter,
+  urlEncoderDecoder,
+  base64EncoderDecoder,
+  uuidGenerator,
+  passwordGenerator,
+  qrCodeGenerator,
+  dateDifference,
+  colorConverter,
+  aiTextSummarizer,
+];
+
+const bySlug = new Map(tools.map((t) => [t.slug, t]));
+
+export function getTool(slug: string): ToolDefinition | undefined {
+  return bySlug.get(slug);
+}
+
+/** Tools users can open (everything except "coming-soon"). */
+export function getPublishedTools(): ToolDefinition[] {
+  return tools.filter((t) => t.status !== "coming-soon");
+}
+
+export function getActiveTools(): ToolDefinition[] {
+  return tools.filter((t) => t.status === "active");
+}
+
+export function getToolsByCategory(id: CategoryId): ToolDefinition[] {
+  return getPublishedTools().filter((t) => t.category === id);
+}
+
+/** Categories that contain at least one published tool. */
+export function getPublishedCategories(): Category[] {
+  return categories.filter((c) => getToolsByCategory(c.id).length > 0);
+}
+
+export function getCategoryBySlug(slug: string): Category | undefined {
+  return getPublishedCategories().find((c) => c.slug === slug);
+}
+
+export function getPopularTools(limit = 8): ToolDefinition[] {
+  return getActiveTools()
+    .filter((t) => t.popularRank !== undefined)
+    .sort((a, b) => a.popularRank! - b.popularRank!)
+    .slice(0, limit);
+}
+
+export function getFeaturedTools(limit = 6): ToolDefinition[] {
+  return getActiveTools()
+    .filter((t) => t.featuredRank !== undefined)
+    .sort((a, b) => a.featuredRank! - b.featuredRank!)
+    .slice(0, limit);
+}
+
+export function getRelatedTools(tool: ToolDefinition, limit = 3): ToolDefinition[] {
+  const published = getPublishedTools().filter((t) => t.id !== tool.id);
+  const explicit = (tool.related ?? [])
+    .map((id) => published.find((t) => t.id === id))
+    .filter((t): t is ToolDefinition => Boolean(t));
+  const sameCategory = published.filter((t) => t.category === tool.category && !explicit.includes(t));
+  const rest = published.filter((t) => !explicit.includes(t) && !sameCategory.includes(t));
+  return [...explicit, ...sameCategory, ...rest].slice(0, limit);
+}
+
+/** Serialisable record used by client-side search and the directory. */
+export interface DirectoryItem extends SearchableTool {
+  id: string;
+  icon: ToolDefinition["icon"];
+  categoryId: CategoryId;
+  categorySlug: string;
+  status: ToolDefinition["status"];
+  processingMode: ToolDefinition["processingMode"];
+  aiPowered: boolean;
+  lastUpdated: string;
+  popularRank: number;
+}
+
+export type SearchItem = DirectoryItem;
+
+export function toDirectoryItem(t: ToolDefinition): DirectoryItem {
+  const cat = getCategory(t.category);
+  return {
+    id: t.id,
+    slug: t.slug,
+    name: t.name,
+    description: t.description,
+    tags: t.tags,
+    keywords: t.keywords,
+    icon: t.icon,
+    categoryId: cat.id,
+    categoryName: cat.name,
+    categorySlug: cat.slug,
+    status: t.status,
+    processingMode: t.processingMode,
+    aiPowered: Boolean(t.aiPowered),
+    lastUpdated: t.lastUpdated,
+    popularRank: t.popularRank ?? 999,
+  };
+}
+
+export function getSearchItems(): SearchItem[] {
+  return getPublishedTools().map(toDirectoryItem);
+}
+
+export const exampleSearches = [
+  "Count words",
+  "Calculate a percentage",
+  "Format JSON",
+  "Generate a secure password",
+  "Find the difference between dates",
+] as const;
