@@ -12,11 +12,11 @@ export const metadata: Metadata = pageMetadata({
 export default function CookiesPage() {
   return (
     <>
-      <PageHeader title="Cookie Policy" description="Last updated 21 October 2026." breadcrumbs={[{ name: "Home", href: "/" }, { name: "Cookies" }]} />
+      <PageHeader title="Cookie Policy" description="Last updated 22 October 2026." breadcrumbs={[{ name: "Home", href: "/" }, { name: "Cookies" }]} />
       <div className="container-page py-10">
         <div className="prose-artify">
           <h2 className="!mt-0">We don’t set cookies</h2>
-          <p>Artify Tools does not set cookies, and does not load advertising, tracking, or analytics scripts.</p>
+          <p>Artify Tools does not set cookies and does not load advertising or cross-site tracking scripts. We count page visits with Vercel Web Analytics, which works without cookies; see the <Link href="/privacy">Privacy Policy</Link> for what it records.</p>
 
           <h2>What we store in your browser</h2>
           <p>The only thing saved is your colour-theme preference, if you choose one:</p>
@@ -29,7 +29,7 @@ export default function CookiesPage() {
           <p>Fonts are served from our own domain. The site doesn’t embed third-party widgets. AI tools send the text you submit to an AI provider only when you press the button; see the <Link href="/privacy">Privacy Policy</Link>.</p>
 
           <h2>If this changes</h2>
-          <p>Should we ever add analytics or other cookies, we will update this page first and ask for your consent where the law requires it.</p>
+          <p>Should we ever add cookies, we will update this page first and ask for your consent where the law requires it.</p>
         </div>
       </div>
     </>

@@ -222,7 +222,7 @@ export function PrivacySection() {
   const published = getPublishedTools();
   const local = published.filter((t) => t.processingMode === "browser-local").length;
   const items: { icon: IconName; title: string; text: string }[] = [
-    { icon: "lock", title: "Privacy first", text: "No account is needed to use any tool, and the site runs no advertising or analytics scripts." },
+    { icon: "lock", title: "Privacy first", text: "No account is needed to use any tool, no ads, no cookies, and visit counts are anonymous." },
     { icon: "laptop", title: "Local processing, where supported", text: `${local} of our ${published.length} tools process your input entirely in your browser.` },
     { icon: "eye", title: "Transparent data handling", text: "Each tool page states whether data stays on your device, goes to an Artify server, or is shared with an external provider." },
     { icon: "database", title: "No unnecessary storage", text: "We don’t store the text, files, or values you enter into the tools." },

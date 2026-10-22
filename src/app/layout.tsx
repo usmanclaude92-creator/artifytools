@@ -5,6 +5,7 @@ import { GeistMono } from "geist/font/mono";
 import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { SiteAnalytics } from "@/components/layout/site-analytics";
 import { ToastProvider } from "@/components/ui/toast";
 import { themeInitScript } from "@/components/ui/theme";
 import { siteConfig } from "@/lib/config";
@@ -56,6 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </main>
           <Footer />
         </ToastProvider>
+        <SiteAnalytics />
       </body>
     </html>
   );

@@ -17,7 +17,7 @@ export default function PrivacyPage() {
   const modes: ProcessingMode[] = ["browser-local", "server-side", "external-provider"];
   return (
     <>
-      <PageHeader title="Privacy Policy" description="Last updated 21 October 2026." breadcrumbs={[{ name: "Home", href: "/" }, { name: "Privacy" }]} />
+      <PageHeader title="Privacy Policy" description="Last updated 22 October 2026." breadcrumbs={[{ name: "Home", href: "/" }, { name: "Privacy" }]} />
       <div className="container-page py-10">
         <div className="prose-artify">
           <h2 className="!mt-0">The short version</h2>
@@ -25,7 +25,7 @@ export default function PrivacyPage() {
             <li>You don’t need an account, and we don’t ask for personal information to use the tools.</li>
             <li>Most tools process what you enter <strong>inside your browser</strong>. That input is not sent to us.</li>
             <li>The exceptions are listed below. They are labelled on the tool’s page before you use them.</li>
-            <li>We don’t use advertising or analytics scripts, and we don’t set cookies.</li>
+            <li>We don’t use advertising or set cookies. We count page visits with cookieless, anonymous analytics; nothing you type into a tool is included.</li>
           </ul>
 
           <h2>How each tool processes your data</h2>
@@ -55,6 +55,11 @@ export default function PrivacyPage() {
             Like any website, our hosting infrastructure may record standard technical information such as IP address, requested URL, browser type, and timestamp in server logs. We use this only to operate, secure, and debug the service.
           </p>
 
+          <h2>Visit statistics</h2>
+          <p>
+            To understand which tools are useful, we use Vercel Web Analytics, which counts page visits without cookies. It records the page path (with any query string removed), the referring site, the country, and the browser, device and operating-system type. It does not use cookies or fingerprinting, does not track you across websites, and never receives the text, files, or values you enter into a tool. Visitors are counted using a hash that resets every day, so individual visits can’t be linked over time.
+          </p>
+
           <h2>Cookies and local storage</h2>
           <p>
             Artify sets no cookies. If you switch themes, your choice is saved in your browser’s local storage under the key <code>artify-theme</code>. See the <Link href="/cookies">Cookies</Link> page.
@@ -69,7 +74,7 @@ export default function PrivacyPage() {
           <p>Artify is a general-audience utility site and is not directed at children under 13.</p>
 
           <h2>Changes</h2>
-          <p>If we change how data is handled, for example by adding analytics or a tool that uploads files, we will update this page and the affected tool pages before the change takes effect.</p>
+          <p>If we change how data is handled, for example by adding a tool that uploads files, we will update this page and the affected tool pages before the change takes effect.</p>
         </div>
       </div>
     </>
