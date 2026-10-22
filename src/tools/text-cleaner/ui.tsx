@@ -34,7 +34,7 @@ const strings = {
       { key: "removeBlankLines", label: "حذف كل الأسطر الفارغة" },
       { key: "joinLines", label: "دمج الأسطر في سطر واحد", hint: "يستبدل فواصل الأسطر بمسافات" },
       { key: "removeInvisible", label: "حذف الأحرف غير المرئية", hint: "المسافات ذات العرض الصفري وعلامة BOM والشرطات الناعمة" },
-      { key: "straightenQuotes", label: "توحيد علامات الاقتباس والشرطات", hint: "“ ” ‘ ’ – — … → \" ' - ..." },
+      { key: "straightenQuotes", label: "توحيد علامات الاقتباس والشرطات", hint: "تحويل “ ” ‘ ’ – — … إلى \" ' - ..." },
       { key: "stripTags", label: "إزالة وسوم HTML", hint: "للنص فقط — وليست أداة تعقيم أمنية" },
     ] as Option[],
     optionsTitle: "خيارات التنظيف", input: "النص الأصلي", toClean: "النص المراد تنظيفه", placeholder: "الصق النص غير المرتب هنا…", cleaned: "النص المنظّف", cleanedPlaceholder: "يظهر النص المنظّف هنا",

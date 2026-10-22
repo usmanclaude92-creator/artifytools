@@ -1,12 +1,13 @@
 import type { Locale } from "@/lib/i18n";
 
 /** Arabic count words: 1 أداة واحدة, 2 أداتان, 3–10 أدوات, 11+ أداة. */
-export function arCount(n: number, one: string, two: string, few: string, many: string): string {
+export function arCount(n: number, one: string, two: string, few: string, many: string, genitive: string = many): string {
   if (n === 1) return one;
   if (n === 2) return two;
   const mod = n % 100;
   if (mod >= 3 && mod <= 10) return `${n} ${few}`;
-  return `${n} ${many}`;
+  if (mod >= 11) return `${n} ${many}`;
+  return `${n} ${genitive}`; // 0, 100, 101, 102, 200…
 }
 
 const en = {
@@ -168,6 +169,7 @@ const en = {
   },
   ui: {
     clear: "Clear",
+    reset: "Reset",
     copy: "Copy",
     copied: "Copied",
     copiedToast: "Copied to clipboard",
@@ -451,6 +453,7 @@ const ar: Messages = {
   },
   ui: {
     clear: "مسح",
+    reset: "إعادة ضبط",
     copy: "نسخ",
     copied: "تم النسخ",
     copiedToast: "تم النسخ إلى الحافظة",

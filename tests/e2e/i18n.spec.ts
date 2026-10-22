@@ -58,6 +58,21 @@ test.describe("Arabic routing (unpublished)", () => {
     }
   });
 
+  test("Arabic calculators show Arabic sentences and errors", async ({ page }) => {
+    await page.goto("/ar/tools/percentage-calculator");
+    await page.waitForLoadState("networkidle");
+    await page.getByRole("textbox", { name: "النسبة (%)" }).fill("15");
+    await page.getByRole("textbox", { name: "الرقم" }).fill("200");
+    await expect(page.getByText("15% من 200 تساوي 30")).toBeVisible();
+    await page.getByRole("textbox", { name: "الرقم" }).fill("abc");
+    await expect(page.getByRole("alert").filter({ hasText: "القيمة الثانية ليست رقمًا صحيحًا." })).toBeVisible();
+    await page.goto("/ar/tools/date-difference");
+    await page.waitForLoadState("networkidle");
+    await page.getByLabel("تاريخ البداية").fill("2020-01-15");
+    await page.getByLabel("تاريخ النهاية").fill("2024-03-20");
+    await expect(page.getByRole("region", { name: "الفرق" }).getByText("4 سنوات، شهران، 5 أيام")).toBeVisible();
+  });
+
   test("English pages are unchanged: ltr, no switcher, no robots header", async ({ page }) => {
     const res = await page.goto("/tools/word-counter");
     expect(res?.headers()["x-robots-tag"]).toBeUndefined();
