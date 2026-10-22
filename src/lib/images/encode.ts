@@ -84,3 +84,42 @@ export async function encodeImage(img: LoadedImage, format: OutputFormat, qualit
   if (!blob) throw new ImageReadError("decode");
   return { blob, format: actual, width, height };
 }
+
+/** Draws `plan` (a part of `source` placed on a new canvas) and encodes it, with the same format fallback as encodeImage. */
+export async function encodePlan(
+  source: CanvasImageSource,
+  plan: { canvas: { width: number; height: number }; src: { x: number; y: number; w: number; h: number }; dst: { x: number; y: number; w: number; h: number } },
+  format: OutputFormat,
+  quality: number,
+  hasAlpha: boolean,
+): Promise<Encoded> {
+  const { width, height } = plan.canvas;
+  const draw = (fmt: OutputFormat) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new ImageReadError("decode");
+    if (fmt === "jpeg") {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
+    }
+    ctx.imageSmoothingQuality = "high";
+    const { src: s, dst: d } = plan;
+    ctx.drawImage(source, s.x, s.y, s.w, s.h, d.x, d.y, d.w, d.h);
+    return new Promise<Blob | null>((resolve) => canvas.toBlob((b) => { canvas.width = canvas.height = 0; resolve(b); }, MIME[fmt], quality));
+  };
+  let blob = await draw(format);
+  let actual = format;
+  if (!blob || blob.type !== MIME[format]) {
+    actual = hasAlpha ? "png" : "jpeg";
+    blob = await draw(actual);
+  }
+  if (!blob) throw new ImageReadError("decode");
+  return { blob, format: actual, width, height };
+}
+
+/** The output format for "keep original": PNG/WebP stay as they are, everything else becomes JPEG. */
+export function originalFormat(mime: string): OutputFormat {
+  return mime === "image/png" ? "png" : mime === "image/webp" ? "webp" : "jpeg";
+}

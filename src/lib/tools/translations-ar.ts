@@ -23,6 +23,8 @@ import { metaAr as compressImage } from "@/tools/compress-image/meta.ar";
 import { metaAr as amountInWords } from "@/tools/amount-in-words/meta.ar";
 import { metaAr as chequePrinter } from "@/tools/cheque-printer/meta.ar";
 import { metaAr as pdfToJpg } from "@/tools/pdf-to-jpg/meta.ar";
+import { metaAr as cropImage } from "@/tools/crop-image/meta.ar";
+import { metaAr as resizeImage } from "@/tools/resize-image/meta.ar";
 
 /** Arabic text for each tool, keyed by tool id. Tools missing here are shown in English. */
 export const toolTranslationsAr: Record<string, ToolTranslation> = {
@@ -50,4 +52,6 @@ export const toolTranslationsAr: Record<string, ToolTranslation> = {
   "amount-in-words": amountInWords,
   "cheque-printer": chequePrinter,
   "pdf-to-jpg": pdfToJpg,
+  "resize-image": resizeImage,
+  "crop-image": cropImage,
 };
