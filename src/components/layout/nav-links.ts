@@ -1,5 +1,6 @@
 export const primaryNav = [
   { href: "/tools", label: "All Tools" },
+  { href: "/apps", label: "Apps" },
   { href: "/categories", label: "Categories" },
   { href: "/ai-tools", label: "AI Tools" },
   { href: "/for-professionals", label: "For Professionals" },
@@ -11,6 +12,7 @@ export const footerGroups = [
     title: "Explore",
     links: [
       { href: "/tools", label: "All Tools" },
+      { href: "/apps", label: "Apps" },
       { href: "/categories", label: "Categories" },
       { href: "/ai-tools", label: "AI Tools" },
       { href: "/for-professionals", label: "For Professionals" },
