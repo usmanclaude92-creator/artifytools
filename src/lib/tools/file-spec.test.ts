@@ -45,6 +45,7 @@ describe("file tool specs", () => {
     expect(kinds["word-counter"]).toBe("text");
     expect(kinds["merge-pdf"]).toBe("pdf");
     expect(kinds["split-pdf"]).toBe("pdf");
+    expect(kinds["jpg-to-pdf"]).toBe("images");
   });
 });
 

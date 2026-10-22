@@ -88,3 +88,46 @@ test.describe("Split PDF", () => {
     await expect(page.getByText("هذا الملف محمي بكلمة مرور. فك حمايته أولًا ثم اختره مجددًا.")).toBeVisible();
   });
 });
+
+test.describe("JPG to PDF", () => {
+  async function pdfSizes(download: import("@playwright/test").Download) {
+    const doc = await PDFDocument.load(readFileSync((await download.path())!));
+    return doc.getPages().map((p) => {
+      const { width, height } = p.getSize();
+      return [Math.round(width), Math.round(height)];
+    });
+  }
+
+  test("converts JPG, PNG and WebP, turns phone photos upright, and explains unreadable files", async ({ page }) => {
+    await open(page, "/tools/jpg-to-pdf");
+    await page.locator('input[type="file"]').setInputFiles([fixture("photo-rotated.jpg"), fixture("logo-transparent.png"), fixture("graphic.webp"), fixture("broken.jpg")]);
+    await expect(page.getByText("This image couldn't be read. It may be damaged or in an unsupported format.")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Convert to PDF" })).toBeDisabled();
+    await page.getByRole("button", { name: "Remove broken.jpg" }).click();
+
+    await page.getByLabel("Page size").selectOption("fit");
+    await page.getByLabel("Margin").selectOption("none");
+    await page.getByRole("button", { name: "Convert to PDF" }).click();
+    const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download PDF" }).click()]);
+    expect(download.suggestedFilename()).toBe("images.pdf");
+    // 96 dpi: the 400×200 sideways photo is shown upright as 200×400 px → 150×300 pt
+    expect(await pdfSizes(download)).toEqual([[150, 300], [225, 113], [180, 180]]);
+
+    // A4 with automatic orientation; changing a setting asks to convert again
+    await page.getByLabel("Page size").selectOption("a4");
+    await expect(page.getByText("Images or settings changed. Convert again to update the PDF.")).toBeVisible();
+    await page.getByRole("button", { name: "Convert to PDF" }).click();
+    const [a4] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download PDF" }).click()]);
+    expect(await pdfSizes(a4)).toEqual([[595, 842], [842, 595], [595, 842]]);
+  });
+
+  test("works in Arabic and names a single-image PDF after the image", async ({ page }) => {
+    await open(page, "/ar/tools/jpg-to-pdf");
+    await expect(page.locator("h1")).toHaveText("تحويل الصور إلى PDF");
+    await page.locator('input[type="file"]').setInputFiles(fixture("photo-upright.jpg"));
+    await page.getByRole("button", { name: "تحويل إلى PDF" }).click();
+    const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "تنزيل ملف PDF" }).click()]);
+    expect(download.suggestedFilename()).toBe("photo-upright.pdf");
+    expect((await pdfSizes(download)).length).toBe(1);
+  });
+});

@@ -62,6 +62,8 @@ describe("Arabic search", () => {
     expect(top("دمج ملفات pdf")[0]).toBe("merge-pdf");
     expect(top("تقسيم pdf")[0]).toBe("split-pdf");
     expect(top("فصل صفحات pdf")[0]).toBe("split-pdf");
+    expect(top("تحويل الصور الى pdf")[0]).toBe("jpg-to-pdf");
+    expect(top("تحويل jpg الى pdf")[0]).toBe("jpg-to-pdf");
   });
 });
 
@@ -91,6 +93,9 @@ describe("search", () => {
     expect(top("combine pdf files")[0]).toBe("merge-pdf");
     expect(top("split pdf")[0]).toBe("split-pdf");
     expect(top("extract pages from pdf")[0]).toBe("split-pdf");
+    expect(top("jpg to pdf")[0]).toBe("jpg-to-pdf");
+    expect(top("image to pdf")[0]).toBe("jpg-to-pdf");
+    expect(top("png to pdf")[0]).toBe("jpg-to-pdf");
   });
   it("ranks exact name matches above weaker matches", () => {
     expect(top("password generator")[0]).toBe("password-generator");
@@ -99,7 +104,7 @@ describe("search", () => {
   it("returns nothing for empty or unmatched queries", () => {
     expect(searchTools(items, "")).toEqual([]);
     expect(searchTools(items, "   ")).toEqual([]);
-    expect(searchTools(items, "convert an image")).toEqual([]);
+    expect(searchTools(items, "edit a video")).toEqual([]);
     expect(searchTools(items, "zzzzqqq")).toEqual([]);
   });
   it("tokenizes with filler removal and stemming", () => {

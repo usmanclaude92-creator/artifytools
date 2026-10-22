@@ -38,6 +38,7 @@ const components: Record<string, ComponentType> = {
   "ai-text-summarizer": load(() => import("@/tools/ai-text-summarizer/ui")),
   "merge-pdf": load(() => import("@/tools/merge-pdf/ui")),
   "split-pdf": load(() => import("@/tools/split-pdf/ui")),
+  "jpg-to-pdf": load(() => import("@/tools/jpg-to-pdf/ui")),
 };
 
 export function ToolWorkspace({ toolId }: { toolId: string }) {

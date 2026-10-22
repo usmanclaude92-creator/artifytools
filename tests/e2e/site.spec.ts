@@ -163,8 +163,8 @@ test.describe("search", () => {
   test("empty results show category links instead of a dead end", async ({ page }) => {
     await page.goto("/");
     const box = page.getByRole("combobox", { name: "Search tools" }).first();
-    await box.fill("convert an image");
-    await expect(page.getByText("No tools match “convert an image”")).toBeVisible();
+    await box.fill("edit a video");
+    await expect(page.getByText("No tools match “edit a video”")).toBeVisible();
     await page.getByRole("link", { name: "Calculators" }).first().click();
     await expect(page).toHaveURL(/\/categories\/calculators$/);
   });
@@ -218,7 +218,7 @@ test.describe("directory", () => {
   test("filters by category, combines with search, syncs the URL, and clears", async ({ page }) => {
     await page.goto("/tools");
     const count = page.getByRole("status").filter({ hasText: /tools?(\s|$)/ }).first();
-    await expect(count).toContainText("18 tools");
+    await expect(count).toContainText("19 tools");
     await page.getByRole("button", { name: /^Calculators/ }).click();
     await expect(page).toHaveURL(/category=calculators/);
     await expect(count).toContainText("3 tools");
@@ -227,7 +227,7 @@ test.describe("directory", () => {
     await expect(count).toContainText("1 tool");
     await expect(page.getByRole("button", { name: /Category: Calculators/ })).toBeVisible();
     await page.getByRole("button", { name: "Clear all" }).click();
-    await expect(count).toContainText("18 tools");
+    await expect(count).toContainText("19 tools");
     await expect(page.getByLabel("Search all tools")).toHaveValue("");
   });
 
@@ -246,6 +246,8 @@ test.describe("directory", () => {
     await page.getByLabel("Works with").selectOption("pdf");
     await expect(page).toHaveURL(/kind=pdf/);
     await expect(page.locator("article h2")).toHaveText(["Merge PDF", "Split PDF"]);
+    await page.getByLabel("Works with").selectOption("images");
+    await expect(page.locator("article h2")).toHaveText(["JPG to PDF"]);
   });
 
   test("paginates beyond 12 tools", async ({ page }) => {
@@ -253,7 +255,7 @@ test.describe("directory", () => {
     await expect(page.locator("article")).toHaveCount(12);
     await page.getByRole("button", { name: "Page 2" }).click();
     await expect(page).toHaveURL(/page=2/);
-    await expect(page.locator("article")).toHaveCount(6);
+    await expect(page.locator("article")).toHaveCount(7);
   });
 
   test("search from header while on /tools updates the directory", async ({ page }) => {
