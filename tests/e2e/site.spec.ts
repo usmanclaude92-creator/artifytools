@@ -57,7 +57,7 @@ test.describe("pages", () => {
     const sm = await (await request.get("/sitemap.xml")).text();
     expect(sm).toContain("https://tools.artifysols.com/tools/word-counter");
     expect(sm).toContain("https://tools.artifysols.com/categories/calculators");
-    expect(sm).not.toContain("ai-text-summarizer"); // beta tools aren't promoted
+    expect(sm).not.toContain("ai-text-summarizer"); // unfinished tools aren't promoted
     expect(sm).not.toContain("localhost");
     const robots = await (await request.get("/robots.txt")).text();
     expect(robots).toContain("Sitemap: https://tools.artifysols.com/sitemap.xml");
@@ -72,7 +72,7 @@ test.describe("pages", () => {
     expect(types).toEqual(expect.arrayContaining(["BreadcrumbList", "WebApplication", "FAQPage"]));
     expect(await page.locator('meta[property="og:image"]').first().getAttribute("content")).toContain("/tools/word-counter/opengraph-image");
     await expect(page.getByRole("heading", { name: /Privacy: processed in your browser/i })).toBeVisible();
-    // beta tool is noindex
+    // coming-soon tool is noindex
     await page.goto("/tools/ai-text-summarizer");
     expect(await page.locator('meta[name="robots"]').getAttribute("content")).toContain("noindex");
   });

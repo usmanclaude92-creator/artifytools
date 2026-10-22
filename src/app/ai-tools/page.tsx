@@ -33,10 +33,10 @@ export default function AiToolsPage() {
       />
       <div className="container-page space-y-16 py-10">
         <section aria-labelledby="available-heading">
-          <h2 id="available-heading" className="text-2xl font-semibold">Available now</h2>
+          <h2 id="available-heading" className="text-2xl font-semibold">Coming soon</h2>
           <div className="mt-5 max-w-3xl">
             <StatusMessage tone="info">
-              AI tools are the exception to Artify’s “runs in your browser” approach: the text you submit is sent through an Artify server to a third-party AI provider. AI tools need a server-side API key, so they only work on deployments where the site operator has configured one.
+              AI tools are the exception to Artify’s “runs in your browser” approach: the text you submit will be sent through an Artify server to a third-party AI provider. We’re adding fair-use limits before switching them on.
             </StatusMessage>
           </div>
           <div className="mt-6">

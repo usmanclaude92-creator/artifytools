@@ -50,8 +50,13 @@ export function getTool(slug: string): ToolDefinition | undefined {
   return bySlug.get(slug);
 }
 
-/** Tools users can open (everything except "coming-soon"). */
+/** Tools listed on the site. "coming-soon" tools are listed with a badge but their page shows a notice instead of the tool. */
 export function getPublishedTools(): ToolDefinition[] {
+  return [...tools];
+}
+
+/** Tools people can actually use today. */
+export function getUsableTools(): ToolDefinition[] {
   return tools.filter((t) => t.status !== "coming-soon");
 }
 
@@ -87,7 +92,7 @@ export function getFeaturedTools(limit = 6): ToolDefinition[] {
 }
 
 export function getRelatedTools(tool: ToolDefinition, limit = 3): ToolDefinition[] {
-  const published = getPublishedTools().filter((t) => t.id !== tool.id);
+  const published = getUsableTools().filter((t) => t.id !== tool.id);
   const explicit = (tool.related ?? [])
     .map((id) => published.find((t) => t.id === id))
     .filter((t): t is ToolDefinition => Boolean(t));

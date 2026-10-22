@@ -263,13 +263,12 @@ test("color converter", async ({ page }) => {
   await expect(input).toHaveValue("#5B3DF5");
 });
 
-test("AI summarizer says 'requires configuration' and never fabricates output", async ({ page, request }) => {
+test("AI summarizer is marked coming soon and the API stays switched off", async ({ page, request }) => {
   const status = await (await request.get("/api/ai/status")).json();
   test.skip(status.configured === true, "AI is configured in this environment");
-  await open(page, "ai-text-summarizer");
-  await expect(page.getByText("Requires configuration")).toBeVisible();
-  await out(page, /Text to summarize/).fill("Some text");
-  await expect(page.getByRole("button", { name: "Summarize" })).toBeDisabled();
+  await page.goto("/tools/ai-text-summarizer");
+  await expect(page.getByText("This tool is on its way.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Summarize" })).toHaveCount(0);
   const res = await request.post("/api/ai/summarize", { data: { text: "hello", length: "short" } });
   expect(res.status()).toBe(503);
   expect((await res.json()).error).toBe("not_configured");

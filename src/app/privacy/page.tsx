@@ -3,7 +3,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/layout/page-header";
 import { pageMetadata } from "@/lib/seo/metadata";
 import { processingLabels } from "@/lib/tools/labels";
-import { getPublishedTools } from "@/lib/tools/registry";
+import { getUsableTools } from "@/lib/tools/registry";
 import type { ProcessingMode } from "@/lib/tools/types";
 
 export const metadata: Metadata = pageMetadata({
@@ -13,7 +13,7 @@ export const metadata: Metadata = pageMetadata({
 });
 
 export default function PrivacyPage() {
-  const tools = getPublishedTools();
+  const tools = getUsableTools();
   const modes: ProcessingMode[] = ["browser-local", "server-side", "external-provider"];
   return (
     <>

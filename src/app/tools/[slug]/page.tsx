@@ -18,7 +18,7 @@ export function generateStaticParams(): Params[] {
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params;
   const tool = getTool(slug);
-  if (!tool || tool.status === "coming-soon") return { title: "Tool not found" };
+  if (!tool) return { title: "Tool not found" };
   return pageMetadata({
     title: tool.seoTitle,
     description: tool.seoDescription,
@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 export default async function ToolPage({ params }: { params: Promise<Params> }) {
   const { slug } = await params;
   const tool = getTool(slug);
-  if (!tool || tool.status === "coming-soon") notFound();
+  if (!tool) notFound();
 
   const category = getCategory(tool.category);
   const related = getRelatedTools(tool, 3).map(toDirectoryItem);
@@ -90,7 +90,7 @@ export default async function ToolPage({ params }: { params: Promise<Params> }) 
       <div className="container-page py-8 sm:py-10">
         <StatusNotice tool={tool} />
         {/* The workspace comes first: people arrive to use the tool, not to read about it. */}
-        <ToolWorkspace toolId={tool.id} />
+        {tool.status !== "coming-soon" && <ToolWorkspace toolId={tool.id} />}
 
         <div className="mt-8">
           <PrivacyDisclosure tool={tool} />

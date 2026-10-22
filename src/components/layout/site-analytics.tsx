@@ -14,6 +14,10 @@ function stripQuery(event: BeforeSendEvent): BeforeSendEvent {
   return { ...event, url: url.toString() };
 }
 
+/** Only Vercel deployments serve the analytics script; skip it locally to avoid a 404. */
+const onVercel = Boolean(process.env.NEXT_PUBLIC_VERCEL_ENV);
+
 export function SiteAnalytics() {
+  if (!onVercel) return null;
   return <Analytics beforeSend={stripQuery} />;
 }

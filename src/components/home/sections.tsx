@@ -183,7 +183,7 @@ export function AiShowcase() {
         <div>
           <h2 id="ai-heading" className="text-3xl font-bold tracking-tight sm:text-[2.1rem]">Meet a smarter way to work.</h2>
           <p className="mt-3 max-w-lg text-[0.95rem] leading-relaxed text-muted">
-            Selected tools can help you write, summarize, extract information, and work more efficiently. Today the AI Text Summarizer is in beta; the rest are planned. We tell you plainly when your text is sent to an AI provider.
+            Selected tools can help you write, summarize, extract information, and work more efficiently. The AI Text Summarizer is coming soon, and more are planned. We tell you plainly when your text is sent to an AI provider.
           </p>
           <div className="mt-6">
             <ButtonLink href="/ai-tools" className="rounded-full px-5">
@@ -202,7 +202,7 @@ export function AiShowcase() {
                 <Link href={`/tools/${t.slug}`} className="inline-flex items-center gap-2 font-medium text-white hover:underline">
                   <Icon name="sparkles" size={15} className="text-[#b4a8ff]" /> {t.name}
                 </Link>
-                <Badge tone="warning">Beta</Badge>
+                <Badge tone="warning">{t.status === "beta" ? "Beta" : "Coming soon"}</Badge>
               </li>
             ))}
             {planned.map((p) => (

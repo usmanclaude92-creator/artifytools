@@ -157,6 +157,17 @@ export function ToolHeader({ tool, categoryName, categorySlug }: { tool: ToolDef
 
 export function StatusNotice({ tool }: { tool: ToolDefinition }) {
   if (tool.status === "active") return null;
+  if (tool.status === "coming-soon") {
+    return (
+      <div className="card mb-2 flex flex-col items-start gap-3 p-6 sm:flex-row sm:items-center sm:gap-4">
+        <Badge tone="warning">Coming soon</Badge>
+        <div>
+          <p className="font-semibold">This tool is on its way.</p>
+          <p className="mt-1 text-sm text-muted">We’re adding fair-use limits before switching it on. In the meantime, every other Artify tool is free to use.</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="mb-6 flex items-center gap-2">
       <Badge tone="warning">{tool.status === "beta" ? "Beta" : "Coming soon"}</Badge>

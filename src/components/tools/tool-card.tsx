@@ -13,6 +13,7 @@ export function ToolCard({ tool, showCategory = true, heading: Heading = "h3" }:
         <IconTile name={tool.icon} tone={tone} />
         <div className="flex flex-wrap justify-end gap-1.5">
           {tool.status === "beta" && <Badge tone="warning">Beta</Badge>}
+          {tool.status === "coming-soon" && <Badge tone="warning">Coming soon</Badge>}
           {tool.aiPowered && <Badge tone="accent">AI</Badge>}
         </div>
       </div>

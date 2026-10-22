@@ -175,7 +175,7 @@ export function SearchCombobox({ items, categories, suggestions, variant, autoFo
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-medium">
                     {r.name}
-                    {r.status === "beta" && <span className="ml-2 rounded-full bg-warning-soft px-2 py-0.5 text-xs font-medium text-warning">Beta</span>}
+                    {r.status !== "active" && <span className="ml-2 rounded-full bg-warning-soft px-2 py-0.5 text-xs font-medium text-warning">{r.status === "beta" ? "Beta" : "Coming soon"}</span>}
                   </span>
                   <span className="block truncate text-sm text-muted">{r.description}</span>
                 </span>
