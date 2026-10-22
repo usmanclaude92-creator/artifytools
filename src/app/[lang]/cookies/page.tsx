@@ -2,14 +2,21 @@ import type { Metadata } from "next";
 import Link from "@/components/ui/locale-link";
 import { PageHeader } from "@/components/layout/page-header";
 import { pageMetadata } from "@/lib/seo/metadata";
+import { getLocale } from "@/lib/locale-server";
+import { CookiesAr, cookiesMetaAr } from "@/components/pages-ar/cookies";
 
-export const metadata: Metadata = pageMetadata({
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  if (locale === "ar") return pageMetadata({ ...cookiesMetaAr, path: "/cookies", locale });
+  return pageMetadata({
   title: "Cookie Policy",
   description: "Artify Tools sets no cookies. This page explains the one preference saved in your browser's local storage.",
   path: "/cookies",
-});
+  });
+}
 
-export default function CookiesPage() {
+export default async function CookiesPage() {
+  if ((await getLocale()) === "ar") return <CookiesAr />;
   return (
     <>
       <PageHeader title="Cookie Policy" description="Last updated 22 October 2026." breadcrumbs={[{ name: "Home", href: "/" }, { name: "Cookies" }]} />

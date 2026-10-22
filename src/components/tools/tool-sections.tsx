@@ -81,9 +81,9 @@ export function Examples({ examples }: { examples: ToolDefinition["examples"] })
   );
 }
 
-export function Faq({ faqs }: { faqs: ToolDefinition["faqs"] }) {
+export function Faq({ faqs, title = "Frequently asked questions" }: { faqs: ToolDefinition["faqs"]; title?: string }) {
   return (
-    <Accordion id="faq-heading" title="Frequently asked questions" icon="circle-alert">
+    <Accordion id="faq-heading" title={title} icon="circle-alert">
       <dl className="space-y-5">
         {faqs.map((f) => (
           <div key={f.question}>

@@ -4,12 +4,18 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Faq } from "@/components/tools/tool-sections";
 import { JsonLd } from "@/components/ui/json-ld";
 import { pageMetadata } from "@/lib/seo/metadata";
+import { getLocale } from "@/lib/locale-server";
+import { HelpAr, helpMetaAr } from "@/components/pages-ar/help";
 
-export const metadata: Metadata = pageMetadata({
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  if (locale === "ar") return pageMetadata({ ...helpMetaAr, path: "/help", locale });
+  return pageMetadata({
   title: "Help",
   description: "Answers to common questions about using Artify Tools: finding tools, privacy, shortcuts, supported browsers, and troubleshooting.",
   path: "/help",
-});
+  });
+}
 
 const faqs = [
   { question: "How do I find the right tool?", answer: "Use the search box on the homepage, or press Ctrl+K (Cmd+K on Mac) or “/” anywhere on the site to open search. You can also browse by category or use filters on the All Tools page." },
@@ -22,7 +28,8 @@ const faqs = [
   { question: "How do I report a bug or request a tool?", answer: "See the Contact page for how to reach us, and include the tool name, your browser, and what happened." },
 ];
 
-export default function HelpPage() {
+export default async function HelpPage() {
+  if ((await getLocale()) === "ar") return <HelpAr />;
   return (
     <>
       <JsonLd

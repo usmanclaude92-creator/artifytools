@@ -12,6 +12,7 @@ import { SearchDialog } from "@/components/search/search-dialog";
 import type { SearchCategoryLink } from "@/components/search/search-combobox";
 import type { SearchItem } from "@/lib/tools/registry";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
+import { useMessages } from "@/components/i18n/locale-provider";
 import { Logo } from "./logo";
 import { primaryNav } from "./nav-links";
 
@@ -24,6 +25,7 @@ interface Props {
 function CategoriesMenu({ categories, active }: { categories: SearchCategoryLink[]; active: boolean }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const t = useMessages();
 
   useEffect(() => {
     if (!open) return;
@@ -42,12 +44,12 @@ function CategoriesMenu({ categories, active }: { categories: SearchCategoryLink
           aria-current={active ? "page" : undefined}
           className={cx("inline-flex min-h-10 items-center rounded-md ps-3 pe-1 text-[0.95rem] font-medium transition-colors hover:text-fg", active ? "text-fg" : "text-muted")}
         >
-          Categories
-          {active && <span className="sr-only"> (current page)</span>}
+          {t.nav.categories}
+          {active && <span className="sr-only">{t.common.currentPage}</span>}
         </Link>
         <button
           type="button"
-          aria-label="Show category menu"
+          aria-label={t.nav.showCategoryMenu}
           aria-expanded={open}
           aria-controls="categories-menu"
           onClick={() => setOpen((v) => !v)}
@@ -67,7 +69,7 @@ function CategoriesMenu({ categories, active }: { categories: SearchCategoryLink
           ))}
           <li>
             <Link href="/categories" className="flex min-h-10 items-center rounded-md px-3 text-sm font-semibold text-accent-text hover:bg-surface-2">
-              All categories
+              {t.nav.allCategories}
             </Link>
           </li>
         </ul>
@@ -79,6 +81,7 @@ function CategoriesMenu({ categories, active }: { categories: SearchCategoryLink
 export function Header({ items, categories, suggestions }: Props) {
   const pathname = stripLocale(usePathname());
   const menuRef = useRef<HTMLDialogElement>(null);
+  const t = useMessages();
 
   // Close the mobile menu after any navigation.
   useEffect(() => {
@@ -90,11 +93,11 @@ export function Header({ items, categories, suggestions }: Props) {
   return (
     <header className="sticky top-0 z-header border-b border-line/80 bg-surface/85 backdrop-blur-lg supports-[backdrop-filter]:bg-surface/75">
       <div className="container-page flex h-16 items-center gap-4">
-        <Link href="/" aria-label="Artify Tools home" className="-ms-1 rounded-md p-1">
+        <Link href="/" aria-label={t.common.homeAria} className="-ms-1 rounded-md p-1">
           <Logo />
         </Link>
 
-        <nav aria-label="Primary" className="ms-6 hidden lg:block">
+        <nav aria-label={t.nav.primaryLabel} className="ms-6 hidden lg:block">
           <ul className="flex items-center gap-1">
             {primaryNav.map((l) => l.href === "/categories" ? (
               <li key={l.href}>
@@ -110,8 +113,8 @@ export function Header({ items, categories, suggestions }: Props) {
                     isActive(l.href) ? "text-fg" : "text-muted",
                   )}
                 >
-                  {l.label}
-                  {isActive(l.href) && <span className="sr-only"> (current page)</span>}
+                  {t.nav[l.key] as string}
+                  {isActive(l.href) && <span className="sr-only">{t.common.currentPage}</span>}
                 </Link>
               </li>
             ))}
@@ -124,12 +127,12 @@ export function Header({ items, categories, suggestions }: Props) {
           <ThemeToggle />
           <span className="hidden md:block">
             <Link href="/tools" className={buttonClasses({ size: "md", className: "rounded-full px-5 shadow-[0_8px_22px_-8px_rgba(124,58,237,0.65)]" })}>
-              Explore Tools <Icon name="arrow-right" size={16} />
+              {t.nav.exploreTools} <Icon name="arrow-right" size={16} />
             </Link>
           </span>
           <button
             type="button"
-            aria-label="Open menu"
+            aria-label={t.nav.openMenu}
             aria-haspopup="dialog"
             onClick={() => menuRef.current?.showModal()}
             className="grid size-11 place-items-center rounded-md text-fg hover:bg-surface-2 lg:hidden"
@@ -141,18 +144,18 @@ export function Header({ items, categories, suggestions }: Props) {
 
       <dialog
         ref={menuRef}
-        aria-label="Menu"
+        aria-label={t.nav.menu}
         onClick={(e) => { if (e.target === menuRef.current) menuRef.current?.close(); }}
-        className="m-0 ms-auto h-dvh max-h-none w-[min(22rem,100vw)] max-w-none border-l border-line bg-canvas p-0 text-fg shadow-overlay backdrop:bg-black/50"
+        className="m-0 ms-auto h-dvh max-h-none w-[min(22rem,100vw)] max-w-none border-s border-line bg-canvas p-0 text-fg shadow-overlay backdrop:bg-black/50"
       >
         <div className="flex h-full flex-col p-5">
           <div className="flex items-center justify-between">
             <Logo />
-            <button type="button" aria-label="Close menu" onClick={() => menuRef.current?.close()} className="grid size-11 place-items-center rounded-md hover:bg-surface-2">
+            <button type="button" aria-label={t.nav.closeMenu} onClick={() => menuRef.current?.close()} className="grid size-11 place-items-center rounded-md hover:bg-surface-2">
               <Icon name="x" size={22} />
             </button>
           </div>
-          <nav aria-label="Mobile" className="mt-6 flex-1 overflow-y-auto">
+          <nav aria-label={t.nav.mobileLabel} className="mt-6 flex-1 overflow-y-auto">
             <ul className="flex flex-col gap-1">
               {primaryNav.map((l) => (
                 <li key={l.href}>
@@ -162,7 +165,7 @@ export function Header({ items, categories, suggestions }: Props) {
                     aria-current={isActive(l.href) ? "page" : undefined}
                     className={cx("flex min-h-12 items-center justify-between rounded-md px-3 text-lg font-medium hover:bg-surface-2", isActive(l.href) && "bg-accent-soft text-accent-text")}
                   >
-                    {l.label}
+                    {t.nav[l.key] as string}
                     <Icon name="chevron-right" size={18} className="text-muted" />
                   </Link>
                 </li>
@@ -170,7 +173,7 @@ export function Header({ items, categories, suggestions }: Props) {
             </ul>
           </nav>
           <Link href="/tools" onClick={() => menuRef.current?.close()} className={buttonClasses({ size: "lg", className: "w-full rounded-full" })}>
-            Explore Tools <Icon name="arrow-right" size={17} />
+            {t.nav.exploreTools} <Icon name="arrow-right" size={17} />
           </Link>
         </div>
       </dialog>

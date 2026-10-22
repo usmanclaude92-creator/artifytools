@@ -1,38 +1,42 @@
-export const primaryNav = [
-  { href: "/tools", label: "All Tools" },
-  { href: "/apps", label: "Apps" },
-  { href: "/categories", label: "Categories" },
-  { href: "/ai-tools", label: "AI Tools" },
-  { href: "/for-professionals", label: "For Professionals" },
-  { href: "/about", label: "About" },
-] as const;
+import type { Messages } from "@/lib/messages";
 
-export const footerGroups = [
+type NavKey = keyof Messages["nav"];
+
+export const primaryNav: readonly { href: string; key: NavKey }[] = [
+  { href: "/tools", key: "tools" },
+  { href: "/apps", key: "apps" },
+  { href: "/categories", key: "categories" },
+  { href: "/ai-tools", key: "aiTools" },
+  { href: "/for-professionals", key: "forProfessionals" },
+  { href: "/about", key: "about" },
+];
+
+export const footerGroups: readonly { title: "explore" | "company" | "legal"; links: readonly { href: string; key: NavKey }[] }[] = [
   {
-    title: "Explore",
+    title: "explore",
     links: [
-      { href: "/tools", label: "All Tools" },
-      { href: "/apps", label: "Apps" },
-      { href: "/categories", label: "Categories" },
-      { href: "/ai-tools", label: "AI Tools" },
-      { href: "/for-professionals", label: "For Professionals" },
+      { href: "/tools", key: "tools" },
+      { href: "/apps", key: "apps" },
+      { href: "/categories", key: "categories" },
+      { href: "/ai-tools", key: "aiTools" },
+      { href: "/for-professionals", key: "forProfessionals" },
     ],
   },
   {
-    title: "Company",
+    title: "company",
     links: [
-      { href: "/about", label: "About" },
-      { href: "/contact", label: "Contact" },
-      { href: "/help", label: "Help" },
-      { href: "/changelog", label: "Changelog" },
+      { href: "/about", key: "about" },
+      { href: "/contact", key: "contact" },
+      { href: "/help", key: "help" },
+      { href: "/changelog", key: "changelog" },
     ],
   },
   {
-    title: "Legal",
+    title: "legal",
     links: [
-      { href: "/privacy", label: "Privacy" },
-      { href: "/terms", label: "Terms" },
-      { href: "/cookies", label: "Cookies" },
+      { href: "/privacy", key: "privacy" },
+      { href: "/terms", key: "terms" },
+      { href: "/cookies", key: "cookies" },
     ],
   },
-] as const;
+];

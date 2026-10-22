@@ -18,6 +18,17 @@ test.describe("Arabic routing (unpublished)", () => {
     expect(home.status()).toBe(200);
   });
 
+  test("site shell and legal pages are in Arabic on /ar", async ({ page }) => {
+    await page.goto("/ar");
+    await expect(page.locator("h1")).toContainText("الأداة المناسبة");
+    await expect(page.locator("footer")).toContainText("الخصوصية");
+    await expect(page).toHaveTitle(/أدوات قوية/);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/ar$/);
+    await page.goto("/ar/privacy");
+    await expect(page.locator("h1")).toHaveText("سياسة الخصوصية");
+    await expect(page.getByRole("navigation", { name: /مسار التنقل|breadcrumb/i })).toContainText("الرئيسية");
+  });
+
   test("English pages are unchanged: ltr, no switcher, no robots header", async ({ page }) => {
     const res = await page.goto("/tools/word-counter");
     expect(res?.headers()["x-robots-tag"]).toBeUndefined();

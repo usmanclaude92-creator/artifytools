@@ -5,15 +5,24 @@ import { JsonLd } from "@/components/ui/json-ld";
 import { absoluteUrl, siteConfig } from "@/lib/config";
 import { getPublishedCategories, getSearchItems } from "@/lib/tools/registry";
 import { pageMetadata } from "@/lib/seo/metadata";
+import { getLocale, getT } from "@/lib/locale-server";
+import { localizeHref } from "@/lib/i18n";
 
-export const metadata: Metadata = pageMetadata({
-  title: `${siteConfig.name} — ${siteConfig.tagline}`,
-  description: siteConfig.description,
-  path: "/",
-  absoluteTitle: true,
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  const t = await getT();
+  return pageMetadata({
+    title: `${siteConfig.name} — ${t.site.tagline}`,
+    description: t.site.description,
+    path: "/",
+    absoluteTitle: true,
+    locale,
+  });
+}
 
-export default function HomePage() {
+export default async function HomePage() {
+  const locale = await getLocale();
+  const t = await getT();
   const categories = getPublishedCategories().map((c) => ({ name: c.name, slug: c.slug }));
   return (
     <>
@@ -22,11 +31,12 @@ export default function HomePage() {
           "@context": "https://schema.org",
           "@type": "WebSite",
           name: siteConfig.name,
-          url: absoluteUrl("/"),
-          description: siteConfig.description,
+          url: absoluteUrl(localizeHref("/", locale)),
+          description: t.site.description,
+          inLanguage: locale,
           potentialAction: {
             "@type": "SearchAction",
-            target: { "@type": "EntryPoint", urlTemplate: `${absoluteUrl("/tools")}?q={search_term_string}` },
+            target: { "@type": "EntryPoint", urlTemplate: `${absoluteUrl(localizeHref("/tools", locale))}?q={search_term_string}` },
             "query-input": "required name=search_term_string",
           },
         }}

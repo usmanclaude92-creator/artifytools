@@ -6,6 +6,7 @@ import { Icon, type IconName } from "@/components/ui/icon";
 import { Badge } from "@/components/ui/misc";
 import { IconTile } from "@/components/ui/misc";
 import { categoryTones } from "@/lib/tools/tones";
+import { getT } from "@/lib/locale-server";
 import { getPopularTools, getPublishedCategories, getPublishedTools, getToolsByCategory, toDirectoryItem } from "@/lib/tools/registry";
 
 function SectionTitle({ id, title, description, linkHref, linkLabel }: { id: string; title: string; description?: string; linkHref?: string; linkLabel?: string }) {
@@ -25,13 +26,14 @@ function SectionTitle({ id, title, description, linkHref, linkLabel }: { id: str
 }
 
 /** Three large category promo cards right under the hero (the categories with the most tools). */
-export function CategoryPromoCards() {
+export async function CategoryPromoCards() {
+  const t = await getT();
   const top = getPublishedCategories()
     .map((c) => ({ c, count: getToolsByCategory(c.id).length }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 3);
   return (
-    <section aria-label="Featured categories" className="container-page pt-2 sm:pt-4">
+    <section aria-label={t.home.featuredCategories} className="container-page pt-2 sm:pt-4">
       <ul className="grid gap-4 md:grid-cols-3">
         {top.map(({ c, count }) => (
           <li key={c.id}>
@@ -45,7 +47,7 @@ export function CategoryPromoCards() {
                 </h2>
                 <p className="mt-1 text-sm text-muted">{c.description}</p>
                 <p className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-accent-text">
-                  {count} tool{count === 1 ? "" : "s"} <Icon name="arrow-right" size={14} />
+                  {t.common.tools(count)} <Icon name="arrow-right" size={14} />
                 </p>
               </div>
             </article>
@@ -56,15 +58,13 @@ export function CategoryPromoCards() {
   );
 }
 
-const trustPoints: { icon: IconName; title: string; text: string }[] = [
-  { icon: "zap", title: "Instant results", text: "Open a tool and use it right away." },
-  { icon: "lock", title: "Private by default", text: "Most tools run in your browser." },
-  { icon: "check", title: "Free, no sign-up", text: "No account or payment needed." },
-];
+const trustIcons: IconName[] = ["zap", "lock", "check"];
 
-export function TrustStrip() {
+export async function TrustStrip() {
+  const t = await getT();
+  const trustPoints = t.home.trust.map((p, i) => ({ ...p, icon: trustIcons[i]! }));
   return (
-    <section aria-label="Why Artify Tools" className="container-page py-6 sm:py-8">
+    <section aria-label={t.home.whyLabel} className="container-page py-6 sm:py-8">
       <ul className="grid gap-4 rounded-2xl border border-line bg-surface-violet p-5 sm:grid-cols-3 sm:p-6">
         {trustPoints.map((t) => (
           <li key={t.title} className="flex items-start gap-3">
@@ -80,10 +80,11 @@ export function TrustStrip() {
   );
 }
 
-export function PopularTools() {
+export async function PopularTools() {
+  const t = await getT();
   return (
     <section aria-labelledby="popular-heading" className="container-page py-10 sm:py-14">
-      <SectionTitle id="popular-heading" title="Popular tools" linkHref="/tools" linkLabel="View all tools" />
+      <SectionTitle id="popular-heading" title={t.home.popularTitle} linkHref="/tools" linkLabel={t.home.viewAllTools} />
       <div className="mt-6">
         <ToolGrid tools={getPopularTools(5).map(toDirectoryItem)} columns={5} />
       </div>
@@ -91,16 +92,17 @@ export function PopularTools() {
   );
 }
 
-export function CategoriesSection() {
+export async function CategoriesSection() {
+  const t = await getT();
   const cats = getPublishedCategories();
   return (
     <section aria-labelledby="categories-heading" className="container-page py-10 sm:py-14">
       <SectionTitle
         id="categories-heading"
-        title="Browse by category"
-        description="Find the perfect tool for your needs. Explore by category and discover what you can do."
+        title={t.home.categoriesTitle}
+        description={t.home.categoriesText}
         linkHref="/categories"
-        linkLabel="View all categories"
+        linkLabel={t.home.viewAllCategories}
       />
       <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {cats.map((c) => (
@@ -114,20 +116,21 @@ export function CategoriesSection() {
 }
 
 /** The one dark accent on the otherwise light home page. */
-export function PromoBanner() {
+export async function PromoBanner() {
+  const t = await getT();
   return (
     <section aria-labelledby="promo-heading" className="container-page py-6 sm:py-8">
       <div className="banner-navy relative overflow-hidden rounded-2xl px-6 py-10 sm:px-12 sm:py-14">
         <div className="relative z-10 max-w-md">
-          <h2 id="promo-heading" className="text-3xl font-bold tracking-tight sm:text-[2.1rem]">Small tasks. Big time savings.</h2>
+          <h2 id="promo-heading" className="text-3xl font-bold tracking-tight sm:text-[2.1rem]">{t.home.promoTitle}</h2>
           <p className="mt-3 text-[0.95rem] leading-relaxed text-[#c5cbea]">
-            Explore our most useful tools, from everyday utilities to advanced developer tools.
+            {t.home.promoText}
           </p>
           <Link
             href="/tools"
             className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-full bg-accent bg-(image:--gradient-btn) px-5 text-sm font-semibold text-accent-fg shadow-[0_10px_30px_-8px_rgba(124,58,237,0.7)] transition-colors hover:bg-(image:--gradient-btn-hover)"
           >
-            View all tools <Icon name="arrow-right" size={16} />
+            {t.home.viewAllTools} <Icon name="arrow-right" size={16} />
           </Link>
         </div>
         <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 end-0 hidden w-[52%] md:block">
@@ -146,16 +149,14 @@ export function PromoBanner() {
   );
 }
 
-const steps: { n: string; title: string; text: string; icon: IconName }[] = [
-  { n: "01", title: "Find your tool", text: "Search or browse the collection.", icon: "search" },
-  { n: "02", title: "Get it done", text: "Use an intuitive interface designed for the task.", icon: "zap" },
-  { n: "03", title: "Take your result", text: "Copy, download, or export the output when supported.", icon: "download" },
-];
+const stepIcons: IconName[] = ["search", "zap", "download"];
 
-export function HowItWorks() {
+export async function HowItWorks() {
+  const t = await getT();
+  const steps = t.home.steps.map((s, i) => ({ ...s, n: `0${i + 1}`, icon: stepIcons[i]! }));
   return (
     <section aria-labelledby="how-heading" className="container-page py-10 sm:py-14">
-      <SectionTitle id="how-heading" title="How Artify Tools works" description="Get started in three simple steps." linkHref="/tools" linkLabel="Explore all tools" />
+      <SectionTitle id="how-heading" title={t.home.howTitle} description={t.home.howText} linkHref="/tools" linkLabel={t.home.exploreAllTools} />
       <ol className="mt-8 grid gap-8 md:grid-cols-3">
         {steps.map((s) => (
           <li key={s.n} className="flex items-start gap-4">
@@ -174,41 +175,42 @@ export function HowItWorks() {
   );
 }
 
-export function AiShowcase() {
-  const aiTools = getPublishedTools().filter((t) => t.aiPowered);
-  const planned = ["AI Writing Assistant", "Information Extractor", "Document Assistant"];
+export async function AiShowcase() {
+  const t = await getT();
+  const aiTools = getPublishedTools().filter((tool) => tool.aiPowered);
+  const planned = t.home.aiPlanned;
   return (
     <section aria-labelledby="ai-heading" className="container-page py-10 sm:py-14">
       <div className="grid items-center gap-8 rounded-2xl bg-surface-violet p-6 sm:p-10 lg:grid-cols-[1.1fr_0.9fr]">
         <div>
-          <h2 id="ai-heading" className="text-3xl font-bold tracking-tight sm:text-[2.1rem]">Meet a smarter way to work.</h2>
+          <h2 id="ai-heading" className="text-3xl font-bold tracking-tight sm:text-[2.1rem]">{t.home.aiTitle}</h2>
           <p className="mt-3 max-w-lg text-[0.95rem] leading-relaxed text-muted">
-            Selected tools can help you write, summarize, extract information, and work more efficiently. The AI Text Summarizer is coming soon, and more are planned. We tell you plainly when your text is sent to an AI provider.
+            {t.home.aiText}
           </p>
           <div className="mt-6">
             <ButtonLink href="/ai-tools" className="rounded-full px-5">
-              View AI tools <Icon name="arrow-right" size={16} />
+              {t.home.viewAiTools} <Icon name="arrow-right" size={16} />
             </ButtonLink>
           </div>
         </div>
         <div className="banner-navy rounded-2xl p-5 sm:p-6">
           <div className="flex items-center gap-3">
             <span className="grid size-11 place-items-center rounded-xl bg-accent text-sm font-bold text-accent-fg shadow-[0_8px_24px_-6px_rgba(101,71,255,0.9)]" aria-hidden="true">AI</span>
-            <p className="font-semibold">AI-assisted tools</p>
+            <p className="font-semibold">{t.home.aiAssisted}</p>
           </div>
           <ul className="mt-5 space-y-2.5 text-sm">
-            {aiTools.map((t) => (
-              <li key={t.id} className="flex items-center justify-between gap-3 rounded-lg bg-white/[0.07] px-3.5 py-2.5">
-                <Link href={`/tools/${t.slug}`} className="inline-flex items-center gap-2 font-medium text-white hover:underline">
-                  <Icon name="sparkles" size={15} className="text-[#b4a8ff]" /> {t.name}
+            {aiTools.map((tool) => (
+              <li key={tool.id} className="flex items-center justify-between gap-3 rounded-lg bg-white/[0.07] px-3.5 py-2.5">
+                <Link href={`/tools/${tool.slug}`} className="inline-flex items-center gap-2 font-medium text-white hover:underline">
+                  <Icon name="sparkles" size={15} className="text-[#b4a8ff]" /> {tool.name}
                 </Link>
-                <Badge tone="warning">{t.status === "beta" ? "Beta" : "Coming soon"}</Badge>
+                <Badge tone="warning">{tool.status === "beta" ? t.common.beta : t.common.comingSoon}</Badge>
               </li>
             ))}
             {planned.map((p) => (
               <li key={p} className="flex items-center justify-between gap-3 rounded-lg px-3.5 py-2.5 text-[#aeb6da]">
                 <span className="inline-flex items-center gap-2"><Icon name="clock" size={15} /> {p}</span>
-                <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-xs">Planned</span>
+                <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-xs">{t.common.planned}</span>
               </li>
             ))}
           </ul>
@@ -218,18 +220,16 @@ export function AiShowcase() {
   );
 }
 
-export function PrivacySection() {
+const privacyIcons: IconName[] = ["lock", "laptop", "eye", "database"];
+
+export async function PrivacySection() {
+  const t = await getT();
   const published = getPublishedTools();
-  const local = published.filter((t) => t.processingMode === "browser-local").length;
-  const items: { icon: IconName; title: string; text: string }[] = [
-    { icon: "lock", title: "Privacy first", text: "No account is needed to use any tool, no ads, no cookies, and visit counts are anonymous." },
-    { icon: "laptop", title: "Local processing, where supported", text: `${local} of our ${published.length} tools process your input entirely in your browser.` },
-    { icon: "eye", title: "Transparent data handling", text: "Each tool page states whether data stays on your device, goes to an Artify server, or is shared with an external provider." },
-    { icon: "database", title: "No unnecessary storage", text: "We don’t store the text, files, or values you enter into the tools." },
-  ];
+  const local = published.filter((tool) => tool.processingMode === "browser-local").length;
+  const items = t.home.privacyItems(local, published.length).map((item, i) => ({ ...item, icon: privacyIcons[i]! }));
   return (
     <section aria-labelledby="privacy-section-heading" className="container-page py-10 sm:py-14">
-      <SectionTitle id="privacy-section-heading" title="Your work deserves thoughtful protection." description="We care about your privacy. Here’s how we handle your data." />
+      <SectionTitle id="privacy-section-heading" title={t.home.privacyTitle} description={t.home.privacyText} />
       <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {items.map((i) => (
           <li key={i.title} className="flex items-start gap-3.5">
@@ -245,14 +245,15 @@ export function PrivacySection() {
       </ul>
       <p className="mt-6">
         <Link href="/privacy" className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-accent-text hover:underline">
-          Read our Privacy Policy <Icon name="arrow-right" size={15} />
+          {t.home.readPrivacy} <Icon name="arrow-right" size={15} />
         </Link>
       </p>
     </section>
   );
 }
 
-export function ClosingCta() {
+export async function ClosingCta() {
+  const t = await getT();
   return (
     <section aria-labelledby="cta-heading" className="container-page pb-6 pt-10 sm:pt-14">
       <div className="relative overflow-hidden rounded-2xl px-6 py-14 text-center sm:px-12 sm:py-16" style={{ background: "var(--gradient-cta)" }}>
@@ -268,11 +269,11 @@ export function ClosingCta() {
           </defs>
         </svg>
         <div className="relative">
-          <h2 id="cta-heading" className="mx-auto max-w-2xl text-3xl font-bold tracking-tight sm:text-[2.2rem]">Whatever you need to get done, start here.</h2>
-          <p className="mx-auto mt-3 max-w-lg text-[0.95rem] text-muted">Explore the collection and find a simpler way to work.</p>
+          <h2 id="cta-heading" className="mx-auto max-w-2xl text-3xl font-bold tracking-tight sm:text-[2.2rem]">{t.home.ctaTitle}</h2>
+          <p className="mx-auto mt-3 max-w-lg text-[0.95rem] text-muted">{t.home.ctaText}</p>
           <div className="mt-7">
             <ButtonLink href="/tools" size="lg" className="rounded-full px-7">
-              Explore All Tools <Icon name="arrow-right" size={17} />
+              {t.home.ctaButton} <Icon name="arrow-right" size={17} />
             </ButtonLink>
           </div>
         </div>

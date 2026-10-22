@@ -13,6 +13,7 @@ import { siteConfig } from "@/lib/config";
 import { getPopularTools, getPublishedCategories, getSearchItems, toDirectoryItem } from "@/lib/tools/registry";
 import { LocaleProvider } from "@/components/i18n/locale-provider";
 import { dirOf, isLocale, locales } from "@/lib/i18n";
+import { getMessages } from "@/lib/messages";
 import "../globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
@@ -24,14 +25,18 @@ export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
 }
 
-export const metadata: Metadata = {
-  metadataBase: new URL(siteConfig.url),
-  title: { default: `${siteConfig.name} — ${siteConfig.tagline}`, template: `%s | ${siteConfig.name}` },
-  description: siteConfig.description,
-  applicationName: siteConfig.name,
-  openGraph: { type: "website", siteName: siteConfig.name, locale: "en_US" },
-  twitter: { card: "summary_large_image" },
-};
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const t = getMessages(isLocale(lang) ? lang : "en");
+  return {
+    metadataBase: new URL(siteConfig.url),
+    title: { default: `${siteConfig.name} — ${t.site.tagline}`, template: `%s | ${siteConfig.name}` },
+    description: t.site.description,
+    applicationName: siteConfig.name,
+    openGraph: { type: "website", siteName: siteConfig.name, locale: lang === "ar" ? "ar_AR" : "en_US" },
+    twitter: { card: "summary_large_image" },
+  };
+}
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -61,7 +66,7 @@ export default async function RootLayout({ children, params }: { children: React
             href="#main"
             className="sr-only-focusable fixed start-4 top-4 z-toast rounded-md bg-accent px-4 py-2.5 font-medium text-accent-fg"
           >
-            Skip to main content
+            {getMessages(lang).common.skipToContent}
           </a>
           <AnnouncementBar />
           <Header items={items} categories={categories} suggestions={suggestions} />

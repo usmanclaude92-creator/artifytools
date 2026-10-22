@@ -2,14 +2,21 @@ import type { Metadata } from "next";
 import Link from "@/components/ui/locale-link";
 import { PageHeader } from "@/components/layout/page-header";
 import { pageMetadata } from "@/lib/seo/metadata";
+import { getLocale } from "@/lib/locale-server";
+import { TermsAr, termsMetaAr } from "@/components/pages-ar/terms";
 
-export const metadata: Metadata = pageMetadata({
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  if (locale === "ar") return pageMetadata({ ...termsMetaAr, path: "/terms", locale });
+  return pageMetadata({
   title: "Terms of Use",
   description: "The terms that apply when you use Artify Tools, including acceptable use and disclaimers about results.",
   path: "/terms",
-});
+  });
+}
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  if ((await getLocale()) === "ar") return <TermsAr />;
   return (
     <>
       <PageHeader title="Terms of Use" description="Last updated 21 October 2026." breadcrumbs={[{ name: "Home", href: "/" }, { name: "Terms" }]} />

@@ -2,17 +2,24 @@ import type { Metadata } from "next";
 import Link from "@/components/ui/locale-link";
 import { PageHeader } from "@/components/layout/page-header";
 import { pageMetadata } from "@/lib/seo/metadata";
+import { getLocale } from "@/lib/locale-server";
+import { PrivacyAr, privacyMetaAr } from "@/components/pages-ar/privacy";
 import { processingLabels } from "@/lib/tools/labels";
 import { getUsableTools } from "@/lib/tools/registry";
 import type { ProcessingMode } from "@/lib/tools/types";
 
-export const metadata: Metadata = pageMetadata({
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  if (locale === "ar") return pageMetadata({ ...privacyMetaAr, path: "/privacy", locale });
+  return pageMetadata({
   title: "Privacy Policy",
   description: "How Artify Tools handles your data: most tools run in your browser, and we state clearly where any exception sends data.",
   path: "/privacy",
-});
+  });
+}
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  if ((await getLocale()) === "ar") return <PrivacyAr />;
   const tools = getUsableTools();
   const modes: ProcessingMode[] = ["browser-local", "server-side", "external-provider"];
   return (

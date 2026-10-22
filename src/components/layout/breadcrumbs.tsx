@@ -1,14 +1,16 @@
 import Link from "@/components/ui/locale-link";
 import { Icon } from "@/components/ui/icon";
+import { getT } from "@/lib/locale-server";
 
 export interface Crumb {
   name: string;
   href?: string;
 }
 
-export function Breadcrumbs({ items, compact }: { items: Crumb[]; compact?: boolean }) {
+export async function Breadcrumbs({ items, compact }: { items: Crumb[]; compact?: boolean }) {
+  const t = await getT();
   return (
-    <nav aria-label="Breadcrumb" className={compact ? "mb-3" : "mb-5"}>
+    <nav aria-label={t.common.breadcrumb} className={compact ? "mb-3" : "mb-5"}>
       <ol className="flex flex-wrap items-center gap-1.5 text-sm text-muted">
         {items.map((c, i) => {
           const last = i === items.length - 1;
@@ -16,7 +18,7 @@ export function Breadcrumbs({ items, compact }: { items: Crumb[]; compact?: bool
             <li key={c.name} className="flex items-center gap-1.5">
               {c.href && !last ? (
                 <Link href={c.href} className="rounded underline-offset-4 hover:text-fg hover:underline">
-                  {c.name}
+                  {c.href === "/" ? t.common.home : c.name}
                 </Link>
               ) : (
                 <span aria-current={last ? "page" : undefined} className={last ? "text-fg" : undefined}>

@@ -2,33 +2,31 @@ import Link from "@/components/ui/locale-link";
 import { SearchCombobox, type SearchCategoryLink } from "@/components/search/search-combobox";
 import { getTool, type SearchItem } from "@/lib/tools/registry";
 import { HeroVisual } from "./hero-visual";
+import { getT } from "@/lib/locale-server";
 
-const chips = [
-  { label: "Count words", slug: "word-counter" },
-  { label: "Calculate percentage", slug: "percentage-calculator" },
-  { label: "Format JSON", slug: "json-formatter" },
-  { label: "Generate password", slug: "password-generator" },
-].filter((c) => getTool(c.slug));
+const chipSlugs = ["word-counter", "percentage-calculator", "json-formatter", "password-generator"].filter((s) => getTool(s));
 
-export function Hero({ items, categories }: { items: SearchItem[]; categories: SearchCategoryLink[] }) {
+export async function Hero({ items, categories }: { items: SearchItem[]; categories: SearchCategoryLink[] }) {
+  const t = await getT();
+  const chips = chipSlugs.map((slug) => ({ slug, label: t.home.chips[slug] ?? slug }));
   return (
     <section aria-labelledby="hero-heading" className="hero-wash">
       <div className="container-page grid items-center gap-10 pb-14 pt-10 sm:pt-14 lg:grid-cols-[1.2fr_0.8fr] lg:gap-4 lg:pb-10 lg:pt-14">
         <div>
-          <p className="eyebrow mb-5">Your digital toolkit</p>
+          <p className="eyebrow mb-5">{t.home.eyebrow}</p>
           <h1 id="hero-heading" className="text-[2.4rem] font-bold leading-[1.08] tracking-tight sm:text-5xl lg:text-[2.9rem] xl:text-[3rem]">
-            The right tool.
+            {t.home.titleLine1}
             <br />
-            For whatever <span className="text-gradient">you&apos;re doing.</span>
+            {t.home.titleLine2}<span className="text-gradient">{t.home.titleHighlight}</span>
           </h1>
           <p className="mt-6 max-w-[34rem] text-base leading-relaxed text-muted sm:text-lg">
-            Discover thoughtfully designed online tools that help you create, calculate, convert, organize, and get more done — without unnecessary complexity.
+            {t.site.description}
           </p>
 
           <div className="mt-8 max-w-[38rem]">
             <SearchCombobox items={items} categories={categories} variant="hero" inputId="hero-search" />
             <div className="mt-4 flex flex-wrap items-center gap-x-1.5 gap-y-2">
-              <span className="text-sm text-muted">Try searching:</span>
+              <span className="text-sm text-muted">{t.home.trySearching}</span>
               {chips.map((c) => (
                 <Link
                   key={c.slug}

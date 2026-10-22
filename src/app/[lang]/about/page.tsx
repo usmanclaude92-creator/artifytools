@@ -3,13 +3,19 @@ import Link from "@/components/ui/locale-link";
 import { PageHeader } from "@/components/layout/page-header";
 import { Icon, type IconName } from "@/components/ui/icon";
 import { pageMetadata } from "@/lib/seo/metadata";
+import { getLocale } from "@/lib/locale-server";
+import { AboutAr, aboutMetaAr } from "@/components/pages-ar/about";
 import { getActiveTools, getPublishedCategories } from "@/lib/tools/registry";
 
-export const metadata: Metadata = pageMetadata({
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  if (locale === "ar") return pageMetadata({ ...aboutMetaAr, path: "/about", locale });
+  return pageMetadata({
   title: "About",
   description: "Artify Tools is a collection of useful, thoughtfully designed online tools. Learn what we're building and the principles behind it.",
   path: "/about",
-});
+  });
+}
 
 const principles: { icon: IconName; title: string; text: string }[] = [
   { icon: "zap", title: "Simple first", text: "A tool should do one job clearly. We cut steps, options, and noise until the task feels obvious." },
@@ -18,7 +24,8 @@ const principles: { icon: IconName; title: string; text: string }[] = [
   { icon: "laptop", title: "Accessible to everyone", text: "Keyboard-friendly, screen-reader-aware, readable at any size, and respectful of reduced-motion settings." },
 ];
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  if ((await getLocale()) === "ar") return <AboutAr />;
   const active = getActiveTools().length;
   const cats = getPublishedCategories().length;
   return (

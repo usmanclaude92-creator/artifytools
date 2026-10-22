@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { Icon } from "./icon";
+import { useMessages } from "@/components/i18n/locale-provider";
 
 export type Theme = "light" | "dark";
 const STORAGE_KEY = "artify-theme";
@@ -20,12 +21,13 @@ const getServerSnapshot = (): Theme => "light";
 export function ThemeToggle() {
   const theme = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const next: Theme = theme === "dark" ? "light" : "dark";
+  const t = useMessages();
 
   return (
     <button
       type="button"
-      aria-label={`Switch to ${next} theme`}
-      title={`Switch to ${next} theme`}
+      aria-label={t.theme.switchTo(next)}
+      title={t.theme.switchTo(next)}
       onClick={() => {
         document.documentElement.dataset.theme = next;
         try {

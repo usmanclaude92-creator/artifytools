@@ -2,7 +2,7 @@
 
 import Link from "@/components/ui/locale-link";
 import { useRouter } from "next/navigation";
-import { useLocale } from "@/components/i18n/locale-provider";
+import { useLocale, useMessages } from "@/components/i18n/locale-provider";
 import { localizeHref } from "@/lib/i18n";
 import { useId, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/ui/icon";
@@ -27,7 +27,8 @@ interface Props {
   inputId?: string;
 }
 
-export function SearchCombobox({ items, categories, suggestions, variant, autoFocus, onNavigate, placeholder = "What do you need to do today?", inputId }: Props) {
+export function SearchCombobox({ items, categories, suggestions, variant, autoFocus, onNavigate, placeholder, inputId }: Props) {
+  const t = useMessages();
   const router = useRouter();
   const locale = useLocale();
   const uid = useId();
@@ -102,13 +103,13 @@ export function SearchCombobox({ items, categories, suggestions, variant, autoFo
           aria-controls={listId}
           aria-autocomplete="list"
           aria-activedescendant={showList && active >= 0 ? `${uid}-opt-${active}` : undefined}
-          aria-label="Search tools"
+          aria-label={t.search.label}
           autoComplete="off"
           autoCapitalize="off"
           spellCheck={false}
           autoFocus={autoFocus}
           enterKeyHint="search"
-          placeholder={placeholder}
+          placeholder={placeholder ?? t.search.placeholder}
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
@@ -129,7 +130,7 @@ export function SearchCombobox({ items, categories, suggestions, variant, autoFo
         {query && (
           <button
             type="button"
-            aria-label="Clear search"
+            aria-label={t.search.clear}
             onClick={() => { setQuery(""); setActiveIndex(0); inputRef.current?.focus(); }}
             className={cx("absolute top-1/2 grid size-10 -translate-y-1/2 place-items-center rounded-md text-muted hover:bg-surface-2 hover:text-fg", variant === "hero" ? "end-16" : "end-2")}
           >
@@ -139,7 +140,7 @@ export function SearchCombobox({ items, categories, suggestions, variant, autoFo
         {variant === "hero" && (
           <button
             type="button"
-            aria-label="Search"
+            aria-label={t.search.submit}
             onClick={submit}
             className="absolute end-2.5 top-1/2 grid h-10 w-12 -translate-y-1/2 place-items-center rounded-xl bg-accent text-accent-fg shadow-sm transition-colors hover:bg-accent-hover sm:h-11 sm:w-14"
           >
@@ -149,18 +150,18 @@ export function SearchCombobox({ items, categories, suggestions, variant, autoFo
       </div>
 
       <div className="sr-only" role="status" aria-live="polite">
-        {trimmed ? (results.length ? `${results.length} result${results.length === 1 ? "" : "s"} available. Use up and down arrows to review.` : "No results found.") : ""}
+        {trimmed ? (results.length ? t.search.results(results.length) : t.search.noResultsAnnounce) : ""}
       </div>
 
       {showList && !noResults && (
         <div
           className={cx(
-            "overflow-hidden rounded-lg border border-line bg-surface text-left",
+            "overflow-hidden rounded-lg border border-line bg-surface text-start",
             variant === "hero" ? "absolute inset-x-0 top-full z-30 mt-2 shadow-overlay" : "mt-3",
           )}
         >
-          {!trimmed && <p className="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-muted">Popular tools</p>}
-          <ul id={listId} role="listbox" aria-label="Matching tools" className="max-h-[22rem] overflow-y-auto p-1.5">
+          {!trimmed && <p className="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-muted">{t.search.popular}</p>}
+          <ul id={listId} role="listbox" aria-label={t.search.matching} className="max-h-[22rem] overflow-y-auto p-1.5">
             {results.map((r, i) => (
               <li
                 key={r.id}
@@ -178,7 +179,7 @@ export function SearchCombobox({ items, categories, suggestions, variant, autoFo
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-medium">
                     {r.name}
-                    {r.status !== "active" && <span className="ms-2 rounded-full bg-warning-soft px-2 py-0.5 text-xs font-medium text-warning">{r.status === "beta" ? "Beta" : "Coming soon"}</span>}
+                    {r.status !== "active" && <span className="ms-2 rounded-full bg-warning-soft px-2 py-0.5 text-xs font-medium text-warning">{r.status === "beta" ? t.common.beta : t.common.comingSoon}</span>}
                   </span>
                   <span className="block truncate text-sm text-muted">{r.description}</span>
                 </span>
@@ -189,12 +190,12 @@ export function SearchCombobox({ items, categories, suggestions, variant, autoFo
         </div>
       )}
       {/* The listbox element must exist for aria-controls even when closed. */}
-      {!(showList && !noResults) && <ul id={listId} role="listbox" aria-label="Matching tools" hidden />}
+      {!(showList && !noResults) && <ul id={listId} role="listbox" aria-label={t.search.matching} hidden />}
 
       {noResults && (
-        <div className={cx("rounded-lg border border-line bg-surface p-5 text-left", variant === "hero" ? "absolute inset-x-0 top-full z-30 mt-2 shadow-overlay" : "mt-3")}>
-          <p className="font-medium">No tools match “{trimmed}”</p>
-          <p className="mt-1 text-sm text-muted">Try a different word, or browse a category:</p>
+        <div className={cx("rounded-lg border border-line bg-surface p-5 text-start", variant === "hero" ? "absolute inset-x-0 top-full z-30 mt-2 shadow-overlay" : "mt-3")}>
+          <p className="font-medium">{t.search.noMatch(trimmed)}</p>
+          <p className="mt-1 text-sm text-muted">{t.search.tryDifferent}</p>
           <ul className="mt-3 flex flex-wrap gap-2">
             {categories.map((c) => (
               <li key={c.slug}>
@@ -209,7 +210,7 @@ export function SearchCombobox({ items, categories, suggestions, variant, autoFo
             ))}
             <li>
               <Link href="/tools" onClick={() => onNavigate?.()} className="inline-flex min-h-9 items-center rounded-full bg-accent px-3.5 text-sm font-medium text-accent-fg hover:bg-accent-hover">
-                All tools
+                {t.search.allTools}
               </Link>
             </li>
           </ul>

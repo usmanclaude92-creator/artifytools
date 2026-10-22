@@ -329,3 +329,6 @@ html[lang="ar"] body {
 [dir="rtl"] .icon-directional {
   transform: scaleX(-1);
 }
+
+/* Letter-spacing breaks the joins between Arabic letters. */
+html[lang="ar"] :is(h1, h2, h3, h4, .eyebrow, [class*="tracking-"]) { letter-spacing: normal; }

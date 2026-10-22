@@ -5,14 +5,21 @@ import { buttonClasses } from "@/components/ui/button";
 import { StatusMessage } from "@/components/ui/feedback";
 import { siteConfig } from "@/lib/config";
 import { pageMetadata } from "@/lib/seo/metadata";
+import { getLocale } from "@/lib/locale-server";
+import { ContactAr, contactMetaAr } from "@/components/pages-ar/contact";
 
-export const metadata: Metadata = pageMetadata({
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  if (locale === "ar") return pageMetadata({ ...contactMetaAr, path: "/contact", locale });
+  return pageMetadata({
   title: "Contact",
   description: "How to reach the Artify Tools team with feedback, bug reports, or tool suggestions.",
   path: "/contact",
-});
+  });
+}
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  if ((await getLocale()) === "ar") return <ContactAr />;
   const email = siteConfig.contactEmail;
   return (
     <>
