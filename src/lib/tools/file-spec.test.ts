@@ -41,7 +41,10 @@ describe("file tool specs", () => {
     expect(item.inputKind).toBe("images");
     expect(item.keywords).toEqual(expect.arrayContaining(["jpg", "png", "webp"]));
     expect(searchTools([...getSearchItems(), item], "webp", 1)[0]!.slug).toBe("image-compressor");
-    expect(getSearchItems().every((i) => i.inputKind === "text")).toBe(true); // today's tools all take text or numbers
+    const kinds = Object.fromEntries(getSearchItems().map((i) => [i.slug, i.inputKind]));
+    expect(kinds["word-counter"]).toBe("text");
+    expect(kinds["merge-pdf"]).toBe("pdf");
+    expect(kinds["split-pdf"]).toBe("pdf");
   });
 });
 

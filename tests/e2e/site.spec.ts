@@ -218,7 +218,7 @@ test.describe("directory", () => {
   test("filters by category, combines with search, syncs the URL, and clears", async ({ page }) => {
     await page.goto("/tools");
     const count = page.getByRole("status").filter({ hasText: /tools?(\s|$)/ }).first();
-    await expect(count).toContainText("16 tools");
+    await expect(count).toContainText("18 tools");
     await page.getByRole("button", { name: /^Calculators/ }).click();
     await expect(page).toHaveURL(/category=calculators/);
     await expect(count).toContainText("3 tools");
@@ -227,7 +227,7 @@ test.describe("directory", () => {
     await expect(count).toContainText("1 tool");
     await expect(page.getByRole("button", { name: /Category: Calculators/ })).toBeVisible();
     await page.getByRole("button", { name: "Clear all" }).click();
-    await expect(count).toContainText("16 tools");
+    await expect(count).toContainText("18 tools");
     await expect(page.getByLabel("Search all tools")).toHaveValue("");
   });
 
@@ -242,6 +242,10 @@ test.describe("directory", () => {
     await page.getByLabel("AI-powered only").uncheck();
     await page.getByLabel("Processing").selectOption("external-provider");
     await expect(page.locator("article h2")).toHaveCount(1);
+    await page.getByLabel("Processing").selectOption("");
+    await page.getByLabel("Works with").selectOption("pdf");
+    await expect(page).toHaveURL(/kind=pdf/);
+    await expect(page.locator("article h2")).toHaveText(["Merge PDF", "Split PDF"]);
   });
 
   test("paginates beyond 12 tools", async ({ page }) => {
@@ -249,7 +253,7 @@ test.describe("directory", () => {
     await expect(page.locator("article")).toHaveCount(12);
     await page.getByRole("button", { name: "Page 2" }).click();
     await expect(page).toHaveURL(/page=2/);
-    await expect(page.locator("article")).toHaveCount(4);
+    await expect(page.locator("article")).toHaveCount(6);
   });
 
   test("search from header while on /tools updates the directory", async ({ page }) => {

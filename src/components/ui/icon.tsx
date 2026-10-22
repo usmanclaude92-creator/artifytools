@@ -1,6 +1,6 @@
 import {
   ArrowRight, ArrowUpDown, Binary, Braces, Briefcase, Calculator, CalendarRange, CaseSensitive, Check,
-  ChevronDown, ChevronRight, ChevronUp, File, LoaderCircle, Trash2, FolderArchive, CircleAlert, CircleCheck, Clock, Cloud, Copy, Download, Eraser, ExternalLink,
+  ChevronDown, ChevronRight, ChevronUp, Combine, Scissors, File, LoaderCircle, Trash2, FolderArchive, CircleAlert, CircleCheck, Clock, Cloud, Copy, Download, Eraser, ExternalLink,
   FileText, Fingerprint, Image, Info, KeyRound, Laptop, Layers, Link2, ListX, Lock, Menu, Palette, Percent,
   QrCode, Receipt, RefreshCw, RotateCcw, Search, Server, ShieldCheck, SlidersHorizontal, Sparkles, Sun, Moon,
   Tag, TriangleAlert, Code, Eye, Database, Type, Upload, WholeWord, X, Zap, Wand2, Globe, Hash,
@@ -26,6 +26,8 @@ const icons = {
   trash: Trash2,
   "circle-alert": CircleAlert,
   "circle-check": CircleCheck,
+  combine: Combine,
+  scissors: Scissors,
   clock: Clock,
   code: Code,
   database: Database,

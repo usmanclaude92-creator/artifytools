@@ -54,6 +54,17 @@ describe("tool registry integrity", () => {
   });
 });
 
+describe("Arabic search", () => {
+  const items = getSearchItems("ar");
+  const top = (q: string) => searchTools(items, q, 3).map((i) => i.slug);
+  it("finds the PDF tools by their common Arabic searches", () => {
+    expect(top("دمج pdf")[0]).toBe("merge-pdf");
+    expect(top("دمج ملفات pdf")[0]).toBe("merge-pdf");
+    expect(top("تقسيم pdf")[0]).toBe("split-pdf");
+    expect(top("فصل صفحات pdf")[0]).toBe("split-pdf");
+  });
+});
+
 describe("search", () => {
   const items = getSearchItems();
   const top = (q: string) => searchTools(items, q, 3).map((i) => i.slug);
@@ -76,6 +87,10 @@ describe("search", () => {
     expect(top("vat")[0]).toBe("vat-calculator");
     expect(top("snake_case")).toContain("case-converter");
     expect(top("dedupe list")[0]).toBe("remove-duplicate-lines");
+    expect(top("merge pdf")[0]).toBe("merge-pdf");
+    expect(top("combine pdf files")[0]).toBe("merge-pdf");
+    expect(top("split pdf")[0]).toBe("split-pdf");
+    expect(top("extract pages from pdf")[0]).toBe("split-pdf");
   });
   it("ranks exact name matches above weaker matches", () => {
     expect(top("password generator")[0]).toBe("password-generator");

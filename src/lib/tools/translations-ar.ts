@@ -15,6 +15,8 @@ import { metaAr as passwordGenerator } from "@/tools/password-generator/meta.ar"
 import { metaAr as qrCodeGenerator } from "@/tools/qr-code-generator/meta.ar";
 import { metaAr as colorConverter } from "@/tools/color-converter/meta.ar";
 import { metaAr as aiTextSummarizer } from "@/tools/ai-text-summarizer/meta.ar";
+import { metaAr as mergePdf } from "@/tools/merge-pdf/meta.ar";
+import { metaAr as splitPdf } from "@/tools/split-pdf/meta.ar";
 
 /** Arabic text for each tool, keyed by tool id. Tools missing here are shown in English. */
 export const toolTranslationsAr: Record<string, ToolTranslation> = {
@@ -34,4 +36,6 @@ export const toolTranslationsAr: Record<string, ToolTranslation> = {
   "qr-code-generator": qrCodeGenerator,
   "color-converter": colorConverter,
   "ai-text-summarizer": aiTextSummarizer,
+  "merge-pdf": mergePdf,
+  "split-pdf": splitPdf,
 };

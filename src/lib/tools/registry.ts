@@ -22,6 +22,8 @@ import { meta as qrCodeGenerator } from "@/tools/qr-code-generator/meta";
 import { meta as dateDifference } from "@/tools/date-difference/meta";
 import { meta as colorConverter } from "@/tools/color-converter/meta";
 import { meta as aiTextSummarizer } from "@/tools/ai-text-summarizer/meta";
+import { meta as mergePdf } from "@/tools/merge-pdf/meta";
+import { meta as splitPdf } from "@/tools/split-pdf/meta";
 
 /**
  * Single source of truth for every tool. Directory cards, categories, search,
@@ -46,6 +48,8 @@ export const tools: readonly ToolDefinition[] = [
   dateDifference,
   colorConverter,
   aiTextSummarizer,
+  mergePdf,
+  splitPdf,
 ];
 
 const bySlug = new Map(tools.map((t) => [t.slug, t]));

@@ -36,6 +36,8 @@ const components: Record<string, ComponentType> = {
   "date-difference": load(() => import("@/tools/date-difference/ui")),
   "color-converter": load(() => import("@/tools/color-converter/ui")),
   "ai-text-summarizer": load(() => import("@/tools/ai-text-summarizer/ui")),
+  "merge-pdf": load(() => import("@/tools/merge-pdf/ui")),
+  "split-pdf": load(() => import("@/tools/split-pdf/ui")),
 };
 
 export function ToolWorkspace({ toolId }: { toolId: string }) {
