@@ -14,6 +14,7 @@ import { getPopularTools, getPublishedCategories, getSearchItems, toDirectoryIte
 import { LocaleProvider } from "@/components/i18n/locale-provider";
 import { dirOf, isLocale, locales } from "@/lib/i18n";
 import { getMessages } from "@/lib/messages";
+import { localizeCategory } from "@/lib/tools/localize";
 import "../globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
@@ -50,9 +51,9 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children, params }: { children: React.ReactNode; params: Promise<{ lang: string }> }) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
-  const items = getSearchItems();
-  const categories = getPublishedCategories().map((c) => ({ name: c.name, slug: c.slug }));
-  const suggestions = getPopularTools(6).map(toDirectoryItem);
+  const items = getSearchItems(lang);
+  const categories = getPublishedCategories().map((c) => ({ name: localizeCategory(c, lang).name, slug: c.slug }));
+  const suggestions = getPopularTools(6).map((t) => toDirectoryItem(t, lang));
 
   return (
     <html lang={lang} dir={dirOf(lang)} suppressHydrationWarning className={`${inter.variable} ${GeistSans.variable} ${GeistMono.variable}${lang === "ar" ? ` ${arabic.variable}` : ""}`}>

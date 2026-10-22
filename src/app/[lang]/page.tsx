@@ -7,6 +7,7 @@ import { getPublishedCategories, getSearchItems } from "@/lib/tools/registry";
 import { pageMetadata } from "@/lib/seo/metadata";
 import { getLocale, getT } from "@/lib/locale-server";
 import { localizeHref } from "@/lib/i18n";
+import { localizeCategory } from "@/lib/tools/localize";
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
@@ -23,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function HomePage() {
   const locale = await getLocale();
   const t = await getT();
-  const categories = getPublishedCategories().map((c) => ({ name: c.name, slug: c.slug }));
+  const categories = getPublishedCategories().map((c) => ({ name: localizeCategory(c, locale).name, slug: c.slug }));
   return (
     <>
       <JsonLd
@@ -41,7 +42,7 @@ export default async function HomePage() {
           },
         }}
       />
-      <Hero items={getSearchItems()} categories={categories} />
+      <Hero items={getSearchItems(locale)} categories={categories} />
       <CategoryPromoCards />
       <PopularTools />
       <TrustStrip />

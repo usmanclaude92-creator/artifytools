@@ -8,6 +8,9 @@ import { absoluteUrl, siteConfig } from "@/lib/config";
 import { pageMetadata } from "@/lib/seo/metadata";
 import { getCategory } from "@/lib/tools/categories";
 import { getPublishedTools, getRelatedTools, getTool, toDirectoryItem } from "@/lib/tools/registry";
+import { localizeCategory, localizeTool } from "@/lib/tools/localize";
+import { getLocale, getT } from "@/lib/locale-server";
+import { localizeHref } from "@/lib/i18n";
 
 type Params = { slug: string };
 
@@ -17,9 +20,12 @@ export function generateStaticParams(): Params[] {
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params;
-  const tool = getTool(slug);
-  if (!tool) return { title: "Tool not found" };
+  const raw = getTool(slug);
+  const locale = await getLocale();
+  if (!raw) return { title: (await getT()).toolPage.notFound };
+  const tool = localizeTool(raw, locale);
   return pageMetadata({
+    locale,
     title: tool.seoTitle,
     description: tool.seoDescription,
     path: `/tools/${tool.slug}`,
@@ -31,21 +37,25 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 
 export default async function ToolPage({ params }: { params: Promise<Params> }) {
   const { slug } = await params;
-  const tool = getTool(slug);
-  if (!tool) notFound();
+  const raw = getTool(slug);
+  if (!raw) notFound();
+  const locale = await getLocale();
+  const t = await getT();
+  const tool = localizeTool(raw, locale);
+  const abs = (path: string) => absoluteUrl(localizeHref(path, locale));
 
-  const category = getCategory(tool.category);
-  const related = getRelatedTools(tool, 3).map(toDirectoryItem);
-  const url = absoluteUrl(`/tools/${tool.slug}`);
+  const category = localizeCategory(getCategory(tool.category), locale);
+  const related = getRelatedTools(raw, 3).map((r) => toDirectoryItem(r, locale));
+  const url = abs(`/tools/${tool.slug}`);
 
   const structuredData: Record<string, unknown>[] = [
     {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Home", item: absoluteUrl("/") },
-        { "@type": "ListItem", position: 2, name: "All Tools", item: absoluteUrl("/tools") },
-        { "@type": "ListItem", position: 3, name: category.name, item: absoluteUrl(`/categories/${category.slug}`) },
+        { "@type": "ListItem", position: 1, name: t.common.home, item: abs("/") },
+        { "@type": "ListItem", position: 2, name: t.toolPage.allTools, item: abs("/tools") },
+        { "@type": "ListItem", position: 3, name: category.name, item: abs(`/categories/${category.slug}`) },
         { "@type": "ListItem", position: 4, name: tool.name, item: url },
       ],
     },
@@ -55,6 +65,7 @@ export default async function ToolPage({ params }: { params: Promise<Params> }) 
       name: tool.name,
       url,
       description: tool.description,
+      inLanguage: locale,
       applicationCategory: "UtilitiesApplication",
       operatingSystem: "Any (web browser)",
       publisher: { "@type": "Organization", name: siteConfig.name, url: siteConfig.url },
@@ -78,8 +89,8 @@ export default async function ToolPage({ params }: { params: Promise<Params> }) 
           <Breadcrumbs
             compact
             items={[
-              { name: "Home", href: "/" },
-              { name: "All Tools", href: "/tools" },
+              { name: t.common.home, href: "/" },
+              { name: t.toolPage.allTools, href: "/tools" },
               { name: category.name, href: `/categories/${category.slug}` },
               { name: tool.name },
             ]}
@@ -105,7 +116,7 @@ export default async function ToolPage({ params }: { params: Promise<Params> }) 
           <div className="space-y-6">
             <RelatedTools tools={related} />
             <section aria-labelledby="about-heading" className="card p-5">
-              <h2 id="about-heading" className="text-[0.95rem] font-semibold">About this tool</h2>
+              <h2 id="about-heading" className="text-[0.95rem] font-semibold">{t.toolPage.about}</h2>
               <div className="mt-3 space-y-3 text-sm leading-relaxed text-muted">
                 {tool.intro.map((p) => (
                   <p key={p}>{p}</p>

@@ -9,7 +9,7 @@ import { Icon, type IconName } from "@/components/ui/icon";
 import { cx } from "@/components/ui/cx";
 import { Pagination } from "@/components/ui/pagination";
 import { searchTools } from "@/lib/search";
-import { processingLabels } from "@/lib/tools/labels";
+import { useLocale, useMessages } from "@/components/i18n/locale-provider";
 import type { DirectoryItem } from "@/lib/tools/registry";
 import type { ProcessingMode } from "@/lib/tools/types";
 import { ToolGrid } from "./tool-card";
@@ -57,6 +57,10 @@ function buildQuery(f: Filters): string {
 
 export function ToolsDirectory({ tools, categories }: Props) {
   const searchParams = useSearchParams();
+  const t = useMessages();
+  const locale = useLocale();
+  const d = t.directory;
+  const labels = t.processing;
   const urlKey = searchParams.toString();
 
   // Filters live in local state so every control responds instantly. The URL is kept in sync
@@ -108,26 +112,26 @@ export function ToolsDirectory({ tools, categories }: Props) {
       list = matched;
     }
     const sorted = [...list];
-    if (sort === "az") sorted.sort((a, b) => a.name.localeCompare(b.name));
-    else if (sort === "za") sorted.sort((a, b) => b.name.localeCompare(a.name));
+    if (sort === "az") sorted.sort((a, b) => a.name.localeCompare(b.name, locale));
+    else if (sort === "za") sorted.sort((a, b) => b.name.localeCompare(a.name, locale));
     else if (sort === "new") sorted.sort((a, b) => b.lastUpdated.localeCompare(a.lastUpdated) || a.name.localeCompare(b.name));
     else sorted.sort((a, b) => a.popularRank - b.popularRank || a.name.localeCompare(b.name));
     return sorted;
-  }, [tools, filters.category, filters.ai, filters.processing, filters.q, sort]);
+  }, [tools, filters.category, filters.ai, filters.processing, filters.q, sort, locale]);
 
   const pageCount = Math.max(1, Math.ceil(results.length / PAGE_SIZE));
   const page = Math.min(filters.page, pageCount);
   const visible = results.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const activeChips: { key: string; label: string; clear: () => void }[] = [];
-  if (filters.q.trim()) activeChips.push({ key: "q", label: `Search: “${filters.q.trim()}”`, clear: () => update({ q: "" }) });
+  if (filters.q.trim()) activeChips.push({ key: "q", label: d.searchChip(filters.q.trim()), clear: () => update({ q: "" }) });
   if (filters.category) {
     const c = categories.find((c) => c.slug === filters.category);
-    if (c) activeChips.push({ key: "category", label: `Category: ${c.name}`, clear: () => update({ category: "" }) });
+    if (c) activeChips.push({ key: "category", label: d.categoryChip(c.name), clear: () => update({ category: "" }) });
   }
-  if (filters.ai) activeChips.push({ key: "ai", label: "AI-powered", clear: () => update({ ai: false }) });
-  if (filters.processing && filters.processing in processingLabels) {
-    activeChips.push({ key: "processing", label: processingLabels[filters.processing as ProcessingMode].label, clear: () => update({ processing: "" }) });
+  if (filters.ai) activeChips.push({ key: "ai", label: d.aiChip, clear: () => update({ ai: false }) });
+  if (filters.processing && filters.processing in labels) {
+    activeChips.push({ key: "processing", label: labels[filters.processing as ProcessingMode].label, clear: () => update({ processing: "" }) });
   }
   const clearAll = () => {
     update({ q: "", category: "", ai: false, processing: "", sort: "recommended" });
@@ -141,7 +145,7 @@ export function ToolsDirectory({ tools, categories }: Props) {
 
   const sideItem = (active: boolean) =>
     cx(
-      "flex min-h-10 w-full items-center gap-2.5 rounded-lg px-3 text-left text-sm font-medium transition-colors",
+      "flex min-h-10 w-full items-center gap-2.5 rounded-lg px-3 text-start text-sm font-medium transition-colors",
       active ? "bg-accent-soft text-accent-text" : "text-muted hover:bg-surface-2 hover:text-fg",
     );
 
@@ -151,8 +155,8 @@ export function ToolsDirectory({ tools, categories }: Props) {
         <Icon name="search" size={20} className="pointer-events-none absolute start-4 top-1/2 -translate-y-1/2 text-muted" />
         <input
           type="search"
-          aria-label="Search all tools"
-          placeholder="Search tools by name, task, or keyword"
+          aria-label={d.searchLabel}
+          placeholder={d.searchPlaceholder}
           value={filters.q}
           onChange={(e) => update({ q: e.target.value })}
           className="field-control h-14 rounded-xl ps-12 text-base shadow-[var(--shadow-sm)]"
@@ -161,9 +165,9 @@ export function ToolsDirectory({ tools, categories }: Props) {
       </div>
 
       {/* Below lg the categories are a wrapping chip row; from lg up they move to the sidebar. */}
-      <div className="mt-4 flex flex-wrap items-center gap-2 lg:hidden" role="group" aria-label="Filter by category">
+      <div className="mt-4 flex flex-wrap items-center gap-2 lg:hidden" role="group" aria-label={d.filterByCategory}>
         <button type="button" className={chip(!filters.category)} aria-pressed={!filters.category} onClick={() => update({ category: "" })}>
-          All <span className="text-muted">{tools.length}</span>
+          {d.all} <span className="text-muted">{tools.length}</span>
         </button>
         {categories.map((c) => (
           <button key={c.slug} type="button" className={chip(filters.category === c.slug)} aria-pressed={filters.category === c.slug} onClick={() => update({ category: filters.category === c.slug ? "" : c.slug })}>
@@ -173,11 +177,11 @@ export function ToolsDirectory({ tools, categories }: Props) {
       </div>
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[13.5rem_minmax(0,1fr)]">
-        <aside className="hidden lg:block" aria-label="Categories">
-          <div role="group" aria-label="Filter by category" className="sticky top-24 space-y-1">
+        <aside className="hidden lg:block" aria-label={d.categories}>
+          <div role="group" aria-label={d.filterByCategory} className="sticky top-24 space-y-1">
             <button type="button" className={sideItem(!filters.category)} aria-pressed={!filters.category} onClick={() => update({ category: "" })}>
               <Icon name="layers" size={17} />
-              <span className="flex-1">All tools</span>
+              <span className="flex-1">{d.allTools}</span>
               <span className="text-xs">{tools.length}</span>
             </button>
             {categories.map((c) => (
@@ -193,45 +197,45 @@ export function ToolsDirectory({ tools, categories }: Props) {
         <div className="min-w-0">
           <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
             <div className="flex flex-wrap items-center gap-x-5">
-              {hasAi && <Checkbox label="AI-powered only" checked={filters.ai} onChange={(e) => update({ ai: e.target.checked })} />}
+              {hasAi && <Checkbox label={d.aiOnly} checked={filters.ai} onChange={(e) => update({ ai: e.target.checked })} />}
               {modes.length > 1 && (
                 <label className="flex items-center gap-2 text-sm">
-                  <span className="font-medium">Processing</span>
+                  <span className="font-medium">{d.processing}</span>
                   <Select value={filters.processing} onChange={(e) => update({ processing: e.target.value })} className="!min-h-10 !w-auto py-1.5">
-                    <option value="">Any</option>
+                    <option value="">{d.any}</option>
                     {modes.map((m) => (
-                      <option key={m} value={m}>{processingLabels[m].label}</option>
+                      <option key={m} value={m}>{labels[m].label}</option>
                     ))}
                   </Select>
                 </label>
               )}
             </div>
             <label className="flex items-center gap-2 text-sm">
-              <span className="font-medium">Sort by</span>
+              <span className="font-medium">{d.sortBy}</span>
               <Select value={sort} onChange={(e) => update({ sort: e.target.value as Sort })} className="!min-h-10 !w-auto py-1.5">
-                <option value="recommended">{filters.q.trim() ? "Best match" : "Recommended"}</option>
-                <option value="az">Name A–Z</option>
-                <option value="za">Name Z–A</option>
-                {distinctDates && <option value="new">Recently added</option>}
+                <option value="recommended">{filters.q.trim() ? d.bestMatch : d.recommended}</option>
+                <option value="az">{d.az}</option>
+                <option value="za">{d.za}</option>
+                {distinctDates && <option value="new">{d.recent}</option>}
               </Select>
             </label>
           </div>
 
           <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-line pt-5">
             <p role="status" aria-live="polite" className="me-2 text-sm font-medium">
-              {results.length} tool{results.length === 1 ? "" : "s"}
-              {results.length > PAGE_SIZE && <span className="font-normal text-muted"> · page {page} of {pageCount}</span>}
+              {d.count(results.length)}
+              {results.length > PAGE_SIZE && <span className="font-normal text-muted">{d.pageOf(page, pageCount)}</span>}
             </p>
             {activeChips.map((c) => (
               <button key={c.key} type="button" onClick={c.clear} className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-surface-2 px-3 text-sm hover:bg-line">
                 {c.label}
                 <Icon name="x" size={14} />
-                <span className="sr-only">Remove filter</span>
+                <span className="sr-only">{d.removeFilter}</span>
               </button>
             ))}
             {activeChips.length > 0 && (
               <Button variant="ghost" size="sm" onClick={clearAll}>
-                Clear all
+                {d.clearAll}
               </Button>
             )}
           </div>
@@ -240,10 +244,10 @@ export function ToolsDirectory({ tools, categories }: Props) {
             {visible.length > 0 ? (
               <ToolGrid tools={visible} heading="h2" columns={3} />
             ) : (
-              <EmptyState icon="search" title="No tools match your filters">
-                <p>Try a different search, or remove some filters.</p>
+              <EmptyState icon="search" title={d.emptyTitle}>
+                <p>{d.emptyText}</p>
                 <Button className="mt-5" onClick={clearAll}>
-                  Clear all filters
+                  {d.clearFilters}
                 </Button>
               </EmptyState>
             )}

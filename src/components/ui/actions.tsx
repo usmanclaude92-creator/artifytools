@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "./button";
 import { Icon } from "./icon";
+import { useMessages } from "@/components/i18n/locale-provider";
 import { useToast } from "./toast";
 
 async function writeClipboard(text: string): Promise<boolean> {
@@ -30,10 +31,10 @@ async function writeClipboard(text: string): Promise<boolean> {
 
 export function CopyButton({
   value,
-  label = "Copy",
+  label,
   size = "sm",
   disabled,
-  toastMessage = "Copied to clipboard",
+  toastMessage,
   ariaLabel,
 }: {
   value: string;
@@ -44,6 +45,7 @@ export function CopyButton({
   ariaLabel?: string;
 }) {
   const toast = useToast();
+  const m = useMessages().ui;
   const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
@@ -58,16 +60,16 @@ export function CopyButton({
         const ok = await writeClipboard(value);
         if (ok) {
           setCopied(true);
-          toast(toastMessage);
+          toast(toastMessage ?? m.copiedToast);
           clearTimeout(timer.current);
           timer.current = setTimeout(() => setCopied(false), 1800);
         } else {
-          toast("Couldn't copy — select the text and copy it manually");
+          toast(m.copyFailed);
         }
       }}
     >
       <Icon name={copied ? "check" : "copy"} size={16} />
-      {copied ? "Copied" : label}
+      {copied ? m.copied : (label ?? m.copy)}
     </Button>
   );
 }
@@ -86,7 +88,7 @@ export function downloadBlob(blob: Blob, filename: string) {
 export function DownloadButton({
   filename,
   getBlob,
-  label = "Download",
+  label,
   disabled,
   variant = "secondary",
   size = "sm",
@@ -99,6 +101,7 @@ export function DownloadButton({
   size?: "sm" | "md";
 }) {
   const toast = useToast();
+  const m = useMessages().ui;
   return (
     <Button
       variant={variant}
@@ -107,14 +110,14 @@ export function DownloadButton({
       onClick={async () => {
         try {
           downloadBlob(await getBlob(), filename);
-          toast(`Downloaded ${filename}`);
+          toast(m.downloaded(filename));
         } catch {
-          toast("Download failed");
+          toast(m.downloadFailed);
         }
       }}
     >
       <Icon name="download" size={16} />
-      {label}
+      {label ?? m.download}
     </Button>
   );
 }

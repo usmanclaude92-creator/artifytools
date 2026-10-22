@@ -1,6 +1,8 @@
 import { categories, getCategory } from "./categories";
 import type { Category, CategoryId, ToolDefinition } from "./types";
 import type { SearchableTool } from "../search";
+import type { Locale } from "../i18n";
+import { localizeCategory, localizeTool } from "./localize";
 
 import { meta as wordCounter } from "@/tools/word-counter/meta";
 import { meta as caseConverter } from "@/tools/case-converter/meta";
@@ -116,8 +118,9 @@ export interface DirectoryItem extends SearchableTool {
 
 export type SearchItem = DirectoryItem;
 
-export function toDirectoryItem(t: ToolDefinition): DirectoryItem {
-  const cat = getCategory(t.category);
+export function toDirectoryItem(tool: ToolDefinition, locale: Locale = "en"): DirectoryItem {
+  const t = localizeTool(tool, locale);
+  const cat = localizeCategory(getCategory(t.category), locale);
   return {
     id: t.id,
     slug: t.slug,
@@ -137,8 +140,8 @@ export function toDirectoryItem(t: ToolDefinition): DirectoryItem {
   };
 }
 
-export function getSearchItems(): SearchItem[] {
-  return getPublishedTools().map(toDirectoryItem);
+export function getSearchItems(locale: Locale = "en"): SearchItem[] {
+  return getPublishedTools().map((t) => toDirectoryItem(t, locale));
 }
 
 export const exampleSearches = [

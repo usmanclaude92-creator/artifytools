@@ -6,7 +6,8 @@ import { Icon, type IconName } from "@/components/ui/icon";
 import { Badge } from "@/components/ui/misc";
 import { IconTile } from "@/components/ui/misc";
 import { categoryTones } from "@/lib/tools/tones";
-import { getT } from "@/lib/locale-server";
+import { getLocale, getT } from "@/lib/locale-server";
+import { localizeCategory, localizeTool } from "@/lib/tools/localize";
 import { getPopularTools, getPublishedCategories, getPublishedTools, getToolsByCategory, toDirectoryItem } from "@/lib/tools/registry";
 
 function SectionTitle({ id, title, description, linkHref, linkLabel }: { id: string; title: string; description?: string; linkHref?: string; linkLabel?: string }) {
@@ -28,8 +29,9 @@ function SectionTitle({ id, title, description, linkHref, linkLabel }: { id: str
 /** Three large category promo cards right under the hero (the categories with the most tools). */
 export async function CategoryPromoCards() {
   const t = await getT();
+  const locale = await getLocale();
   const top = getPublishedCategories()
-    .map((c) => ({ c, count: getToolsByCategory(c.id).length }))
+    .map((c) => ({ c: localizeCategory(c, locale), count: getToolsByCategory(c.id).length }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 3);
   return (
@@ -82,11 +84,12 @@ export async function TrustStrip() {
 
 export async function PopularTools() {
   const t = await getT();
+  const locale = await getLocale();
   return (
     <section aria-labelledby="popular-heading" className="container-page py-10 sm:py-14">
       <SectionTitle id="popular-heading" title={t.home.popularTitle} linkHref="/tools" linkLabel={t.home.viewAllTools} />
       <div className="mt-6">
-        <ToolGrid tools={getPopularTools(5).map(toDirectoryItem)} columns={5} />
+        <ToolGrid tools={getPopularTools(5).map((tool) => toDirectoryItem(tool, locale))} columns={5} />
       </div>
     </section>
   );
@@ -177,7 +180,8 @@ export async function HowItWorks() {
 
 export async function AiShowcase() {
   const t = await getT();
-  const aiTools = getPublishedTools().filter((tool) => tool.aiPowered);
+  const locale = await getLocale();
+  const aiTools = getPublishedTools().filter((tool) => tool.aiPowered).map((tool) => localizeTool(tool, locale));
   const planned = t.home.aiPlanned;
   return (
     <section aria-labelledby="ai-heading" className="container-page py-10 sm:py-14">

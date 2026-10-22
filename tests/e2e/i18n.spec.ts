@@ -29,6 +29,35 @@ test.describe("Arabic routing (unpublished)", () => {
     await expect(page.getByRole("navigation", { name: /مسار التنقل|breadcrumb/i })).toContainText("الرئيسية");
   });
 
+  test("Arabic tool pages, directory and search work", async ({ page }) => {
+    await page.goto("/ar/tools/word-counter");
+    await page.waitForLoadState("networkidle");
+    await expect(page.locator("h1")).toHaveText("عدّاد الكلمات");
+    await page.getByRole("textbox", { name: "النص المراد تحليله" }).fill("القراءة غذاء العقل، والكتابة مرآة الفكر.");
+    await expect(page.locator("dt", { hasText: /^الكلمات$/ }).locator("xpath=following-sibling::dd")).toHaveText("6");
+    await page.goto("/ar/tools");
+    await page.getByRole("searchbox", { name: "البحث في كل الأدوات" }).fill("كلمات");
+    await expect(page.getByRole("heading", { name: "عدّاد الكلمات" })).toBeVisible();
+    // English names stay searchable on the Arabic site
+    await page.getByRole("searchbox", { name: "البحث في كل الأدوات" }).fill("word counter");
+    await expect(page.getByRole("heading", { name: "عدّاد الكلمات" })).toBeVisible();
+  });
+
+  test("every Arabic tool page renders without errors", async ({ page }) => {
+    const slugs = ["word-counter", "case-converter", "text-cleaner", "remove-duplicate-lines", "percentage-calculator", "vat-calculator", "discount-calculator", "json-formatter", "url-encoder-decoder", "base64-encoder-decoder", "uuid-generator", "password-generator", "qr-code-generator", "date-difference", "color-converter", "ai-text-summarizer"];
+    for (const slug of slugs) {
+      const errors: string[] = [];
+      const h = (m: import("@playwright/test").ConsoleMessage) => (m.type() === "error" || m.type() === "warning") && errors.push(m.text());
+      page.on("console", h);
+      await page.goto(`/ar/tools/${slug}`);
+      await expect(page.getByRole("heading", { name: "طريقة الاستخدام" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "أدوات ذات صلة" })).toBeVisible();
+      await page.waitForLoadState("networkidle");
+      page.off("console", h);
+      expect(errors, slug).toEqual([]);
+    }
+  });
+
   test("English pages are unchanged: ltr, no switcher, no robots header", async ({ page }) => {
     const res = await page.goto("/tools/word-counter");
     expect(res?.headers()["x-robots-tag"]).toBeUndefined();

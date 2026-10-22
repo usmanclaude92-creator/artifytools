@@ -1,4 +1,7 @@
+"use client";
+
 import type { ReactNode } from "react";
+import { useMessages } from "@/components/i18n/locale-provider";
 import { cx } from "./cx";
 import { Icon, type IconName } from "./icon";
 
@@ -17,11 +20,12 @@ const tones: Record<Tone, { box: string; icon: IconName; label: string }> = {
  */
 export function StatusMessage({ tone, children, className }: { tone: Tone; children: ReactNode; className?: string }) {
   const t = tones[tone];
+  const label = useMessages().ui.tones[tone];
   return (
     <div role={tone === "error" ? "alert" : "status"} className={cx("flex items-start gap-3 rounded-md border px-4 py-3 text-sm", t.box, className)}>
       <Icon name={t.icon} size={18} className="mt-0.5 shrink-0" />
       <div className="min-w-0 flex-1 text-fg">
-        <span className="sr-only">{t.label}: </span>
+        <span className="sr-only">{label}: </span>
         {children}
       </div>
     </div>
@@ -50,11 +54,12 @@ export function EmptyState({
   );
 }
 
-export function Spinner({ label = "Loading" }: { label?: string }) {
+export function Spinner({ label }: { label?: string }) {
+  const m = useMessages().ui;
   return (
     <span role="status" className="inline-flex items-center gap-2 text-sm text-muted">
       <span aria-hidden="true" className="size-4 animate-spin rounded-full border-2 border-line-strong border-t-accent" />
-      {label}…
+      {label ?? m.loading}…
     </span>
   );
 }

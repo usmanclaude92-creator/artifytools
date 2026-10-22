@@ -18,10 +18,29 @@ const FILLER = new Set([
   "a", "an", "the", "to", "of", "for", "and", "or", "in", "on", "my", "me", "with", "from", "into",
   "between", "is", "i", "do", "need", "want", "can", "how", "what", "find", "get", "make", "use",
   "online", "free", "tool", "tools", "your", "this", "that", "some", "it",
+  // Arabic
+  "في", "من", "على", "إلى", "الى", "عن", "كيف", "أداة", "اداة", "أدوات", "ادوات", "الأداة", "مجاني", "مجانا", "مجانًا", "أونلاين", "اونلاين", "اريد", "أريد",
 ]);
 
 /** Crude, symmetric stemmer so "dates"/"date", "calculate"/"calculator" meet. */
+/** Folds Arabic spelling variants and drops the article "ال" so "الكلمات" matches "كلمات". */
+function normalizeArabic(word: string): string {
+  let w = word
+    .replace(/[\u064B-\u0652\u0640]/g, "") // harakat and tatweel
+    .replace(/[أإآ]/g, "ا")
+    .replace(/ة/g, "ه")
+    .replace(/ى/g, "ي");
+  for (const prefix of ["وال", "بال", "لل", "ال"]) {
+    if (w.startsWith(prefix) && w.length - prefix.length >= 2) {
+      w = w.slice(prefix.length);
+      break;
+    }
+  }
+  return w;
+}
+
 export function stem(word: string): string {
+  if (/[\u0600-\u06FF]/.test(word)) return normalizeArabic(word);
   let w = word.toLowerCase();
   if (w.length <= 3) return w;
   for (const suffix of ["ing", "ed", "er", "or", "es", "s", "e"]) {

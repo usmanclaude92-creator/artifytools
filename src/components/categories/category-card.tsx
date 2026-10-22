@@ -2,11 +2,13 @@ import Link from "@/components/ui/locale-link";
 import { IconTile } from "@/components/ui/misc";
 import { categoryTones } from "@/lib/tools/tones";
 import type { Category } from "@/lib/tools/types";
-import { getT } from "@/lib/locale-server";
+import { getLocale, getT } from "@/lib/locale-server";
+import { localizeCategory } from "@/lib/tools/localize";
 
 /** `count` is optional: the home page omits it, the categories page shows the real number. */
-export async function CategoryCard({ category, count, heading: Heading = "h3" }: { category: Category; count?: number; heading?: "h2" | "h3" }) {
+export async function CategoryCard({ category: raw, count, heading: Heading = "h3" }: { category: Category; count?: number; heading?: "h2" | "h3" }) {
   const t = await getT();
+  const category = localizeCategory(raw, await getLocale());
   return (
     <article className="card card-interactive relative flex h-full flex-col gap-3.5 p-5 focus-within:ring-2 focus-within:ring-[var(--focus)]">
       <IconTile name={category.icon} tone={categoryTones[category.id]} />

@@ -1,4 +1,7 @@
+"use client";
+
 import { cx } from "./cx";
+import { useMessages } from "@/components/i18n/locale-provider";
 import { Icon } from "./icon";
 
 export function Pagination({
@@ -10,12 +13,13 @@ export function Pagination({
   pageCount: number;
   onChange: (page: number) => void;
 }) {
+  const m = useMessages().ui;
   if (pageCount <= 1) return null;
   const pages = Array.from({ length: pageCount }, (_, i) => i + 1);
   const btn = "grid min-h-11 min-w-11 place-items-center rounded-md border px-3 text-sm font-medium transition-colors";
   return (
-    <nav aria-label="Pagination" className="mt-10 flex items-center justify-center gap-2">
-      <button type="button" className={cx(btn, "border-line-strong hover:bg-surface-2 disabled:opacity-40")} disabled={page <= 1} onClick={() => onChange(page - 1)} aria-label="Previous page">
+    <nav aria-label={m.pagination} className="mt-10 flex items-center justify-center gap-2">
+      <button type="button" className={cx(btn, "border-line-strong hover:bg-surface-2 disabled:opacity-40")} disabled={page <= 1} onClick={() => onChange(page - 1)} aria-label={m.prevPage}>
         <Icon name="chevron-right" size={16} className="rotate-180" />
       </button>
       <ul className="flex items-center gap-2">
@@ -24,7 +28,7 @@ export function Pagination({
             <button
               type="button"
               onClick={() => onChange(p)}
-              aria-label={`Page ${p}`}
+              aria-label={m.pageN(p)}
               aria-current={p === page ? "page" : undefined}
               className={cx(btn, p === page ? "border-accent bg-accent text-accent-fg" : "border-line-strong hover:bg-surface-2")}
             >
@@ -33,7 +37,7 @@ export function Pagination({
           </li>
         ))}
       </ul>
-      <button type="button" className={cx(btn, "border-line-strong hover:bg-surface-2 disabled:opacity-40")} disabled={page >= pageCount} onClick={() => onChange(page + 1)} aria-label="Next page">
+      <button type="button" className={cx(btn, "border-line-strong hover:bg-surface-2 disabled:opacity-40")} disabled={page >= pageCount} onClick={() => onChange(page + 1)} aria-label={m.nextPage}>
         <Icon name="chevron-right" size={16} />
       </button>
     </nav>

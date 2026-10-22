@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { CopyButton } from "@/components/ui/actions";
 import { cx } from "@/components/ui/cx";
+import { useMessages } from "@/components/i18n/locale-provider";
 
 /** Two-column workspace on desktop (input | output), single column on mobile. */
 export function Workspace({ children, className }: { children: ReactNode; className?: string }) {
@@ -56,13 +57,14 @@ export function ResultRow({
   copyLabel?: string;
   emphasis?: boolean;
 }) {
+  const m = useMessages().ui;
   return (
     <div className={cx("flex items-center justify-between gap-3 rounded-md px-4 py-3", emphasis ? "bg-accent-soft" : "bg-surface-2")}>
       <div className="min-w-0">
         <div className="text-sm text-muted">{label}</div>
         <div className={cx("break-all font-semibold tabular-nums", emphasis ? "text-2xl" : "text-lg")}>{value}</div>
       </div>
-      <CopyButton value={value} ariaLabel={`Copy ${copyLabel ?? label}`} />
+      <CopyButton value={value} ariaLabel={m.copyAria(copyLabel ?? label)} />
     </div>
   );
 }

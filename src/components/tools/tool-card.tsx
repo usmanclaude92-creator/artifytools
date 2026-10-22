@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "@/components/ui/locale-link";
+import { useMessages } from "@/components/i18n/locale-provider";
 import { Badge, IconTile } from "@/components/ui/misc";
 import { cx } from "@/components/ui/cx";
 import { categoryTones } from "@/lib/tools/tones";
@@ -7,13 +10,14 @@ import type { DirectoryItem } from "@/lib/tools/registry";
 /** Whole-card click target via a stretched link on the heading (keeps one tab stop, valid markup). */
 export function ToolCard({ tool, showCategory = true, heading: Heading = "h3" }: { tool: DirectoryItem; showCategory?: boolean; heading?: "h2" | "h3" }) {
   const tone = categoryTones[tool.categoryId];
+  const t = useMessages();
   return (
     <article className="card card-interactive relative flex h-full flex-col gap-3.5 p-5 focus-within:ring-2 focus-within:ring-[var(--focus)]">
       <div className="flex items-start justify-between gap-3">
         <IconTile name={tool.icon} tone={tone} />
         <div className="flex flex-wrap justify-end gap-1.5">
-          {tool.status === "beta" && <Badge tone="warning">Beta</Badge>}
-          {tool.status === "coming-soon" && <Badge tone="warning">Coming soon</Badge>}
+          {tool.status === "beta" && <Badge tone="warning">{t.common.beta}</Badge>}
+          {tool.status === "coming-soon" && <Badge tone="warning">{t.common.comingSoon}</Badge>}
           {tool.aiPowered && <Badge tone="accent">AI</Badge>}
         </div>
       </div>

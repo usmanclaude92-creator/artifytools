@@ -5,30 +5,32 @@ import { buttonClasses } from "@/components/ui/button";
 import { IconTile } from "@/components/ui/misc";
 import { getApps } from "@/lib/apps";
 import { pageMetadata } from "@/lib/seo/metadata";
+import { getLocale, getT } from "@/lib/locale-server";
 
-export const metadata: Metadata = pageMetadata({
-  title: "Apps",
-  description: "Browse Artify apps: focused products built with the same care as our tools.",
-  path: "/apps",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const p = (await getT()).pages.apps;
+  return pageMetadata({ title: p.title, description: p.metaDescription, path: "/apps", locale: await getLocale() });
+}
 
-export default function AppsPage() {
+export default async function AppsPage() {
   const apps = getApps();
+  const t = await getT();
+  const p = t.pages.apps;
   return (
     <>
       <PageHeader
-        title="Apps"
-        description="Focused products from Artify, built with the same care as our tools."
-        breadcrumbs={[{ name: "Home", href: "/" }, { name: "Apps" }]}
+        title={p.title}
+        description={p.description}
+        breadcrumbs={[{ name: t.common.home, href: "/" }, { name: p.title }]}
       />
       <div className="container-page py-10">
         {apps.length === 0 ? (
           <div className="card mx-auto flex max-w-xl flex-col items-center gap-4 p-10 text-center">
             <IconTile name="layers" tone="violet" />
-            <h2 className="text-xl font-semibold">Apps are on the way</h2>
-            <p className="text-muted">No apps are listed yet. In the meantime, every Artify tool is free to use.</p>
+            <h2 className="text-xl font-semibold">{p.emptyTitle}</h2>
+            <p className="text-muted">{p.emptyText}</p>
             <Link href="/tools" className={buttonClasses({ size: "md" })}>
-              Browse all tools
+              {p.browse}
             </Link>
           </div>
         ) : (

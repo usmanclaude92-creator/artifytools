@@ -5,7 +5,10 @@ import { PageHeader } from "@/components/layout/page-header";
 import { ToolGrid } from "@/components/tools/tool-card";
 import { JsonLd } from "@/components/ui/json-ld";
 import { absoluteUrl } from "@/lib/config";
+import { localizeHref } from "@/lib/i18n";
+import { getLocale, getT } from "@/lib/locale-server";
 import { pageMetadata } from "@/lib/seo/metadata";
+import { localizeCategory } from "@/lib/tools/localize";
 import { getCategoryBySlug, getPublishedCategories, getToolsByCategory, toDirectoryItem } from "@/lib/tools/registry";
 
 type Params = { slug: string };
@@ -16,21 +19,29 @@ export function generateStaticParams(): Params[] {
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params;
-  const category = getCategoryBySlug(slug);
-  if (!category) return { title: "Category not found" };
+  const locale = await getLocale();
+  const p = (await getT()).pages.category;
+  const raw = getCategoryBySlug(slug);
+  if (!raw) return { title: p.notFound };
+  const category = localizeCategory(raw, locale);
   return pageMetadata({
-    title: `${category.name} Tools`,
-    description: `${category.description} Free ${category.name.toLowerCase()} tools from Artify Tools.`,
+    title: p.metaTitle(category.name),
+    description: p.metaDescription(category.name, category.description),
     path: `/categories/${category.slug}`,
+    locale,
   });
 }
 
 export default async function CategoryPage({ params }: { params: Promise<Params> }) {
   const { slug } = await params;
-  const category = getCategoryBySlug(slug);
-  if (!category) notFound();
-  const tools = getToolsByCategory(category.id).map(toDirectoryItem);
-  const others = getPublishedCategories().filter((c) => c.id !== category.id);
+  const raw = getCategoryBySlug(slug);
+  if (!raw) notFound();
+  const locale = await getLocale();
+  const t = await getT();
+  const category = localizeCategory(raw, locale);
+  const tools = getToolsByCategory(category.id).map((tool) => toDirectoryItem(tool, locale));
+  const others = getPublishedCategories().filter((c) => c.id !== category.id).map((c) => localizeCategory(c, locale));
+  const abs = (path: string) => absoluteUrl(localizeHref(path, locale));
 
   return (
     <>
@@ -39,23 +50,23 @@ export default async function CategoryPage({ params }: { params: Promise<Params>
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
           itemListElement: [
-            { "@type": "ListItem", position: 1, name: "Home", item: absoluteUrl("/") },
-            { "@type": "ListItem", position: 2, name: "Categories", item: absoluteUrl("/categories") },
-            { "@type": "ListItem", position: 3, name: category.name, item: absoluteUrl(`/categories/${category.slug}`) },
+            { "@type": "ListItem", position: 1, name: t.common.home, item: abs("/") },
+            { "@type": "ListItem", position: 2, name: t.pages.categories.title, item: abs("/categories") },
+            { "@type": "ListItem", position: 3, name: category.name, item: abs(`/categories/${category.slug}`) },
           ],
         }}
       />
       <PageHeader
         title={category.name}
         description={category.description}
-        breadcrumbs={[{ name: "Home", href: "/" }, { name: "Categories", href: "/categories" }, { name: category.name }]}
+        breadcrumbs={[{ name: t.common.home, href: "/" }, { name: t.pages.categories.title, href: "/categories" }, { name: category.name }]}
       />
       <div className="container-page py-10">
-        <p className="mb-6 text-sm font-medium text-muted">{tools.length} tool{tools.length === 1 ? "" : "s"}</p>
+        <p className="mb-6 text-sm font-medium text-muted">{t.common.tools(tools.length)}</p>
         <ToolGrid tools={tools} showCategory={false} heading="h2" />
         {others.length > 0 && (
           <section aria-labelledby="other-cats" className="mt-16">
-            <h2 id="other-cats" className="text-xl font-semibold">Other categories</h2>
+            <h2 id="other-cats" className="text-xl font-semibold">{t.pages.category.others}</h2>
             <ul className="mt-4 flex flex-wrap gap-2">
               {others.map((c) => (
                 <li key={c.id}>
