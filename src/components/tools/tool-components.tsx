@@ -41,6 +41,7 @@ const components: Record<string, ComponentType> = {
   "jpg-to-pdf": load(() => import("@/tools/jpg-to-pdf/ui")),
   "compress-pdf": load(() => import("@/tools/compress-pdf/ui")),
   "compress-image": load(() => import("@/tools/compress-image/ui")),
+  "amount-in-words": load(() => import("@/tools/amount-in-words/ui")),
 };
 
 export function ToolWorkspace({ toolId }: { toolId: string }) {

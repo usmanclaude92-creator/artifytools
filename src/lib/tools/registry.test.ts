@@ -68,6 +68,8 @@ describe("Arabic search", () => {
     expect(top("تصغير حجم pdf")[0]).toBe("compress-pdf");
     expect(top("ضغط الصور")[0]).toBe("compress-image");
     expect(top("تصغير حجم الصورة")[0]).toBe("compress-image");
+    expect(top("تفقيط")[0]).toBe("amount-in-words");
+    expect(top("كتابة المبلغ بالحروف")[0]).toBe("amount-in-words");
   });
 });
 
@@ -105,6 +107,8 @@ describe("search", () => {
     expect(top("compress image")[0]).toBe("compress-image");
     expect(top("image to 100kb")[0]).toBe("compress-image");
     expect(top("compress jpg")[0]).toBe("compress-image");
+    expect(top("amount in words")[0]).toBe("amount-in-words");
+    expect(top("number to words")[0]).toBe("amount-in-words");
   });
   it("ranks exact name matches above weaker matches", () => {
     expect(top("password generator")[0]).toBe("password-generator");

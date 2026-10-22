@@ -220,21 +220,22 @@ test.describe("directory", () => {
   test("filters by category, combines with search, syncs the URL, and clears", async ({ page }) => {
     await page.goto("/tools");
     const count = page.getByRole("status").filter({ hasText: /tools?(\s|$)/ }).first();
-    await expect(count).toContainText("21 tools");
+    await expect(count).toContainText("22 tools");
     await page.getByRole("button", { name: /^Calculators/ }).click();
     await expect(page).toHaveURL(/category=calculators/);
-    await expect(count).toContainText("3 tools");
+    await expect(count).toContainText("4 tools");
     await page.getByLabel("Search all tools").fill("vat");
     await expect(page).toHaveURL(/q=vat/);
     await expect(count).toContainText("1 tool");
     await expect(page.getByRole("button", { name: /Category: Calculators/ })).toBeVisible();
     await page.getByRole("button", { name: "Clear all" }).click();
-    await expect(count).toContainText("21 tools");
+    await expect(count).toContainText("22 tools");
     await expect(page.getByLabel("Search all tools")).toHaveValue("");
   });
 
   test("deep link restores filters; sort and AI/processing filters work", async ({ page }) => {
     await page.goto("/tools?category=developer-tools&sort=za");
+    await expect(page.locator("article h2")).toHaveCount(5); // wait for the filtered directory, not the static fallback
     const names = await page.locator("article h2").allTextContents();
     expect(names.length).toBe(5);
     expect(names).toEqual([...names].sort((a, b) => b.localeCompare(a)));
@@ -257,7 +258,7 @@ test.describe("directory", () => {
     await expect(page.locator("article")).toHaveCount(12);
     await page.getByRole("button", { name: "Page 2" }).click();
     await expect(page).toHaveURL(/page=2/);
-    await expect(page.locator("article")).toHaveCount(9);
+    await expect(page.locator("article")).toHaveCount(10);
   });
 
   test("search from header while on /tools updates the directory", async ({ page }) => {
@@ -271,7 +272,7 @@ test.describe("directory", () => {
 
   test("category page lists only its tools and links to others", async ({ page }) => {
     await page.goto("/categories/calculators");
-    await expect(page.locator("article h2")).toHaveText(["Percentage Calculator", "VAT Calculator", "Discount Calculator"]);
+    await expect(page.locator("article h2")).toHaveText(["Percentage Calculator", "VAT Calculator", "Discount Calculator", "Amount in Words"]);
     await page.getByRole("link", { name: "Text & Writing" }).last().click();
     await expect(page).toHaveURL(/text-writing/);
   });

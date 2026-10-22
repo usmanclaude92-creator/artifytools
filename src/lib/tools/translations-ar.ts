@@ -20,6 +20,7 @@ import { metaAr as splitPdf } from "@/tools/split-pdf/meta.ar";
 import { metaAr as jpgToPdf } from "@/tools/jpg-to-pdf/meta.ar";
 import { metaAr as compressPdf } from "@/tools/compress-pdf/meta.ar";
 import { metaAr as compressImage } from "@/tools/compress-image/meta.ar";
+import { metaAr as amountInWords } from "@/tools/amount-in-words/meta.ar";
 
 /** Arabic text for each tool, keyed by tool id. Tools missing here are shown in English. */
 export const toolTranslationsAr: Record<string, ToolTranslation> = {
@@ -44,4 +45,5 @@ export const toolTranslationsAr: Record<string, ToolTranslation> = {
   "jpg-to-pdf": jpgToPdf,
   "compress-pdf": compressPdf,
   "compress-image": compressImage,
+  "amount-in-words": amountInWords,
 };
