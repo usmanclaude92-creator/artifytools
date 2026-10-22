@@ -41,6 +41,7 @@ export const currencies: Currency[] = [
   { code: "JOD", minor: 1000, en: { one: "Jordanian Dinar", many: "Jordanian Dinars", minorOne: "Fil", minorMany: "Fils" }, ar: { unit: m("دينار أردني", "ديناران أردنيان", "دنانير أردنية", "دينارًا أردنيًا"), sub: fils } },
   { code: "EGP", minor: 100, en: { one: "Egyptian Pound", many: "Egyptian Pounds", minorOne: "Piastre", minorMany: "Piastres" }, ar: { unit: m("جنيه مصري", "جنيهان مصريان", "جنيهات مصرية", "جنيهًا مصريًا"), sub: qirsh } },
   { code: "USD", minor: 100, en: { one: "US Dollar", many: "US Dollars", minorOne: "Cent", minorMany: "Cents" }, ar: { unit: m("دولار أمريكي", "دولاران أمريكيان", "دولارات أمريكية", "دولارًا أمريكيًا"), sub: cent } },
+  { code: "CAD", minor: 100, en: { one: "Canadian Dollar", many: "Canadian Dollars", minorOne: "Cent", minorMany: "Cents" }, ar: { unit: m("دولار كندي", "دولاران كنديان", "دولارات كندية", "دولارًا كنديًا"), sub: cent } },
   { code: "EUR", minor: 100, en: { one: "Euro", many: "Euros", minorOne: "Cent", minorMany: "Cents" }, ar: { unit: m("يورو", "يورو", "يورو", "يورو"), sub: cent } },
   { code: "GBP", minor: 100, en: { one: "Pound Sterling", many: "Pounds Sterling", minorOne: "Penny", minorMany: "Pence" }, ar: { unit: m("جنيه إسترليني", "جنيهان إسترلينيان", "جنيهات إسترلينية", "جنيهًا إسترلينيًا"), sub: penny } },
   { code: "INR", minor: 100, indian: true, en: { one: "Indian Rupee", many: "Indian Rupees", minorOne: "Paisa", minorMany: "Paise" }, ar: { unit: f("روبية هندية", "روبيتان هنديتان", "روبيات هندية", "روبية هندية"), sub: paisa } },

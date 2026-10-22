@@ -28,7 +28,7 @@ const strings = {
 const NAMES: Record<string, { en: string; ar: string }> = {
   OMR: { en: "Omani Rial", ar: "ريال عماني" }, AED: { en: "UAE Dirham", ar: "درهم إماراتي" }, SAR: { en: "Saudi Riyal", ar: "ريال سعودي" },
   KWD: { en: "Kuwaiti Dinar", ar: "دينار كويتي" }, BHD: { en: "Bahraini Dinar", ar: "دينار بحريني" }, QAR: { en: "Qatari Riyal", ar: "ريال قطري" },
-  JOD: { en: "Jordanian Dinar", ar: "دينار أردني" }, EGP: { en: "Egyptian Pound", ar: "جنيه مصري" }, USD: { en: "US Dollar", ar: "دولار أمريكي" },
+  JOD: { en: "Jordanian Dinar", ar: "دينار أردني" }, EGP: { en: "Egyptian Pound", ar: "جنيه مصري" }, USD: { en: "US Dollar", ar: "دولار أمريكي" }, CAD: { en: "Canadian Dollar", ar: "دولار كندي" },
   EUR: { en: "Euro", ar: "يورو" }, GBP: { en: "Pound Sterling", ar: "جنيه إسترليني" }, INR: { en: "Indian Rupee", ar: "روبية هندية" }, PKR: { en: "Pakistani Rupee", ar: "روبية باكستانية" },
 };
 

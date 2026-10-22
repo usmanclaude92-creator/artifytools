@@ -21,6 +21,7 @@ import { metaAr as jpgToPdf } from "@/tools/jpg-to-pdf/meta.ar";
 import { metaAr as compressPdf } from "@/tools/compress-pdf/meta.ar";
 import { metaAr as compressImage } from "@/tools/compress-image/meta.ar";
 import { metaAr as amountInWords } from "@/tools/amount-in-words/meta.ar";
+import { metaAr as chequePrinter } from "@/tools/cheque-printer/meta.ar";
 
 /** Arabic text for each tool, keyed by tool id. Tools missing here are shown in English. */
 export const toolTranslationsAr: Record<string, ToolTranslation> = {
@@ -46,4 +47,5 @@ export const toolTranslationsAr: Record<string, ToolTranslation> = {
   "compress-pdf": compressPdf,
   "compress-image": compressImage,
   "amount-in-words": amountInWords,
+  "cheque-printer": chequePrinter,
 };

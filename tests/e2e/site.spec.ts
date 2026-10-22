@@ -220,7 +220,7 @@ test.describe("directory", () => {
   test("filters by category, combines with search, syncs the URL, and clears", async ({ page }) => {
     await page.goto("/tools");
     const count = page.getByRole("status").filter({ hasText: /tools?(\s|$)/ }).first();
-    await expect(count).toContainText("22 tools");
+    await expect(count).toContainText("23 tools");
     await page.getByRole("button", { name: /^Calculators/ }).click();
     await expect(page).toHaveURL(/category=calculators/);
     await expect(count).toContainText("4 tools");
@@ -229,7 +229,7 @@ test.describe("directory", () => {
     await expect(count).toContainText("1 tool");
     await expect(page.getByRole("button", { name: /Category: Calculators/ })).toBeVisible();
     await page.getByRole("button", { name: "Clear all" }).click();
-    await expect(count).toContainText("22 tools");
+    await expect(count).toContainText("23 tools");
     await expect(page.getByLabel("Search all tools")).toHaveValue("");
   });
 
@@ -258,7 +258,7 @@ test.describe("directory", () => {
     await expect(page.locator("article")).toHaveCount(12);
     await page.getByRole("button", { name: "Page 2" }).click();
     await expect(page).toHaveURL(/page=2/);
-    await expect(page.locator("article")).toHaveCount(10);
+    await expect(page.locator("article")).toHaveCount(11);
   });
 
   test("search from header while on /tools updates the directory", async ({ page }) => {
