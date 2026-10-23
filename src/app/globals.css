@@ -344,3 +344,8 @@ html[lang="ar"] :is(.font-mono, code, kbd, pre, textarea):dir(rtl) { font-family
   background-clip: text;
   color: transparent;
 }
+
+/* Brand lockup: light artwork by default, dark artwork in the dark theme. */
+.logo-on-dark { display: none; }
+:root[data-theme="dark"] .logo-on-light { display: none; }
+:root[data-theme="dark"] .logo-on-dark { display: block; }

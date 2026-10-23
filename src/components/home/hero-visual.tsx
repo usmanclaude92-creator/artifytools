@@ -1,5 +1,5 @@
 import { Icon, type IconName } from "@/components/ui/icon";
-import { LogoMark } from "@/components/layout/logo";
+import Image from "next/image";
 
 /**
  * Decorative brand illustration: the Artify Tools app icon surrounded by floating tool tiles
@@ -40,7 +40,7 @@ export function HeroVisual() {
       {/* central Artify Tools app icon */}
       <div className="absolute left-1/2 top-[48%] -translate-x-1/2 -translate-y-1/2">
         <div className="motion-float grid size-[7.25rem] place-items-center rounded-[1.9rem] bg-white shadow-[0_24px_50px_-12px_rgba(20,91,255,0.45)] ring-1 ring-black/5 sm:size-40">
-          <LogoMark height={84} className="w-[78%] h-auto" priority />
+          <Image src="/brand/artify-tools-mark-full.webp" alt="" width={388} height={340} unoptimized priority draggable={false} className="h-auto w-[84%] select-none object-contain" />
         </div>
       </div>
 
