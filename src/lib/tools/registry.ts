@@ -31,6 +31,8 @@ import { meta as amountInWords } from "@/tools/amount-in-words/meta";
 import { meta as chequePrinter } from "@/tools/cheque-printer/meta";
 import { meta as pdfToJpg } from "@/tools/pdf-to-jpg/meta";
 import { meta as cropImage } from "@/tools/crop-image/meta";
+import { meta as wordToPdf } from "@/tools/word-to-pdf/meta";
+import { meta as pdfToWord } from "@/tools/pdf-to-word/meta";
 import { meta as resizeImage } from "@/tools/resize-image/meta";
 
 /**
@@ -66,6 +68,8 @@ export const tools: readonly ToolDefinition[] = [
   pdfToJpg,
   resizeImage,
   cropImage,
+  pdfToWord,
+  wordToPdf,
 ];
 
 const bySlug = new Map(tools.map((t) => [t.slug, t]));
