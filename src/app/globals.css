@@ -349,3 +349,13 @@ html[lang="ar"] :is(.font-mono, code, kbd, pre, textarea):dir(rtl) { font-family
 .logo-on-dark { display: none; }
 :root[data-theme="dark"] .logo-on-light { display: none; }
 :root[data-theme="dark"] .logo-on-dark { display: block; }
+
+/* Home hero: the app-icon tile behind the mark. White in light theme, deep glass in dark theme. */
+.hero-logo-tile {
+  background: #fff;
+  box-shadow: 0 24px 50px -12px rgba(20, 91, 255, 0.45), 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+:root[data-theme="dark"] .hero-logo-tile {
+  background: radial-gradient(120% 120% at 30% 20%, #2a1d4d 0%, #170f2c 55%, #0f0a1f 100%);
+  box-shadow: 0 24px 60px -14px rgba(101, 71, 255, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
