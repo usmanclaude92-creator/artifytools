@@ -3,7 +3,7 @@ import type { Tone } from "@/lib/tools/tones";
 import type { CategoryId } from "@/lib/tools/types";
 
 /**
- * The five core sections shown first on the home page and in the header.
+ * The four core sections shown first on the home page and in the header.
  * A section points either to a category (its tools are listed) or to one main tool.
  */
 export interface CoreSection {
@@ -12,6 +12,8 @@ export interface CoreSection {
   tone: Tone;
   /** Category whose page the card opens, or the main tool's slug. */
   category?: CategoryId;
+  /** Further categories the card also covers, each linked at the bottom of the card. */
+  alsoCategories?: CategoryId[];
   tool?: string;
   /** Up to three tools linked straight from the card. */
   quick: string[];
@@ -20,25 +22,15 @@ export interface CoreSection {
 
 export const coreSections: CoreSection[] = [
   {
-    id: "pdf-converter",
+    id: "pdf",
     icon: "file-text",
     tone: "blue",
     category: "pdf",
-    quick: ["pdf-to-word", "word-to-pdf", "pdf-to-excel"],
+    alsoCategories: ["pdf-edit"],
+    quick: ["pdf-to-word", "word-to-pdf", "pdf-to-excel", "merge-pdf", "compress-pdf"],
     text: {
-      en: { name: "PDF Converter", description: "PDF to and from Word, Excel and JPG, with tables, Arabic and layout kept." },
-      ar: { name: "محوّل PDF", description: "من PDF وإليه: Word وExcel وJPG، مع الحفاظ على الجداول والعربية والتنسيق." },
-    },
-  },
-  {
-    id: "pdf-editor",
-    icon: "layers",
-    tone: "violet",
-    category: "pdf-edit",
-    quick: ["merge-pdf", "compress-pdf", "watermark-pdf"],
-    text: {
-      en: { name: "Edit & Organise PDF", description: "Merge, split, compress, rotate, number, watermark and password-protect pages." },
-      ar: { name: "تعديل وتنظيم PDF", description: "دمج الصفحات وتقسيمها وضغطها وتدويرها وترقيمها وإضافة علامة مائية وكلمة مرور." },
+      en: { name: "PDF Converter & Editor", description: "Convert PDFs to and from Word, Excel and JPG, then merge, split, compress, rotate, number, watermark and protect them." },
+      ar: { name: "محوّل ومحرّر PDF", description: "حوّل ملفات PDF من Word وExcel وJPG وإليها، ثم ادمجها وقسّمها واضغطها ودوّرها ورقّمها وأضف إليها علامة مائية واحمِها." },
     },
   },
   {
@@ -61,6 +53,17 @@ export const coreSections: CoreSection[] = [
     text: {
       en: { name: "Cheque Printer", description: "Print the date, payee and amount in words on any bank's cheque, lined up exactly." },
       ar: { name: "طباعة الشيكات", description: "اطبع التاريخ واسم المستفيد والمبلغ كتابةً على شيك أي بنك بدقة في مكانها." },
+    },
+  },
+  {
+    id: "image-studio",
+    icon: "image",
+    tone: "pink",
+    category: "images",
+    quick: ["remove-background", "compress-image", "image-to-text"],
+    text: {
+      en: { name: "Image Studio", description: "Remove backgrounds, compress, resize and crop photos, and read text from images." },
+      ar: { name: "استوديو الصور", description: "أزل الخلفية واضغط الصور وغيّر حجمها وقصّها واستخرج النص منها." },
     },
   },
 ];

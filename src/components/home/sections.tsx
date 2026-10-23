@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/misc";
 import { IconTile } from "@/components/ui/misc";
 import { categoryTones } from "@/lib/tools/tones";
 import { getLocale, getT } from "@/lib/locale-server";
-import { localizeTool } from "@/lib/tools/localize";
+import { localizeCategory, localizeTool } from "@/lib/tools/localize";
 import { getPopularTools, getPublishedCategories, getPublishedTools, getTool, getToolsByCategory, toDirectoryItem } from "@/lib/tools/registry";
 import { getCategory } from "@/lib/tools/categories";
 import { coreSections, moreToolSlugs } from "@/lib/home/core";
@@ -67,9 +67,24 @@ export async function CoreSections() {
                     ))}
                   </ul>
                 )}
-                <p className="inline-flex items-center gap-1 text-sm font-semibold text-accent-text">
-                  {s.category ? t.home.allInSection(count) : t.home.openTool} <Icon name="arrow-right" size={14} />
-                </p>
+                {s.alsoCategories ? (
+                  <ul className="relative z-10 flex flex-col gap-1">
+                    {[s.category!, ...s.alsoCategories].map((id) => {
+                      const c = localizeCategory(getCategory(id), locale);
+                      return (
+                        <li key={id}>
+                          <Link href={`/categories/${c.slug}`} className="inline-flex min-h-8 items-center gap-1 text-sm font-semibold text-accent-text hover:underline">
+                            {c.name} ({getToolsByCategory(id).length}) <Icon name="arrow-right" size={14} />
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : (
+                  <p className="inline-flex items-center gap-1 text-sm font-semibold text-accent-text">
+                    {s.category ? t.home.allInSection(count) : t.home.openTool} <Icon name="arrow-right" size={14} />
+                  </p>
+                )}
               </article>
             </li>
           );
