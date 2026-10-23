@@ -37,6 +37,7 @@ import { metaAr as unlockPdf } from "@/tools/unlock-pdf/meta.ar";
 import { metaAr as protectPdf } from "@/tools/protect-pdf/meta.ar";
 import { metaAr as endOfServiceCalculator } from "@/tools/end-of-service-calculator/meta.ar";
 import { metaAr as hijriDateConverter } from "@/tools/hijri-date-converter/meta.ar";
+import { metaAr as bankStatementConverter } from "@/tools/bank-statement-converter/meta.ar";
 import { metaAr as pdfToWord } from "@/tools/pdf-to-word/meta.ar";
 import { metaAr as resizeImage } from "@/tools/resize-image/meta.ar";
 
@@ -82,4 +83,5 @@ export const toolTranslationsAr: Record<string, ToolTranslation> = {
   "protect-pdf": protectPdf,
   "end-of-service-calculator": endOfServiceCalculator,
   "hijri-date-converter": hijriDateConverter,
+  "bank-statement-converter": bankStatementConverter,
 };

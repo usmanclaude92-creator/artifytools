@@ -34,6 +34,6 @@ export const meta: ToolDefinition = {
     { question: "Which years are supported?", answer: "1343 to 1500 AH, which is August 1924 to November 2077." },
     { question: "Why can't I choose the 30th?", answer: "Hijri months have 29 or 30 days. If the month you chose has 29 days, the tool tells you instead of guessing." },
   ],
-  popularRank: 1.99,
+  popularRank: 2.95,
   related: ["date-difference", "end-of-service-calculator", "amount-in-words"],
 };

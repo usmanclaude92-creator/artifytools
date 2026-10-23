@@ -34,6 +34,6 @@ export const meta: ToolDefinition = {
     { question: "How are results rounded?", answer: "Results are rounded to two decimal places using half-away-from-zero rounding, and trailing zeros are removed (12.50 is shown as 12.5)." },
     { question: "Is percentage change the same as percentage-point difference?", answer: "No. Going from 10% to 15% is a 5 percentage-point difference but a 50% relative increase. This tool calculates the relative change." },
   ],
-  popularRank: 3,
+  popularRank: 2.6,
   related: ["discount-calculator", "vat-calculator", "date-difference"],
 };

@@ -34,7 +34,7 @@ export const meta: ToolDefinition = {
     { question: "How much can a QR code hold?", answer: "Several thousand characters, but shorter content makes simpler codes that scan faster. This tool accepts up to 2,000 characters." },
     { question: "Why does the tool warn about colors?", answer: "Scanners need a dark pattern on a light background with strong contrast. Light-on-dark (inverted) and low-contrast codes often fail to scan." },
   ],
-  popularRank: 5,
+  popularRank: 2.5,
   featuredRank: 1,
   related: ["url-encoder-decoder", "color-converter", "password-generator"],
 };

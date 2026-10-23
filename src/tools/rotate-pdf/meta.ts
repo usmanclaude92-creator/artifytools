@@ -9,7 +9,7 @@ export const meta: ToolDefinition = {
     "Open a PDF to see every page, then rotate single pages left or right, or turn the whole document at once. It's the quick fix for scans and phone photos that came out sideways or upside down.",
     "Rotation is lossless: pages keep their exact quality and their text stays selectable. Everything runs in your browser, so the document never leaves your device.",
   ],
-  category: "pdf",
+  category: "pdf-edit",
   icon: "rotate-cw",
   tags: ["pdf", "rotate", "turn pages", "scan"],
   keywords: ["rotate pdf", "rotate pdf pages", "turn pdf page", "rotate pdf online", "rotate scanned pdf", "flip pdf page"],

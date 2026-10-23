@@ -9,7 +9,7 @@ export const meta: ToolDefinition = {
     "Add page numbers to any PDF: pick one of six positions, a style such as “Page 1 of 10” or “1 / 10”, the starting number, text size and colour. Skip the cover page if you like, and use Arabic words and digits («صفحة ١ من ١٠») for Arabic documents.",
     "Numbers are placed where readers see them, even on rotated pages, and the rest of the document is untouched. Everything runs in your browser.",
   ],
-  category: "pdf",
+  category: "pdf-edit",
   icon: "hash",
   tags: ["pdf", "page numbers", "numbering", "bates"],
   keywords: ["add page numbers to pdf", "number pdf pages", "pdf page numbering", "insert page numbers pdf", "page numbers online"],

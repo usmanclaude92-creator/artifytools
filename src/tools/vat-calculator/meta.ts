@@ -9,7 +9,7 @@ export const meta: ToolDefinition = {
     "Enter an amount and a VAT (or sales tax) rate to see the net price, the tax amount, and the gross price. Switch direction to either add tax to a net amount or extract the tax already included in a gross amount.",
     "You type the rate yourself because VAT rates differ by country, by product category, and over time; check the rate that applies to your transaction with your tax authority. Amounts are calculated with exact decimals and rounded to cents, so net plus VAT always equals gross.",
   ],
-  category: "calculators",
+  category: "business",
   icon: "receipt",
   tags: ["vat", "tax", "invoice", "sales tax"],
   keywords: ["add vat", "remove vat", "price including vat", "price excluding vat", "gross to net", "net to gross", "calculate tax"],
@@ -33,7 +33,7 @@ export const meta: ToolDefinition = {
     { question: "Which VAT rate should I use?", answer: "Use the rate that applies to your goods or services and jurisdiction. The calculator does not look up rates, so it never goes out of date." },
     { question: "Why might my invoice differ by a cent?", answer: "Invoices with several lines can round per line or on the total. This tool rounds the VAT on the single amount you enter." },
   ],
-  popularRank: 6,
+  popularRank: 2.9,
   featuredRank: 5,
   related: ["amount-in-words", "percentage-calculator", "discount-calculator"],
 };

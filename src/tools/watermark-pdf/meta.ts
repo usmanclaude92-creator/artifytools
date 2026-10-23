@@ -9,7 +9,7 @@ export const meta: ToolDefinition = {
     "Add a watermark such as CONFIDENTIAL, DRAFT, «سري» or your company logo to every page of a PDF. Choose the text, colour and size or upload a PNG or JPG logo, set the transparency and angle, and place it once in the centre or repeat it across the page.",
     "Arabic and other scripts are drawn correctly, rotated pages are handled, and the original content stays sharp underneath. Everything runs in your browser.",
   ],
-  category: "pdf",
+  category: "pdf-edit",
   icon: "layers",
   tags: ["pdf", "watermark", "stamp", "logo", "confidential"],
   keywords: ["watermark pdf", "add watermark to pdf", "pdf watermark online", "stamp pdf", "add logo to pdf", "confidential watermark"],

@@ -9,7 +9,7 @@ export const meta: ToolDefinition = {
     "Type an amount and pick a currency to get it written out in English and in Arabic (tafqeet), ready to copy onto a cheque, invoice, contract or receipt. For example, 523.050 Omani rials becomes “Five Hundred Twenty-Three Omani Rials and Fifty Baisa Only” and «فقط خمسمائة وثلاثة وعشرون ريالًا عمانيًا وخمسون بيسة لا غير».",
     "The Arabic follows the counting rules properly: duals, plurals after 3 to 10, the accusative after 11 to 99, and feminine subunits such as بيسة and هللة. Gulf currencies with three decimals (OMR, KWD, BHD, JOD) are handled correctly, and rupees use lakhs and crores.",
   ],
-  category: "calculators",
+  category: "business",
   icon: "receipt",
   tags: ["amount in words", "tafqeet", "cheque", "invoice", "arabic"],
   keywords: ["amount in words", "number to words", "write amount in words", "cheque amount in words", "convert number to words arabic", "tafqeet", "omani rial in words", "dirham in words"],
@@ -35,6 +35,6 @@ export const meta: ToolDefinition = {
     { question: "What is the largest amount supported?", answer: "Up to 999,999,999,999 in the main unit, with the subunit precision of the chosen currency (two or three decimals)." },
     { question: "Is this suitable for official documents?", answer: "The wording follows the usual cheque and invoice style. Always read the result before signing, as some institutions prefer their own phrasing." },
   ],
-  popularRank: 1.75,
+  popularRank: 2.15,
   related: ["cheque-printer", "vat-calculator", "percentage-calculator"],
 };

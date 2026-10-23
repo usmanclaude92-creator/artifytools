@@ -36,6 +36,6 @@ export const meta: ToolDefinition = {
     { question: "Is my PDF uploaded?", answer: "No. Your browser reads the PDF and writes the Excel file on your device. Nothing is sent to Artify or anyone else." },
   ],
   files: { inputFormats: ["PDF"], accept: ["application/pdf", ".pdf"], outputFormats: ["XLSX"], maxFileBytes: 60_000_000, maxFiles: 1 },
-  popularRank: 2.03,
+  popularRank: 1.8,
   related: ["excel-to-pdf", "pdf-to-word", "image-to-text"],
 };

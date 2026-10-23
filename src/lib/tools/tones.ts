@@ -12,5 +12,7 @@ export const categoryTones: Record<CategoryId, Tone> = {
   security: "green",
   images: "pink",
   pdf: "blue",
+  "pdf-edit": "violet",
+  business: "green",
   ai: "violet",
 };

@@ -9,7 +9,7 @@ export const meta: ToolDefinition = {
     "Open a PDF and choose how to split it: every page as its own file, a new file every few pages, or custom ranges such as 1-3, 5, 8-10. Each range becomes its own PDF, and you can download them one by one or together in a ZIP.",
     "Pages are copied exactly, so quality is unchanged and text stays selectable. Everything runs in your browser, so the document never leaves your device.",
   ],
-  category: "pdf",
+  category: "pdf-edit",
   icon: "scissors",
   tags: ["pdf", "split", "extract pages", "separate"],
   keywords: ["split pdf", "extract pages from pdf", "separate pdf pages", "pdf splitter", "cut pdf", "save one page of a pdf"],
@@ -36,6 +36,6 @@ export const meta: ToolDefinition = {
     { question: "Why was my file refused?", answer: "It may be password-protected or damaged. Remove the password in the app that created it, then try again." },
   ],
   files: { inputFormats: ["PDF"], accept: ["application/pdf", ".pdf"], outputFormats: ["PDF", "ZIP"], maxFileBytes: 100_000_000, maxFiles: 1 },
-  popularRank: 1.95,
+  popularRank: 1.9,
   related: ["merge-pdf", "pdf-to-jpg", "compress-pdf"],
 };

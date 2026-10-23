@@ -46,6 +46,7 @@ import { meta as pdfToWord } from "@/tools/pdf-to-word/meta";
 import { meta as resizeImage } from "@/tools/resize-image/meta";
 import { meta as endOfServiceCalculator } from "@/tools/end-of-service-calculator/meta";
 import { meta as hijriDateConverter } from "@/tools/hijri-date-converter/meta";
+import { meta as bankStatementConverter } from "@/tools/bank-statement-converter/meta";
 
 /**
  * Single source of truth for every tool. Directory cards, categories, search,
@@ -62,6 +63,7 @@ export const tools: readonly ToolDefinition[] = [
   vatCalculator,
   discountCalculator,
   endOfServiceCalculator,
+  bankStatementConverter,
   jsonFormatter,
   urlEncoderDecoder,
   base64EncoderDecoder,

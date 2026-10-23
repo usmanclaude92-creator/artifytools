@@ -7,8 +7,10 @@ import { Badge } from "@/components/ui/misc";
 import { IconTile } from "@/components/ui/misc";
 import { categoryTones } from "@/lib/tools/tones";
 import { getLocale, getT } from "@/lib/locale-server";
-import { localizeCategory, localizeTool } from "@/lib/tools/localize";
-import { getPopularTools, getPublishedCategories, getPublishedTools, getToolsByCategory, toDirectoryItem } from "@/lib/tools/registry";
+import { localizeTool } from "@/lib/tools/localize";
+import { getPopularTools, getPublishedCategories, getPublishedTools, getTool, getToolsByCategory, toDirectoryItem } from "@/lib/tools/registry";
+import { getCategory } from "@/lib/tools/categories";
+import { coreSections, moreToolSlugs } from "@/lib/home/core";
 
 function SectionTitle({ id, title, description, linkHref, linkLabel }: { id: string; title: string; description?: string; linkHref?: string; linkLabel?: string }) {
   return (
@@ -26,33 +28,76 @@ function SectionTitle({ id, title, description, linkHref, linkLabel }: { id: str
   );
 }
 
-/** Three large category promo cards right under the hero (the categories with the most tools). */
-export async function CategoryPromoCards() {
+/** The five core sections, right under the hero: the site's main products. */
+export async function CoreSections() {
   const t = await getT();
   const locale = await getLocale();
-  const top = getPublishedCategories()
-    .map((c) => ({ c: localizeCategory(c, locale), count: getToolsByCategory(c.id).length }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 3);
+  const spans = ["lg:col-span-3", "lg:col-span-3", "lg:col-span-2", "lg:col-span-2", "md:col-span-2 lg:col-span-2"];
   return (
-    <section aria-label={t.home.featuredCategories} className="container-page pt-2 sm:pt-4">
-      <ul className="grid gap-4 md:grid-cols-3">
-        {top.map(({ c, count }) => (
-          <li key={c.id}>
-            <article className="card card-interactive relative flex h-full items-center gap-4 p-5 focus-within:ring-2 focus-within:ring-[var(--focus)]">
-              <IconTile name={c.icon} tone={categoryTones[c.id]} className="size-14" size={26} />
-              <div>
-                <h2 className="text-lg font-semibold leading-snug">
-                  <Link href={`/categories/${c.slug}`} className="after:absolute after:inset-0 after:rounded-lg focus-visible:outline-none">
-                    {c.name}
-                  </Link>
-                </h2>
-                <p className="mt-1 text-sm text-muted">{c.description}</p>
-                <p className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-accent-text">
-                  {t.common.tools(count)} <Icon name="arrow-right" size={14} />
+    <section aria-labelledby="core-heading" className="container-page pt-4 sm:pt-6">
+      <SectionTitle id="core-heading" title={t.home.coreTitle} description={t.home.coreText} />
+      <ul className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+        {coreSections.map((s, i) => {
+          const text = s.text[locale];
+          const main = s.tool ? getTool(s.tool) : undefined;
+          const soon = main?.status === "coming-soon";
+          const href = s.category ? `/categories/${getCategory(s.category).slug}` : `/tools/${s.tool}`;
+          const count = s.category ? getToolsByCategory(s.category).length : 0;
+          const quick = s.quick.map((slug) => getTool(slug)).filter((x) => x && x.status !== "coming-soon").map((x) => localizeTool(x!, locale));
+          return (
+            <li key={s.id} className={spans[i]}>
+              <article className="card card-interactive relative flex h-full flex-col gap-3 p-5 sm:gap-4 sm:p-6 focus-within:ring-2 focus-within:ring-[var(--focus)]">
+                <div className="flex items-start justify-between gap-3">
+                  <IconTile name={s.icon} tone={s.tone} className="size-14 rounded-xl" size={26} />
+                  {soon && <Badge tone="warning">{t.common.comingSoon}</Badge>}
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold tracking-tight">
+                    <Link href={href} className="after:absolute after:inset-0 after:rounded-lg focus-visible:outline-none">{text.name}</Link>
+                  </h3>
+                  <p className="mt-1.5 text-[0.95rem] leading-relaxed text-muted">{text.description}</p>
+                </div>
+                {quick.length > 0 && (
+                  <ul className="relative z-10 flex flex-wrap gap-2">
+                    {quick.map((q) => (
+                      <li key={q.slug}>
+                        <Link href={`/tools/${q.slug}`} className="inline-flex min-h-9 items-center rounded-full border border-line bg-surface-2 px-3 text-sm font-medium text-fg transition-colors hover:border-accent hover:text-accent-text">
+                          {q.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <p className="inline-flex items-center gap-1 text-sm font-semibold text-accent-text">
+                  {s.category ? t.home.allInSection(count) : t.home.openTool} <Icon name="arrow-right" size={14} />
                 </p>
-              </div>
-            </article>
+              </article>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
+/** Smaller, everyday tools in a compact list. */
+export async function MoreTools() {
+  const t = await getT();
+  const locale = await getLocale();
+  const items = moreToolSlugs.map((s) => getTool(s)).filter((x) => x && x.status === "active").map((x) => toDirectoryItem(x!, locale));
+  return (
+    <section aria-labelledby="more-heading" className="container-page py-10 sm:py-14">
+      <SectionTitle id="more-heading" title={t.home.moreTitle} description={t.home.moreText} linkHref="/tools" linkLabel={t.home.viewAllTools} />
+      <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {items.map((tool) => (
+          <li key={tool.id}>
+            <Link href={`/tools/${tool.slug}`} className="card card-interactive flex min-h-16 items-center gap-3 px-4 py-3">
+              <IconTile name={tool.icon} tone={categoryTones[tool.categoryId]} className="size-10" size={19} />
+              <span className="min-w-0">
+                <span className="block truncate font-semibold">{tool.name}</span>
+                <span className="block truncate text-xs text-muted">{tool.categoryName}</span>
+              </span>
+            </Link>
           </li>
         ))}
       </ul>

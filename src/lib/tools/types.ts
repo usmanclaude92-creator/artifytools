@@ -14,6 +14,8 @@ export type CategoryId =
   | "security"
   | "images"
   | "pdf"
+  | "pdf-edit"
+  | "business"
   | "ai";
 
 export interface Category {

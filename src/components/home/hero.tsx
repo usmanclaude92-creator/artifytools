@@ -4,7 +4,7 @@ import { getTool, type SearchItem } from "@/lib/tools/registry";
 import { HeroVisual } from "./hero-visual";
 import { getT } from "@/lib/locale-server";
 
-const chipSlugs = ["word-counter", "percentage-calculator", "json-formatter", "password-generator"].filter((s) => getTool(s));
+const chipSlugs = ["pdf-to-word", "remove-background", "cheque-printer", "compress-pdf"].filter((s) => getTool(s));
 
 export async function Hero({ items, categories }: { items: SearchItem[]; categories: SearchCategoryLink[] }) {
   const t = await getT();
@@ -20,7 +20,7 @@ export async function Hero({ items, categories }: { items: SearchItem[]; categor
             {t.home.titleLine2}<span className="text-gradient">{t.home.titleHighlight}</span>
           </h1>
           <p className="mt-6 max-w-[34rem] text-base leading-relaxed text-muted sm:text-lg">
-            {t.site.description}
+            {t.home.heroText}
           </p>
 
           <div className="mt-8 max-w-[38rem]">

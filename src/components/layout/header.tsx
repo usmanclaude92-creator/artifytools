@@ -3,7 +3,7 @@
 import Link from "@/components/ui/locale-link";
 import { usePathname } from "next/navigation";
 import { stripLocale } from "@/lib/i18n";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { buttonClasses } from "@/components/ui/button";
 import { cx } from "@/components/ui/cx";
 import { Icon } from "@/components/ui/icon";
@@ -22,62 +22,6 @@ interface Props {
   suggestions: SearchItem[];
 }
 
-function CategoriesMenu({ categories, active }: { categories: SearchCategoryLink[]; active: boolean }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const t = useMessages();
-
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
-    document.addEventListener("mousedown", onDown);
-    document.addEventListener("keydown", onKey);
-    return () => { document.removeEventListener("mousedown", onDown); document.removeEventListener("keydown", onKey); };
-  }, [open]);
-
-  return (
-    <div ref={ref} className="relative">
-      <div className="inline-flex items-center">
-        <Link
-          href="/categories"
-          aria-current={active ? "page" : undefined}
-          className={cx("inline-flex min-h-10 items-center rounded-md ps-3 pe-1 text-[0.95rem] font-medium transition-colors hover:text-fg", active ? "text-fg" : "text-muted")}
-        >
-          {t.nav.categories}
-          {active && <span className="sr-only">{t.common.currentPage}</span>}
-        </Link>
-        <button
-          type="button"
-          aria-label={t.nav.showCategoryMenu}
-          aria-expanded={open}
-          aria-controls="categories-menu"
-          onClick={() => setOpen((v) => !v)}
-          className="grid size-10 place-items-center rounded-md text-muted transition-colors hover:text-fg"
-        >
-          <Icon name="chevron-down" size={15} className={cx("transition-transform", open && "rotate-180")} />
-        </button>
-      </div>
-      {open && (
-        <ul id="categories-menu" className="card absolute start-0 top-full z-overlay mt-2 w-64 p-2 shadow-overlay">
-          {categories.map((c) => (
-            <li key={c.slug}>
-              <Link href={`/categories/${c.slug}`} className="flex min-h-10 items-center rounded-md px-3 text-sm font-medium hover:bg-surface-2">
-                {c.name}
-              </Link>
-            </li>
-          ))}
-          <li>
-            <Link href="/categories" className="flex min-h-10 items-center rounded-md px-3 text-sm font-semibold text-accent-text hover:bg-surface-2">
-              {t.nav.allCategories}
-            </Link>
-          </li>
-        </ul>
-      )}
-    </div>
-  );
-}
-
 export function Header({ items, categories, suggestions }: Props) {
   const pathname = stripLocale(usePathname());
   const menuRef = useRef<HTMLDialogElement>(null);
@@ -88,7 +32,8 @@ export function Header({ items, categories, suggestions }: Props) {
     menuRef.current?.close();
   }, [pathname]);
 
-  const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
+  // "All Tools" is only current on the directory itself, not on every tool page under /tools.
+  const isActive = (href: string) => pathname === href || (href !== "/tools" && pathname.startsWith(href + "/"));
 
   return (
     <header className="sticky top-0 z-header border-b border-line/80 bg-surface/85 backdrop-blur-lg supports-[backdrop-filter]:bg-surface/75">
@@ -99,11 +44,7 @@ export function Header({ items, categories, suggestions }: Props) {
 
         <nav aria-label={t.nav.primaryLabel} className="ms-6 hidden xl:block">
           <ul className="flex items-center gap-1">
-            {primaryNav.map((l) => l.href === "/categories" ? (
-              <li key={l.href}>
-                <CategoriesMenu key={pathname} categories={categories} active={isActive(l.href)} />
-              </li>
-            ) : (
+            {primaryNav.map((l) => (
               <li key={l.href}>
                 <Link
                   href={l.href}
@@ -127,7 +68,8 @@ export function Header({ items, categories, suggestions }: Props) {
             <LanguageSwitcher />
             <ThemeToggle />
           </span>
-          <span className="hidden md:block">
+          {/* With the full menu showing (xl), "All Tools" is already in it, so the button would only crowd the bar. */}
+          <span className="hidden md:block xl:hidden">
             <Link href="/tools" className={buttonClasses({ size: "md", className: "rounded-full px-5 shadow-[0_8px_22px_-8px_rgba(124,58,237,0.65)]" })}>
               {t.nav.exploreTools} <Icon name="arrow-right" size={16} />
             </Link>

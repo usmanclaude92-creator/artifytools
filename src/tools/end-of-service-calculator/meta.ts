@@ -9,7 +9,7 @@ export const meta: ToolDefinition = {
     "Enter the start date, the last working day and the salary to see the end-of-service gratuity (end-of-service benefit) due under the labour law of Saudi Arabia, the United Arab Emirates or Oman. The result shows the service period, the wage used and how each part of the amount is worked out.",
     "Each country counts differently. Saudi Arabia pays half a month's full wage for each of the first five years and a month for each later year, reduced on resignation. The UAE pays 21 days' basic salary per year for five years, then 30 days. Oman pays one month's basic salary per year since August 2023, and the old rates for earlier service. Everything is calculated in your browser.",
   ],
-  category: "calculators",
+  category: "business",
   icon: "briefcase",
   tags: ["gratuity", "end of service", "labour law", "saudi", "uae", "oman"],
   keywords: ["end of service calculator", "gratuity calculator", "uae gratuity calculator", "saudi end of service award", "oman gratuity calculator", "esb calculator", "end of service benefit", "final settlement"],
@@ -36,6 +36,6 @@ export const meta: ToolDefinition = {
     { question: "How is gratuity calculated in Oman?", answer: "For non-Omanis, service from 1 August 2023 earns one month's basic salary per year. Service before that uses the old rate of 15 days per year for the first three years and one month after. From 19 July 2027 a savings fund replaces gratuity." },
     { question: "Are part years counted?", answer: "Yes. Months and days of an unfinished year count in proportion, and unpaid leave is taken off the service period." },
   ],
-  popularRank: 1.98,
+  popularRank: 2.8,
   related: ["vat-calculator", "date-difference", "amount-in-words"],
 };

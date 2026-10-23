@@ -9,7 +9,7 @@ export const meta: ToolDefinition = {
     "Enter the password once and save a copy of the PDF that opens without it, or remove printing and copying restrictions from a PDF that opens freely. It's useful for statements, payslips and reports you need to merge, edit or print often.",
     "The file is decrypted in your browser, so neither the PDF nor the password is ever sent anywhere. This tool doesn't guess or recover forgotten passwords.",
   ],
-  category: "pdf",
+  category: "pdf-edit",
   icon: "lock",
   tags: ["pdf", "unlock", "remove password", "decrypt"],
   keywords: ["unlock pdf", "remove password from pdf", "pdf password remover", "decrypt pdf", "remove pdf restrictions", "unlock pdf online"],

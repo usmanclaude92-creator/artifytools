@@ -43,6 +43,6 @@ export const meta: ToolDefinition = {
     maxFiles: 20,
     maxTotalBytes: 300_000_000,
   },
-  popularRank: 1.87,
+  popularRank: 1.2,
   related: ["compress-image", "resize-image", "crop-image"],
 };

@@ -10,6 +10,13 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  async redirects() {
+    // The "PDFs & Documents" category became "PDF Converter" (and "Edit & Organise PDF").
+    return [
+      { source: "/categories/pdfs-documents", destination: "/categories/pdf-converter", permanent: true },
+      { source: "/ar/categories/pdfs-documents", destination: "/ar/categories/pdf-converter", permanent: true },
+    ];
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

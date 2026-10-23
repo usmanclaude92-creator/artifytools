@@ -9,7 +9,7 @@ export const meta: ToolDefinition = {
     "Set a password that's needed to open the PDF, then choose what readers may do once it's open: print, copy text and images, or edit. The file is encrypted with AES, which works in Adobe Acrobat, browsers, Preview and phone PDF apps.",
     "Encryption happens in your browser, so the document and the password never leave your device. Keep the password safe: it can't be recovered if you forget it.",
   ],
-  category: "pdf",
+  category: "pdf-edit",
   icon: "shield-check",
   tags: ["pdf", "password", "encrypt", "protect", "security"],
   keywords: ["protect pdf", "password protect pdf", "encrypt pdf", "add password to pdf", "lock pdf", "secure pdf"],

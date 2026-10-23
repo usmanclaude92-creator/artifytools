@@ -9,7 +9,7 @@ export const meta: ToolDefinition = {
     "Add two or more PDFs, drag them into the right order with the up and down arrows, and download a single combined document. Every page is copied exactly as it is, so text stays selectable and nothing is re-compressed or blurred.",
     "Merging happens entirely in your browser, which makes it fast and keeps contracts, invoices and records on your own device. Password-protected PDFs need to be unlocked first; the tool tells you which file is protected.",
   ],
-  category: "pdf",
+  category: "pdf-edit",
   icon: "combine",
   tags: ["pdf", "merge", "combine", "join"],
   keywords: ["merge pdf", "combine pdf", "join pdf files", "merge pdf files into one", "pdf merger", "put pdfs together"],
@@ -34,6 +34,6 @@ export const meta: ToolDefinition = {
     { question: "Is anything left out of the merged file?", answer: "Page content, links and annotations are kept. Bookmarks (the outline) and some interactive form features from the original files may not carry over." },
   ],
   files: { inputFormats: ["PDF"], accept: ["application/pdf", ".pdf"], outputFormats: ["PDF"], maxFileBytes: 100_000_000, maxFiles: 30, maxTotalBytes: 300_000_000 },
-  popularRank: 1.55,
+  popularRank: 1.4,
   related: ["split-pdf", "compress-pdf", "pdf-to-word"],
 };

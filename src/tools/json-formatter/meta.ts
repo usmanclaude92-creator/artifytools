@@ -35,7 +35,7 @@ export const meta: ToolDefinition = {
     { question: "Is there a size limit?", answer: "Input is limited to 5 million characters to keep your browser responsive." },
     { question: "What does sorting keys do?", answer: "It orders object keys alphabetically at every level, which makes diffs and comparisons easier. Array order is never changed." },
   ],
-  popularRank: 2,
+  popularRank: 5,
   featuredRank: 3,
   related: ["base64-encoder-decoder", "url-encoder-decoder", "uuid-generator"],
 };

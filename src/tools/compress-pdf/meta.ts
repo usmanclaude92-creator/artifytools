@@ -9,7 +9,7 @@ export const meta: ToolDefinition = {
     "Large PDFs are almost always large because of the photos and scanned pages inside them. This tool re-saves those images at a sensible size and quality, while text, fonts and drawings stay exactly as they were, sharp and selectable. You see the size before and after, and choose how strong the compression should be.",
     "Everything happens in your browser, so contracts, IDs and statements never leave your device. A PDF that is mostly text is already small; if we can't make it meaningfully smaller, the tool says so instead of giving you a worse copy.",
   ],
-  category: "pdf",
+  category: "pdf-edit",
   icon: "file-archive",
   tags: ["pdf", "compress", "reduce size", "shrink"],
   keywords: ["compress pdf", "reduce pdf size", "make pdf smaller", "pdf compressor", "shrink pdf", "pdf too large to email", "decrease pdf file size"],
@@ -36,6 +36,6 @@ export const meta: ToolDefinition = {
     { question: "Is my file uploaded?", answer: "No. The compression runs in your browser on your device. Nothing is sent to Artify or anyone else." },
   ],
   files: { inputFormats: ["PDF"], accept: ["application/pdf", ".pdf"], outputFormats: ["PDF"], maxFileBytes: 150_000_000, maxFiles: 1 },
-  popularRank: 1.6,
+  popularRank: 1.3,
   related: ["merge-pdf", "pdf-to-word", "split-pdf"],
 };

@@ -9,7 +9,7 @@ export const meta: ToolDefinition = {
     "Print the date, payee, amount in figures and amount in words straight onto your bank's cheque leaves using any office printer. Pick a starting layout for your country (Oman, UAE, Saudi Arabia, Kuwait, Bahrain, Qatar, Egypt, Jordan, India, Pakistan, the UK, the US, Canada or Europe), check it with a test print on plain paper, then fine-tune each position in millimetres and save it for next time.",
     "The amount in words is written for you in Arabic or English, with the right forms for rials, dirhams, dinars and the three-decimal Gulf currencies. You can add a crossing such as “A/C Payee Only”, protect the figures with asterisks, and print many cheques at once by pasting rows from Excel.",
   ],
-  category: "productivity",
+  category: "business",
   icon: "printer",
   tags: ["cheque", "check", "printing", "amount in words", "arabic"],
   keywords: ["cheque printing", "cheque printing software", "check printing", "print cheque online", "cheque writer", "cheque filler", "cheque printing oman", "cheque printing uae", "check printing software free"],
@@ -35,6 +35,6 @@ export const meta: ToolDefinition = {
     { question: "My printout is shifted slightly. What should I do?", answer: "Use the printer offset to move everything together, or adjust single fields. In the print dialog, set the scale to 100% (actual size) and margins to none." },
     { question: "Is my data stored?", answer: "No. Everything runs in your browser. Saved layouts contain only positions and sizes and are stored on this device; you can export them as a file to use on another computer." },
   ],
-  popularRank: 2.6,
+  popularRank: 2.1,
   related: ["amount-in-words", "vat-calculator", "date-difference"],
 };

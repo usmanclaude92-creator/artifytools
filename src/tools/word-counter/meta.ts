@@ -35,6 +35,6 @@ export const meta: ToolDefinition = {
     { question: "How is reading time estimated?", answer: "Reading time assumes about 238 words per minute and speaking time about 130 words per minute. Real speeds vary, so treat them as rough guides." },
     { question: "Is there a size limit?", answer: "There is no fixed limit, but very large documents (millions of characters) may feel slower because everything runs in your browser." },
   ],
-  popularRank: 1.9,
+  popularRank: 2.7,
   related: ["case-converter", "text-cleaner", "remove-duplicate-lines"],
 };

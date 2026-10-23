@@ -36,6 +36,6 @@ export const meta: ToolDefinition = {
     { question: "Is my PDF uploaded?", answer: "No. Your browser reads the PDF and writes the Word file on your device. Nothing is sent to Artify or anyone else." },
   ],
   files: { inputFormats: ["PDF"], accept: ["application/pdf", ".pdf"], outputFormats: ["DOCX"], maxFileBytes: 60_000_000, maxFiles: 1 },
-  popularRank: 1.7,
+  popularRank: 1.0,
   related: ["word-to-pdf", "image-to-text", "pdf-to-jpg"],
 };
