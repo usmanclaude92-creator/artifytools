@@ -63,17 +63,6 @@ export const coreSections: CoreSection[] = [
       ar: { name: "طباعة الشيكات", description: "اطبع التاريخ واسم المستفيد والمبلغ كتابةً على شيك أي بنك بدقة في مكانها." },
     },
   },
-  {
-    id: "image-studio",
-    icon: "image",
-    tone: "pink",
-    category: "images",
-    quick: ["remove-background", "compress-image", "image-to-text"],
-    text: {
-      en: { name: "Image Studio", description: "Remove backgrounds, compress, resize and crop photos, and read text from images." },
-      ar: { name: "استوديو الصور", description: "أزل الخلفية واضغط الصور وغيّر حجمها وقصّها واستخرج النص منها." },
-    },
-  },
 ];
 
 /** Smaller tools listed under "More useful tools" on the home page, by worldwide demand. */

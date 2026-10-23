@@ -89,11 +89,13 @@ test.describe("navigation and theme", () => {
   test("header links navigate and show current page", async ({ page }) => {
     await page.goto("/");
     const nav = page.getByRole("navigation", { name: "Primary" });
-    await nav.getByRole("link", { name: "Categories" }).click();
-    await expect(page).toHaveURL(/\/categories$/);
-    await expect(nav.getByRole("link", { name: /Categories/ })).toHaveAttribute("aria-current", "page");
-    await nav.getByRole("link", { name: "For Professionals" }).click();
-    await expect(page).toHaveURL(/for-professionals/);
+    await nav.getByRole("link", { name: "PDF Converter" }).click();
+    await expect(page).toHaveURL(/\/categories\/pdf-converter$/);
+    await expect(nav.getByRole("link", { name: /PDF Converter/ })).toHaveAttribute("aria-current", "page");
+    await nav.getByRole("link", { name: "Cheque Printer" }).click();
+    await expect(page).toHaveURL(/\/tools\/cheque-printer$/);
+    await expect(nav.getByRole("link", { name: /Cheque Printer/ })).toHaveAttribute("aria-current", "page");
+    await expect(nav.getByRole("link", { name: /All Tools/ })).not.toHaveAttribute("aria-current", "page");
   });
 
   test("theme toggle switches and persists", async ({ page }) => {
@@ -128,8 +130,8 @@ test.describe("navigation and theme", () => {
     await expect(menu).toBeHidden();
     await expect(open).toBeFocused();
     await open.click();
-    await menu.getByRole("link", { name: "About" }).click();
-    await expect(page).toHaveURL(/\/about$/);
+    await menu.getByRole("link", { name: "Cheque Printer" }).click();
+    await expect(page).toHaveURL(/\/tools\/cheque-printer$/);
     await expect(menu).toBeHidden();
   });
 
@@ -182,9 +184,9 @@ test.describe("search", () => {
 
   test("hero suggestion chips link straight to their tool", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("link", { name: "Format JSON", exact: true }).click();
-    await expect(page).toHaveURL(/\/tools\/json-formatter$/);
-    await expect(page.getByRole("heading", { level: 1, name: /JSON Formatter/ })).toBeVisible();
+    await page.getByRole("link", { name: "Print a cheque", exact: true }).click();
+    await expect(page).toHaveURL(/\/tools\/cheque-printer$/);
+    await expect(page.getByRole("heading", { level: 1, name: /Cheque Printer/ })).toBeVisible();
   });
 
   test("header search opens with Ctrl+K, closes with Escape, and opens a result with Enter", async ({ page }) => {
@@ -220,16 +222,16 @@ test.describe("directory", () => {
   test("filters by category, combines with search, syncs the URL, and clears", async ({ page }) => {
     await page.goto("/tools");
     const count = page.getByRole("status").filter({ hasText: /tools?(\s|$)/ }).first();
-    await expect(count).toContainText("40 tools");
-    await page.getByRole("button", { name: /^Calculators/ }).click();
-    await expect(page).toHaveURL(/category=calculators/);
+    await expect(count).toContainText("41 tools");
+    await page.getByRole("button", { name: /^Business & Finance/ }).click();
+    await expect(page).toHaveURL(/category=business-finance/);
     await expect(count).toContainText("5 tools");
     await page.getByLabel("Search all tools").fill("vat");
     await expect(page).toHaveURL(/q=vat/);
     await expect(count).toContainText("1 tool");
-    await expect(page.getByRole("button", { name: /Category: Calculators/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Category: Business & Finance/ })).toBeVisible();
     await page.getByRole("button", { name: "Clear all" }).click();
-    await expect(count).toContainText("40 tools");
+    await expect(count).toContainText("41 tools");
     await expect(page.getByLabel("Search all tools")).toHaveValue("");
   });
 
@@ -249,9 +251,9 @@ test.describe("directory", () => {
     await page.getByLabel("Processing").selectOption("");
     await page.getByLabel("Works with").selectOption("pdf");
     await expect(page).toHaveURL(/kind=pdf/);
-    await expect(page.locator("article h2")).toHaveText(["Merge PDF", "Compress PDF", "PDF to Word", "PDF to JPG", "Split PDF", "PDF to Excel", "Translate PDF", "Rotate PDF", "Add Page Numbers to PDF", "Watermark PDF", "Unlock PDF", "Protect PDF"]);
+    await expect(page.locator("article h2")).toHaveText(["PDF to Word", "Compress PDF", "Merge PDF", "PDF to JPG", "PDF to Excel", "Split PDF", "Translate PDF", "Rotate PDF", "Add Page Numbers to PDF", "Watermark PDF", "Unlock PDF", "Protect PDF"]);
     await page.getByLabel("Works with").selectOption("images");
-    await expect(page.locator("article h2")).toHaveText(["JPG to PDF", "Compress Image", "Remove Background", "Resize Image", "Crop Image"]);
+    await expect(page.locator("article h2")).toHaveText(["JPG to PDF", "Remove Background", "Compress Image", "Resize Image", "Crop Image"]);
   });
 
   test("paginates beyond 12 tools", async ({ page }) => {
@@ -273,7 +275,7 @@ test.describe("directory", () => {
 
   test("category page lists only its tools and links to others", async ({ page }) => {
     await page.goto("/categories/calculators");
-    await expect(page.locator("article h2")).toHaveText(["Percentage Calculator", "VAT Calculator", "Discount Calculator", "End of Service Gratuity Calculator", "Amount in Words"]);
+    await expect(page.locator("article h2")).toHaveText(["Percentage Calculator", "Discount Calculator"]);
     await page.getByRole("link", { name: "Text & Writing" }).last().click();
     await expect(page).toHaveURL(/text-writing/);
   });

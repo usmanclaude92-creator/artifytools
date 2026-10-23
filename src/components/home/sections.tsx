@@ -32,12 +32,11 @@ function SectionTitle({ id, title, description, linkHref, linkLabel }: { id: str
 export async function CoreSections() {
   const t = await getT();
   const locale = await getLocale();
-  const spans = ["lg:col-span-3", "lg:col-span-3", "lg:col-span-2", "lg:col-span-2", "md:col-span-2 lg:col-span-2"];
   return (
     <section aria-labelledby="core-heading" className="container-page pt-4 sm:pt-6">
       <SectionTitle id="core-heading" title={t.home.coreTitle} description={t.home.coreText} />
-      <ul className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-        {coreSections.map((s, i) => {
+      <ul className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {coreSections.map((s) => {
           const text = s.text[locale];
           const main = s.tool ? getTool(s.tool) : undefined;
           const soon = main?.status === "coming-soon";
@@ -45,7 +44,7 @@ export async function CoreSections() {
           const count = s.category ? getToolsByCategory(s.category).length : 0;
           const quick = s.quick.map((slug) => getTool(slug)).filter((x) => x && x.status !== "coming-soon").map((x) => localizeTool(x!, locale));
           return (
-            <li key={s.id} className={spans[i]}>
+            <li key={s.id}>
               <article className="card card-interactive relative flex h-full flex-col gap-3 p-5 sm:gap-4 sm:p-6 focus-within:ring-2 focus-within:ring-[var(--focus)]">
                 <div className="flex items-start justify-between gap-3">
                   <IconTile name={s.icon} tone={s.tone} className="size-14 rounded-xl" size={26} />
