@@ -58,6 +58,7 @@ const components: Record<string, ComponentType> = {
   "watermark-pdf": load(() => import("@/tools/watermark-pdf/ui")),
   "unlock-pdf": load(() => import("@/tools/unlock-pdf/ui")),
   "protect-pdf": load(() => import("@/tools/protect-pdf/ui")),
+  "end-of-service-calculator": load(() => import("@/tools/end-of-service-calculator/ui")),
 };
 
 export function ToolWorkspace({ toolId }: { toolId: string }) {

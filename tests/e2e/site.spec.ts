@@ -220,16 +220,16 @@ test.describe("directory", () => {
   test("filters by category, combines with search, syncs the URL, and clears", async ({ page }) => {
     await page.goto("/tools");
     const count = page.getByRole("status").filter({ hasText: /tools?(\s|$)/ }).first();
-    await expect(count).toContainText("38 tools");
+    await expect(count).toContainText("39 tools");
     await page.getByRole("button", { name: /^Calculators/ }).click();
     await expect(page).toHaveURL(/category=calculators/);
-    await expect(count).toContainText("4 tools");
+    await expect(count).toContainText("5 tools");
     await page.getByLabel("Search all tools").fill("vat");
     await expect(page).toHaveURL(/q=vat/);
     await expect(count).toContainText("1 tool");
     await expect(page.getByRole("button", { name: /Category: Calculators/ })).toBeVisible();
     await page.getByRole("button", { name: "Clear all" }).click();
-    await expect(count).toContainText("38 tools");
+    await expect(count).toContainText("39 tools");
     await expect(page.getByLabel("Search all tools")).toHaveValue("");
   });
 
@@ -273,7 +273,7 @@ test.describe("directory", () => {
 
   test("category page lists only its tools and links to others", async ({ page }) => {
     await page.goto("/categories/calculators");
-    await expect(page.locator("article h2")).toHaveText(["Percentage Calculator", "VAT Calculator", "Discount Calculator", "Amount in Words"]);
+    await expect(page.locator("article h2")).toHaveText(["Percentage Calculator", "VAT Calculator", "Discount Calculator", "End of Service Gratuity Calculator", "Amount in Words"]);
     await page.getByRole("link", { name: "Text & Writing" }).last().click();
     await expect(page).toHaveURL(/text-writing/);
   });
