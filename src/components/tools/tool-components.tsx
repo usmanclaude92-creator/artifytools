@@ -51,6 +51,7 @@ const components: Record<string, ComponentType> = {
   "image-to-text": load(() => import("@/tools/image-to-text/ui")),
   "translate-pdf": load(() => import("@/tools/translate-pdf/ui")),
   "remove-background": load(() => import("@/tools/remove-background/ui")),
+  "excel-to-pdf": load(() => import("@/tools/excel-to-pdf/ui")),
 };
 
 export function ToolWorkspace({ toolId }: { toolId: string }) {

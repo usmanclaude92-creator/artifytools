@@ -35,6 +35,7 @@ import { meta as wordToPdf } from "@/tools/word-to-pdf/meta";
 import { meta as imageToText } from "@/tools/image-to-text/meta";
 import { meta as translatePdf } from "@/tools/translate-pdf/meta";
 import { meta as removeBackground } from "@/tools/remove-background/meta";
+import { meta as excelToPdf } from "@/tools/excel-to-pdf/meta";
 import { meta as pdfToWord } from "@/tools/pdf-to-word/meta";
 import { meta as resizeImage } from "@/tools/resize-image/meta";
 
@@ -76,6 +77,7 @@ export const tools: readonly ToolDefinition[] = [
   imageToText,
   translatePdf,
   removeBackground,
+  excelToPdf,
 ];
 
 const bySlug = new Map(tools.map((t) => [t.slug, t]));

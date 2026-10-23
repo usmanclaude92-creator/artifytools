@@ -72,3 +72,41 @@ test.describe("Word to PDF", () => {
     await expect(page.getByText(/couldn't be opened as a Word document/)).toBeVisible();
   });
 });
+
+test.describe("Excel to PDF", () => {
+  test("lays out sheets with formats and prints landscape when wide", async ({ page, browser }) => {
+    await open(page, "/tools/excel-to-pdf");
+    await page.locator('input[type="file"]').setInputFiles(fixture("prices.xlsx"));
+    await expect(page.getByText(/2 sheets/)).toBeVisible();
+    const frame = page.frameLocator('iframe[title="Preview"]');
+    await expect(frame.getByText("Design service")).toBeVisible();
+    await expect(frame.getByText("5,250.525")).toBeVisible();
+    await expect(frame.getByText("23/10/2026").first()).toBeVisible();
+    await expect(frame.locator("td[colspan='9']")).toContainText("Price list 2026");
+
+    const printed = async () => {
+      const html = await page.locator('iframe[title="Preview"]').evaluate((f: HTMLIFrameElement) => f.contentDocument!.documentElement.outerHTML);
+      const p = await browser.newPage();
+      await p.setContent(html);
+      const pdf = await PDFDocument.load(await p.pdf({ preferCSSPageSize: true }));
+      await p.close();
+      return pdf;
+    };
+    let pdf = await printed();
+    expect(pdf.getPageCount()).toBe(2);
+    expect(Math.round(pdf.getPage(0).getSize().width)).toBe(842); // A4 landscape
+
+    await page.getByLabel("Notes").uncheck();
+    await page.getByRole("radio", { name: "Portrait" }).check({ force: true });
+    await expect(frame.getByText("Second sheet")).toHaveCount(0);
+    pdf = await printed();
+    expect(pdf.getPageCount()).toBe(1);
+    expect(Math.round(pdf.getPage(0).getSize().width)).toBe(595);
+  });
+
+  test("explains old .xls files can't be opened", async ({ page }) => {
+    await open(page, "/tools/excel-to-pdf");
+    await page.locator('input[type="file"]').setInputFiles({ name: "old.xlsx", mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", buffer: Buffer.from("not a zip") });
+    await expect(page.getByText(/couldn't be opened as a spreadsheet/)).toBeVisible();
+  });
+});
