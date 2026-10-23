@@ -30,7 +30,7 @@ export interface Block {
   size: number;
 }
 
-interface Line {
+export interface Line {
   items: TextItem[];
   y: number;
   left: number;

@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import { PDFDocument } from "pdf-lib";
+import ExcelJS from "exceljs";
 
 const fixture = (name: string) => path.join(__dirname, "../fixtures", name);
 
@@ -108,5 +109,36 @@ test.describe("Excel to PDF", () => {
     await open(page, "/tools/excel-to-pdf");
     await page.locator('input[type="file"]').setInputFiles({ name: "old.xlsx", mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", buffer: Buffer.from("not a zip") });
     await expect(page.getByText(/couldn't be opened as a spreadsheet/)).toBeVisible();
+  });
+});
+
+test.describe("PDF to Excel", () => {
+  test("rebuilds the table with real numbers and Arabic text", async ({ page }) => {
+    await open(page, "/tools/pdf-to-excel");
+    await page.locator('input[type="file"]').setInputFiles(fixture("prices.pdf"));
+    await expect(page.getByText(/· 2 pages/)).toBeVisible();
+    await page.getByRole("button", { name: "Convert to Excel" }).click();
+    await expect(page.getByText("8 rows from 2 pages.")).toBeVisible();
+    const preview = page.locator("table").last();
+    await expect(preview.locator("tr").nth(2)).toContainText("Item");
+    await expect(preview.getByText("دعم فني")).toBeVisible();
+    const [d] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download", exact: true }).click()]);
+    expect(d.suggestedFilename()).toBe("prices.xlsx");
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(readFileSync((await d.path())!).buffer as ArrayBuffer);
+    const ws = wb.getWorksheet("Page 1")!;
+    const row = ws.getRow(4).values as unknown[];
+    expect(row.slice(1, 4)).toEqual(["Design service", 1200.5, 980]);
+    expect(ws.getRow(4).getCell(2).numFmt).toBe("#,##0.000");
+    await page.getByRole("radio", { name: "All pages in one sheet" }).check({ force: true });
+    await expect(page.getByText("Options changed. Convert again to update the file.")).toBeVisible();
+  });
+
+  test("explains scanned PDFs have no table text", async ({ page }) => {
+    await open(page, "/tools/pdf-to-excel");
+    await page.locator('input[type="file"]').setInputFiles(fixture("scanned.pdf"));
+    await page.getByRole("button", { name: "Convert to Excel" }).click();
+    await expect(page.getByText(/no selectable text/)).toBeVisible();
+    await expect(page.getByRole("link", { name: "Use Image to Text (OCR) for scanned pages." })).toBeVisible();
   });
 });

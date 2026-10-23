@@ -29,6 +29,7 @@ import { metaAr as imageToText } from "@/tools/image-to-text/meta.ar";
 import { metaAr as translatePdf } from "@/tools/translate-pdf/meta.ar";
 import { metaAr as removeBackground } from "@/tools/remove-background/meta.ar";
 import { metaAr as excelToPdf } from "@/tools/excel-to-pdf/meta.ar";
+import { metaAr as pdfToExcel } from "@/tools/pdf-to-excel/meta.ar";
 import { metaAr as pdfToWord } from "@/tools/pdf-to-word/meta.ar";
 import { metaAr as resizeImage } from "@/tools/resize-image/meta.ar";
 
@@ -66,4 +67,5 @@ export const toolTranslationsAr: Record<string, ToolTranslation> = {
   "translate-pdf": translatePdf,
   "remove-background": removeBackground,
   "excel-to-pdf": excelToPdf,
+  "pdf-to-excel": pdfToExcel,
 };
