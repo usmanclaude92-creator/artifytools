@@ -43,6 +43,6 @@ export const meta: ToolDefinition = {
     maxFiles: 100,
     maxTotalBytes: 500_000_000,
   },
-  popularRank: 1.6,
-  related: ["merge-pdf", "split-pdf", "qr-code-generator"],
+  popularRank: 1.5,
+  related: ["merge-pdf", "compress-image", "pdf-to-jpg"],
 };

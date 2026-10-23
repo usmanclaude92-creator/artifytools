@@ -34,6 +34,6 @@ export const meta: ToolDefinition = {
     { question: "Is anything left out of the merged file?", answer: "Page content, links and annotations are kept. Bookmarks (the outline) and some interactive form features from the original files may not carry over." },
   ],
   files: { inputFormats: ["PDF"], accept: ["application/pdf", ".pdf"], outputFormats: ["PDF"], maxFileBytes: 100_000_000, maxFiles: 30, maxTotalBytes: 300_000_000 },
-  popularRank: 1.5,
-  related: ["split-pdf", "word-counter", "qr-code-generator"],
+  popularRank: 1.55,
+  related: ["split-pdf", "compress-pdf", "pdf-to-word"],
 };

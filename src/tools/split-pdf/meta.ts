@@ -36,6 +36,6 @@ export const meta: ToolDefinition = {
     { question: "Why was my file refused?", answer: "It may be password-protected or damaged. Remove the password in the app that created it, then try again." },
   ],
   files: { inputFormats: ["PDF"], accept: ["application/pdf", ".pdf"], outputFormats: ["PDF", "ZIP"], maxFileBytes: 100_000_000, maxFiles: 1 },
-  popularRank: 16,
-  related: ["merge-pdf", "word-counter", "qr-code-generator"],
+  popularRank: 1.95,
+  related: ["merge-pdf", "pdf-to-jpg", "compress-pdf"],
 };

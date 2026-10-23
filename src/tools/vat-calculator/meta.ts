@@ -35,5 +35,5 @@ export const meta: ToolDefinition = {
   ],
   popularRank: 6,
   featuredRank: 5,
-  related: ["percentage-calculator", "discount-calculator"],
+  related: ["amount-in-words", "percentage-calculator", "discount-calculator"],
 };

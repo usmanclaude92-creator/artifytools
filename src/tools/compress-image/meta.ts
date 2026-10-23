@@ -43,6 +43,6 @@ export const meta: ToolDefinition = {
     maxFiles: 50,
     maxTotalBytes: 400_000_000,
   },
-  popularRank: 1.8,
-  related: ["jpg-to-pdf", "compress-pdf", "merge-pdf"],
+  popularRank: 1.65,
+  related: ["resize-image", "crop-image", "jpg-to-pdf"],
 };

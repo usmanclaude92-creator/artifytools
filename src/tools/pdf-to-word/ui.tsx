@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { FileDropZone } from "@/components/files";
 import { Panel } from "@/components/tools/parts";
@@ -10,6 +11,7 @@ import { Checkbox } from "@/components/ui/form";
 import { Icon } from "@/components/ui/icon";
 import { useLocale } from "@/components/i18n/locale-provider";
 import { arCount } from "@/lib/messages";
+import { localizeHref } from "@/lib/i18n";
 import { baseName, safeFileName } from "@/lib/files/names";
 import { formatBytes } from "@/lib/files/size";
 import { PdfError, type PdfErrorCode } from "@/lib/pdf/pdf";
@@ -31,6 +33,7 @@ const strings = {
     summary: (s: ConvertSummary) => `${s.headings} heading${s.headings === 1 ? "" : "s"} and ${s.paragraphs} paragraph${s.paragraphs === 1 ? "" : "s"} from ${s.pages} page${s.pages === 1 ? "" : "s"}.`,
     scans: (pages: number[]) => `Page${pages.length === 1 ? "" : "s"} ${pages.join(", ")} had no text (probably scanned), so ${pages.length === 1 ? "it was" : "they were"} added as ${pages.length === 1 ? "a picture" : "pictures"}.`,
     noText: "This PDF has no selectable text (it looks scanned). Its pages were added to the Word file as pictures; the text can't be edited.",
+    ocr: "To get editable text from scanned pages, use Image to Text (OCR).",
     previewTitle: "Start of the text",
     limits: "Text, headings, bold and italic, paragraphs and Arabic text are kept. Tables, columns and pictures inside text pages are not, so check the layout in Word.",
     errors: { encrypted: "This PDF is password-protected. Unlock it first, then choose it again.", invalid: "This file couldn't be read as a PDF. It may be damaged." } as Record<PdfErrorCode, string>,
@@ -45,6 +48,7 @@ const strings = {
     summary: (s: ConvertSummary) => `${arCount(s.headings, "عنوان واحد", "عنوانان", "عناوين", "عنوانًا", "عنوان")} و${arCount(s.paragraphs, "فقرة واحدة", "فقرتان", "فقرات", "فقرة")} من ${arCount(s.pages, "صفحة واحدة", "صفحتين", "صفحات", "صفحة")}.`,
     scans: (pages: number[]) => `لا يوجد نص في ${pages.length === 1 ? "الصفحة" : "الصفحات"} ${pages.join("، ")} (غالبًا ممسوحة ضوئيًا)، لذا أُضيفت كصور.`,
     noText: "لا يحتوي ملف PDF هذا على نص قابل للتحديد (يبدو ممسوحًا ضوئيًا). أُضيفت صفحاته إلى ملف Word كصور، ولا يمكن تعديل نصها.",
+    ocr: "للحصول على نص قابل للتعديل من الصفحات الممسوحة، استخدم أداة تحويل الصورة إلى نص (OCR).",
     previewTitle: "بداية النص",
     limits: "يُحافظ على النص والعناوين والخط العريض والمائل والفقرات والنص العربي. أما الجداول والأعمدة والصور داخل صفحات النص فلا تُنقل، لذا راجع التنسيق في Word.",
     errors: { encrypted: "هذا الملف محمي بكلمة مرور. فك حمايته أولًا ثم اختره مجددًا.", invalid: "تعذّرت قراءة هذا الملف كملف PDF، وقد يكون تالفًا." } as Record<PdfErrorCode, string>,
@@ -147,10 +151,11 @@ export default function PdfToWord() {
                 </div>
                 <DownloadButton filename={current.name} getBlob={() => current.blob} />
               </div>
-              {allScanned ? (
-                <StatusMessage tone="warning">{t.noText}</StatusMessage>
-              ) : (
-                current.summary.imagePages.length > 0 && <StatusMessage tone="info">{t.scans(current.summary.imagePages)}</StatusMessage>
+              {current.summary.imagePages.length > 0 && (
+                <StatusMessage tone={allScanned ? "warning" : "info"}>
+                  {allScanned ? t.noText : t.scans(current.summary.imagePages)}{" "}
+                  <Link href={localizeHref("/tools/image-to-text", locale)} className="font-semibold underline">{t.ocr}</Link>
+                </StatusMessage>
               )}
               {current.preview.length > 0 && (
                 <div className="flex flex-col gap-2">

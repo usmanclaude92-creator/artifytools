@@ -249,7 +249,7 @@ test.describe("directory", () => {
     await page.getByLabel("Processing").selectOption("");
     await page.getByLabel("Works with").selectOption("pdf");
     await expect(page).toHaveURL(/kind=pdf/);
-    await expect(page.locator("article h2")).toHaveText(["Merge PDF", "PDF to Word", "PDF to JPG", "Compress PDF", "Translate PDF", "Split PDF"]);
+    await expect(page.locator("article h2")).toHaveText(["Merge PDF", "Compress PDF", "PDF to Word", "PDF to JPG", "Split PDF", "Translate PDF"]);
     await page.getByLabel("Works with").selectOption("images");
     await expect(page.locator("article h2")).toHaveText(["JPG to PDF", "Compress Image", "Resize Image", "Crop Image"]);
   });

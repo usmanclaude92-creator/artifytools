@@ -42,6 +42,6 @@ export const meta: ToolDefinition = {
     maxFileBytes: 50_000_000,
     maxFiles: 1,
   },
-  popularRank: 1.75,
+  popularRank: 2.0,
   related: ["pdf-to-word", "merge-pdf", "compress-pdf"],
 };

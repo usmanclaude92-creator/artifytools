@@ -89,7 +89,7 @@ export async function PopularTools() {
     <section aria-labelledby="popular-heading" className="container-page py-10 sm:py-14">
       <SectionTitle id="popular-heading" title={t.home.popularTitle} linkHref="/tools" linkLabel={t.home.viewAllTools} />
       <div className="mt-6">
-        <ToolGrid tools={getPopularTools(5).map((tool) => toDirectoryItem(tool, locale))} columns={5} />
+        <ToolGrid tools={getPopularTools(8).map((tool) => toDirectoryItem(tool, locale))} columns={4} />
       </div>
     </section>
   );

@@ -35,6 +35,6 @@ export const meta: ToolDefinition = {
     { question: "What is the largest amount supported?", answer: "Up to 999,999,999,999 in the main unit, with the subunit precision of the chosen currency (two or three decimals)." },
     { question: "Is this suitable for official documents?", answer: "The wording follows the usual cheque and invoice style. Always read the result before signing, as some institutions prefer their own phrasing." },
   ],
-  popularRank: 2.5,
-  related: ["vat-calculator", "percentage-calculator", "discount-calculator"],
+  popularRank: 1.75,
+  related: ["cheque-printer", "vat-calculator", "percentage-calculator"],
 };

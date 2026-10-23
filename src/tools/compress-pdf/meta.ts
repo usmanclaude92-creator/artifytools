@@ -36,6 +36,6 @@ export const meta: ToolDefinition = {
     { question: "Is my file uploaded?", answer: "No. The compression runs in your browser on your device. Nothing is sent to Artify or anyone else." },
   ],
   files: { inputFormats: ["PDF"], accept: ["application/pdf", ".pdf"], outputFormats: ["PDF"], maxFileBytes: 150_000_000, maxFiles: 1 },
-  popularRank: 1.7,
-  related: ["merge-pdf", "split-pdf", "jpg-to-pdf"],
+  popularRank: 1.6,
+  related: ["merge-pdf", "pdf-to-word", "split-pdf"],
 };

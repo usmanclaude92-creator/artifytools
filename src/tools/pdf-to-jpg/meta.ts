@@ -36,6 +36,6 @@ export const meta: ToolDefinition = {
     { question: "Is my PDF uploaded?", answer: "No. Your browser draws each page on your device. Nothing is sent to Artify or anyone else." },
   ],
   files: { inputFormats: ["PDF"], accept: ["application/pdf", ".pdf"], outputFormats: ["JPG", "PNG", "ZIP"], maxFileBytes: 100_000_000, maxFiles: 1 },
-  popularRank: 1.65,
-  related: ["jpg-to-pdf", "compress-pdf", "split-pdf"],
+  popularRank: 1.8,
+  related: ["jpg-to-pdf", "image-to-text", "compress-pdf"],
 };
