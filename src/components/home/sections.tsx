@@ -11,6 +11,7 @@ import { localizeCategory, localizeTool } from "@/lib/tools/localize";
 import { getPopularTools, getPublishedCategories, getPublishedTools, getTool, getToolsByCategory, toDirectoryItem } from "@/lib/tools/registry";
 import { getCategory } from "@/lib/tools/categories";
 import { coreSections, moreToolSlugs } from "@/lib/home/core";
+import { CoreCards, type CoreCardData } from "./core-cards";
 
 function SectionTitle({ id, title, description, linkHref, linkLabel }: { id: string; title: string; description?: string; linkHref?: string; linkLabel?: string }) {
   return (
@@ -28,68 +29,43 @@ function SectionTitle({ id, title, description, linkHref, linkLabel }: { id: str
   );
 }
 
-/** The five core sections, right under the hero: the site's main products. */
+/** The core sections, right under the hero: the site's main products. */
 export async function CoreSections() {
   const t = await getT();
   const locale = await getLocale();
+  const usable = (slug: string) => {
+    const x = getTool(slug);
+    return x && x.status !== "coming-soon" ? localizeTool(x, locale) : null;
+  };
+  const cards: CoreCardData[] = coreSections.map((s) => {
+    const text = s.text[locale];
+    const cats = s.category ? [s.category, ...(s.alsoCategories ?? [])] : [];
+    const catTools = cats.flatMap((id) => getToolsByCategory(id)).filter((x) => x.status !== "coming-soon").sort((a, b) => (a.popularRank ?? 99) - (b.popularRank ?? 99));
+    const quick = s.quick.map(usable).filter((x) => x !== null);
+    const all = cats.length ? catTools.map((x) => localizeTool(x, locale)) : quick;
+    const count = cats.reduce((n, id) => n + getToolsByCategory(id).length, 0);
+    return {
+      id: s.id,
+      icon: s.icon,
+      tone: s.tone,
+      href: s.category ? `/categories/${getCategory(s.category).slug}` : `/tools/${s.tool}`,
+      name: text.name,
+      short: text.short,
+      description: text.description,
+      soon: s.tool ? getTool(s.tool)?.status === "coming-soon" : false,
+      quick: quick.slice(0, 3).map((x) => ({ slug: x.slug, name: x.name })),
+      all: all.map((x) => ({ slug: x.slug, name: x.name })),
+      categories: cats.length > 1 ? cats.map((id) => {
+        const c = localizeCategory(getCategory(id), locale);
+        return { href: `/categories/${c.slug}`, label: `${c.name} (${getToolsByCategory(id).length})` };
+      }) : [],
+      footer: cats.length ? t.common.tools(count) : t.home.openTool,
+    };
+  });
   return (
     <section aria-labelledby="core-heading" className="container-page pt-4 sm:pt-6">
       <SectionTitle id="core-heading" title={t.home.coreTitle} description={t.home.coreText} />
-      <ul className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {coreSections.map((s) => {
-          const text = s.text[locale];
-          const main = s.tool ? getTool(s.tool) : undefined;
-          const soon = main?.status === "coming-soon";
-          const href = s.category ? `/categories/${getCategory(s.category).slug}` : `/tools/${s.tool}`;
-          const count = s.category ? getToolsByCategory(s.category).length : 0;
-          const quick = s.quick.map((slug) => getTool(slug)).filter((x) => x && x.status !== "coming-soon").map((x) => localizeTool(x!, locale));
-          return (
-            <li key={s.id}>
-              <article className="card card-interactive relative flex h-full flex-col gap-3 p-5 sm:gap-4 sm:p-6 focus-within:ring-2 focus-within:ring-[var(--focus)]">
-                <div className="flex items-start justify-between gap-3">
-                  <IconTile name={s.icon} tone={s.tone} className="size-14 rounded-xl" size={26} />
-                  {soon && <Badge tone="warning">{t.common.comingSoon}</Badge>}
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold tracking-tight">
-                    <Link href={href} className="after:absolute after:inset-0 after:rounded-lg focus-visible:outline-none">{text.name}</Link>
-                  </h3>
-                  <p className="mt-1.5 text-[0.95rem] leading-relaxed text-muted">{text.description}</p>
-                </div>
-                {quick.length > 0 && (
-                  <ul className="relative z-10 flex flex-wrap gap-2">
-                    {quick.map((q) => (
-                      <li key={q.slug}>
-                        <Link href={`/tools/${q.slug}`} className="inline-flex min-h-9 items-center rounded-full border border-line bg-surface-2 px-3 text-sm font-medium text-fg transition-colors hover:border-accent hover:text-accent-text">
-                          {q.name}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {s.alsoCategories ? (
-                  <ul className="relative z-10 flex flex-col gap-1">
-                    {[s.category!, ...s.alsoCategories].map((id) => {
-                      const c = localizeCategory(getCategory(id), locale);
-                      return (
-                        <li key={id}>
-                          <Link href={`/categories/${c.slug}`} className="inline-flex min-h-8 items-center gap-1 text-sm font-semibold text-accent-text hover:underline">
-                            {c.name} ({getToolsByCategory(id).length}) <Icon name="arrow-right" size={14} />
-                          </Link>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                ) : (
-                  <p className="inline-flex items-center gap-1 text-sm font-semibold text-accent-text">
-                    {s.category ? t.home.allInSection(count) : t.home.openTool} <Icon name="arrow-right" size={14} />
-                  </p>
-                )}
-              </article>
-            </li>
-          );
-        })}
-      </ul>
+      <CoreCards cards={cards} labels={{ more: t.home.more, less: t.home.less, comingSoon: t.common.comingSoon }} />
     </section>
   );
 }

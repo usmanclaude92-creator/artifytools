@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 function trackConsole(page: Page) {
@@ -278,5 +279,23 @@ test.describe("directory", () => {
     await expect(page.locator("article h2")).toHaveText(["Percentage Calculator", "Discount Calculator"]);
     await page.getByRole("link", { name: "Text & Writing" }).last().click();
     await expect(page).toHaveURL(/text-writing/);
+  });
+});
+
+test.describe("home core cards", () => {
+  test("More opens one card at a time and Less closes it", async ({ page }) => {
+    await page.goto("/", { waitUntil: "networkidle" });
+    const pdfMore = page.getByRole("button", { name: "More: PDF Converter & Editor" });
+    await expect(page.getByRole("link", { name: "Split PDF", exact: true })).toHaveCount(0);
+    await pdfMore.click();
+    await expect(page.getByRole("button", { name: "Less: PDF Converter & Editor" })).toHaveAttribute("aria-expanded", "true");
+    await expect(page.getByRole("link", { name: "Split PDF", exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "More: Image Studio" }).click();
+    await expect(page.getByRole("link", { name: "Split PDF", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Crop Image", exact: true }).first()).toBeVisible();
+    const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
+    expect(axe.violations.map((v) => v.id)).toEqual([]);
+    await page.getByRole("button", { name: "Less: Image Studio" }).click();
+    await expect(page.getByRole("button", { name: "More: Image Studio" })).toHaveAttribute("aria-expanded", "false");
   });
 });

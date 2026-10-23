@@ -17,7 +17,7 @@ export interface CoreSection {
   tool?: string;
   /** Up to three tools linked straight from the card. */
   quick: string[];
-  text: { en: { name: string; description: string }; ar: { name: string; description: string } };
+  text: { en: { name: string; short: string; description: string }; ar: { name: string; short: string; description: string } };
 }
 
 export const coreSections: CoreSection[] = [
@@ -29,8 +29,8 @@ export const coreSections: CoreSection[] = [
     alsoCategories: ["pdf-edit"],
     quick: ["pdf-to-word", "word-to-pdf", "pdf-to-excel", "merge-pdf", "compress-pdf"],
     text: {
-      en: { name: "PDF Converter & Editor", description: "Convert PDFs to and from Word, Excel and JPG, then merge, split, compress, rotate, number, watermark and protect them." },
-      ar: { name: "محوّل ومحرّر PDF", description: "حوّل ملفات PDF من Word وExcel وJPG وإليها، ثم ادمجها وقسّمها واضغطها ودوّرها ورقّمها وأضف إليها علامة مائية واحمِها." },
+      en: { name: "PDF Converter & Editor", short: "Convert PDFs to Word, Excel or JPG, then merge, compress and protect them.",  description: "Convert PDFs to and from Word, Excel and JPG, then merge, split, compress, rotate, number, watermark and protect them." },
+      ar: { name: "محوّل ومحرّر PDF", short: "حوّل ملفات PDF إلى Word وExcel وJPG، ثم ادمجها واضغطها واحمِها.",  description: "حوّل ملفات PDF من Word وExcel وJPG وإليها، ثم ادمجها وقسّمها واضغطها ودوّرها ورقّمها وأضف إليها علامة مائية واحمِها." },
     },
   },
   {
@@ -40,8 +40,8 @@ export const coreSections: CoreSection[] = [
     tool: "bank-statement-converter",
     quick: ["pdf-to-excel"],
     text: {
-      en: { name: "Bank Statement Converter", description: "Turn PDF bank statements into clean Excel or CSV, with every balance checked." },
-      ar: { name: "تحويل كشوف الحساب", description: "حوّل كشوف الحساب البنكية من PDF إلى Excel أو CSV منظّم مع مطابقة كل رصيد." },
+      en: { name: "Bank Statement Converter", short: "Turn PDF bank statements into clean Excel or CSV, balances checked.",  description: "Turn PDF bank statements into clean Excel or CSV, with every balance checked." },
+      ar: { name: "تحويل كشوف الحساب", short: "حوّل كشوف الحساب البنكية من PDF إلى Excel أو CSV مع مطابقة الرصيد.",  description: "حوّل كشوف الحساب البنكية من PDF إلى Excel أو CSV منظّم مع مطابقة كل رصيد." },
     },
   },
   {
@@ -51,8 +51,8 @@ export const coreSections: CoreSection[] = [
     tool: "cheque-printer",
     quick: ["amount-in-words"],
     text: {
-      en: { name: "Cheque Printer", description: "Print the date, payee and amount in words on any bank's cheque, lined up exactly." },
-      ar: { name: "طباعة الشيكات", description: "اطبع التاريخ واسم المستفيد والمبلغ كتابةً على شيك أي بنك بدقة في مكانها." },
+      en: { name: "Cheque Printer", short: "Print the date, payee and amount in words on any bank's cheque.",  description: "Print the date, payee and amount in words on any bank's cheque, lined up exactly." },
+      ar: { name: "طباعة الشيكات", short: "اطبع التاريخ واسم المستفيد والمبلغ كتابةً على شيك أي بنك.",  description: "اطبع التاريخ واسم المستفيد والمبلغ كتابةً على شيك أي بنك بدقة في مكانها." },
     },
   },
   {
@@ -62,8 +62,8 @@ export const coreSections: CoreSection[] = [
     category: "images",
     quick: ["remove-background", "compress-image", "image-to-text"],
     text: {
-      en: { name: "Image Studio", description: "Remove backgrounds, compress, resize and crop photos, and read text from images." },
-      ar: { name: "استوديو الصور", description: "أزل الخلفية واضغط الصور وغيّر حجمها وقصّها واستخرج النص منها." },
+      en: { name: "Image Studio", short: "Remove backgrounds, compress, resize and crop photos, and read text.",  description: "Remove backgrounds, compress, resize and crop photos, and read text from images." },
+      ar: { name: "استوديو الصور", short: "أزل الخلفية واضغط الصور وغيّر حجمها وقصّها واستخرج النص منها.",  description: "أزل الخلفية واضغط الصور وغيّر حجمها وقصّها واستخرج النص منها." },
     },
   },
 ];
