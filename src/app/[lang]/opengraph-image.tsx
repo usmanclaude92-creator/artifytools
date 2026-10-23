@@ -4,14 +4,22 @@ import { ImageResponse } from "next/og";
 import { siteConfig } from "@/lib/config";
 import { GRADIENT, MUTED, OG_SIZE, OgChips, OgFrame, OgHeroArt, ogAssets } from "@/lib/brand-og";
 
-export const alt = `${siteConfig.name}: The right tool. For whatever you're doing.`;
-export const size = OG_SIZE;
-export const contentType = "image/png";
+const size = OG_SIZE;
 
-export default async function Image({ params }: { params: Promise<{ lang: string }> }) {
+/**
+ * One image per language, each at its own path (/en/opengraph-image/en, /ar/opengraph-image/ar-2).
+ * Bump the Arabic id when its picture changes so apps such as WhatsApp fetch it again.
+ */
+export async function generateImageMetadata({ params }: { params: Promise<{ lang: string }> | { lang: string } }) {
   const { lang } = await params;
+  return lang === "ar"
+    ? [{ id: "ar-2", alt: `${siteConfig.name}: الأداة المناسبة. لكل ما تعمل عليه.`, size, contentType: "image/png" }]
+    : [{ id: "en", alt: `${siteConfig.name}: The right tool. For whatever you're doing.`, size, contentType: "image/png" }];
+}
+
+export default async function Image({ id }: { id: Promise<string | number> }) {
   // Satori can't join Arabic letters, so the Arabic card is pre-drawn by a browser (scripts/og-ar.mjs).
-  if (lang === "ar") {
+  if (String(await id).startsWith("ar")) {
     const png = await readFile(join(process.cwd(), "public/og/home-ar.png"));
     return new Response(new Uint8Array(png), { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=31536000, immutable" } });
   }
