@@ -132,7 +132,7 @@ export default function RotatePdf() {
               <li key={u} className="flex flex-col items-center gap-2 rounded-lg border border-line p-2">
                 <div className="grid aspect-square w-full place-items-center overflow-hidden rounded-md bg-surface-2">
                   {/* eslint-disable-next-line @next/next/no-img-element -- local object URL */}
-                  <img src={u} alt={t.page(i + 1)} className="max-h-[88%] max-w-[88%] shadow-sm transition-transform" style={{ transform: `rotate(${turns[i]}deg)` }} />
+                  <img src={u} alt={t.page(i + 1)} className="max-h-[88%] max-w-[88%] shadow-sm transition-transform" style={{ transform: `rotate(${turns[i]}deg) scale(${turns[i]! % 180 ? 0.72 : 1})` }} />
                 </div>
                 <div className="flex w-full items-center justify-between">
                   <Button variant="ghost" size="sm" className="!px-2" aria-label={t.left(i + 1)} onClick={() => turn(i, -90)}><Icon name="rotate-ccw" size={16} /></Button>

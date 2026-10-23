@@ -109,12 +109,28 @@ export default function AddPageNumbers() {
         <Panel title={t.options}>
           <fieldset>
             <legend className="mb-2 text-sm font-medium">{t.position}</legend>
-            <div dir="ltr" className="grid max-w-sm grid-cols-3 gap-2 rounded-lg border border-line bg-surface-2 p-3">
-              {ANCHORS.map((a) => (
-                <button key={a} type="button" aria-pressed={anchor === a} aria-label={t.anchors[a]} title={t.anchors[a]} onClick={() => setAnchor(a)} className={cx("grid min-h-11 place-items-center rounded-md border text-xs font-semibold", anchor === a ? "border-accent bg-accent text-white" : "border-line-strong bg-surface hover:bg-surface-2", a.startsWith("bottom") && "mt-6")}>
-                  <bdi>1</bdi>
-                </button>
-              ))}
+            {/* A small page: pick where the number goes. */}
+            <div dir="ltr" className="relative h-52 w-40 rounded-md border border-line-strong bg-white shadow-sm">
+              <div aria-hidden="true" className="absolute inset-x-6 top-14 flex flex-col gap-2">
+                {[100, 90, 95, 70, 92, 85].map((w, i) => <span key={i} className="h-1.5 rounded-full bg-[#E5E7EB]" style={{ width: `${w}%` }} />)}
+              </div>
+              {ANCHORS.map((a) => {
+                const [v, h] = a.split("-");
+                return (
+                  <button
+                    key={a}
+                    type="button"
+                    aria-pressed={anchor === a}
+                    aria-label={t.anchors[a]}
+                    title={t.anchors[a]}
+                    onClick={() => setAnchor(a)}
+                    className={cx("absolute grid size-11 place-items-center rounded-md border text-xs font-semibold", anchor === a ? "border-accent bg-accent text-white" : "border-transparent text-[#6B7280] hover:border-line-strong hover:bg-surface-2")}
+                    style={{ [v === "top" ? "top" : "bottom"]: 2, ...(h === "left" ? { left: 2 } : h === "right" ? { right: 2 } : { left: "calc(50% - 22px)" }) }}
+                  >
+                    #
+                  </button>
+                );
+              })}
             </div>
           </fieldset>
           <div className="grid gap-4 sm:grid-cols-3">
