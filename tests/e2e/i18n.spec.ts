@@ -23,7 +23,7 @@ test.describe("Arabic site", () => {
     await page.goto("/ar");
     await expect(page.locator("h1")).toContainText("الأداة المناسبة");
     await expect(page.locator("footer")).toContainText("الخصوصية");
-    await expect(page).toHaveTitle(/أدوات قوية/);
+    await expect(page).toHaveTitle(/الأداة المناسبة/);
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/ar$/);
     await page.goto("/ar/privacy");
     await expect(page.locator("h1")).toHaveText("سياسة الخصوصية");

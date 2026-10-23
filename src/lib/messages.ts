@@ -14,7 +14,7 @@ const en = {
   site: {
     tagline: "Powerful tools. Beautifully simple.",
     description:
-      "Discover thoughtfully designed online tools that help you create, calculate, convert, organize, and get more done — without unnecessary complexity.",
+      "Convert and edit PDFs, turn bank statements into Excel, print cheques and fix images in seconds. Free, no sign-up, and most tools run privately in your browser.",
     announcement: "Free tools. No sign-up. Most run privately in your browser.",
   },
   common: {
@@ -347,7 +347,7 @@ const ar: Messages = {
   site: {
     tagline: "أدوات قوية. ببساطة أنيقة.",
     description:
-      "اكتشف أدوات إلكترونية مصممة بعناية تساعدك على الإنشاء والحساب والتحويل والتنظيم وإنجاز المزيد — دون تعقيد لا داعي له.",
+      "حوّل ملفات PDF وعدّلها، وحوّل كشوف الحساب إلى Excel، واطبع الشيكات، وعالج صورك في ثوانٍ. مجانًا وبلا تسجيل، ومعظم الأدوات تعمل بخصوصية داخل متصفحك.",
     announcement: "أدوات مجانية. بلا تسجيل. ومعظمها يعمل بخصوصية داخل متصفحك.",
   },
   common: {

@@ -1,23 +1,31 @@
 import { ImageResponse } from "next/og";
 import { siteConfig } from "@/lib/config";
-import { OgBrand, ogMark } from "@/lib/brand-og";
+import { GRADIENT, MUTED, OG_SIZE, OgChips, OgFrame, OgHeroArt, ogAssets } from "@/lib/brand-og";
 
-export const alt = `${siteConfig.name} — ${siteConfig.tagline}`;
-export const size = { width: 1200, height: 630 };
+export const alt = `${siteConfig.name}: The right tool. For whatever you're doing.`;
+export const size = OG_SIZE;
 export const contentType = "image/png";
 
 export default async function Image() {
-  const mark = await ogMark();
+  const { lockup, mark, fonts } = await ogAssets();
   return new ImageResponse(
     (
-      <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", background: "#FAF8F5", padding: 72, color: "#17151F" }}>
-        <OgBrand mark={mark} height={96} />
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          <div style={{ fontSize: 82, fontWeight: 700, lineHeight: 1.05, letterSpacing: -2 }}>The right tool. For whatever you&apos;re doing.</div>
-          <div style={{ fontSize: 34, color: "#5C5868" }}>{siteConfig.tagline}</div>
+      <OgFrame>
+        <OgHeroArt center={<img src={mark} width={226} height={198} alt="" />} />
+        <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "56px 0 60px 64px", width: 640, height: "100%" }}>
+          <img src={lockup} width={300} height={79} alt="" />
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <div style={{ display: "flex", fontSize: 64, fontWeight: 800, lineHeight: 1.08, letterSpacing: -2 }}>The right tool.</div>
+            <div style={{ display: "flex", fontSize: 64, fontWeight: 800, lineHeight: 1.08, letterSpacing: -2 }}>For whatever</div>
+            <div style={{ display: "flex", fontSize: 64, fontWeight: 800, lineHeight: 1.08, letterSpacing: -2, backgroundImage: GRADIENT, backgroundClip: "text", color: "transparent" }}>you&apos;re doing.</div>
+            <div style={{ display: "flex", marginTop: 20, fontSize: 26, fontWeight: 500, lineHeight: 1.4, color: MUTED, width: 540 }}>
+              Convert and edit PDFs, turn bank statements into Excel, print cheques and fix images.
+            </div>
+          </div>
+          <OgChips items={["PDF to Word", "Bank statements", "Print a cheque"]} />
         </div>
-      </div>
+      </OgFrame>
     ),
-    size,
+    { ...size, fonts },
   );
 }

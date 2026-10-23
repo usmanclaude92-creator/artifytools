@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
   const t = await getT();
   return pageMetadata({
-    title: `${siteConfig.name} — ${t.site.tagline}`,
+    title: `${siteConfig.name} — ${t.home.titleLine1} ${t.home.titleLine2}${t.home.titleHighlight}`,
     description: t.site.description,
     path: "/",
     absoluteTitle: true,

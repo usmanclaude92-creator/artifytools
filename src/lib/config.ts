@@ -6,7 +6,7 @@ export const siteConfig = {
   announcement: "Free tools. No sign-up. Most run privately in your browser.",
   supporting: "Your everyday digital workspace.",
   description:
-    "Discover thoughtfully designed online tools that help you create, calculate, convert, organize, and get more done — without unnecessary complexity.",
+    "Convert and edit PDFs, turn bank statements into Excel, print cheques and fix images in seconds. Free, no sign-up, and most tools run privately in your browser.",
   /** Public support address. Only rendered when a real mailbox has been configured. */
   contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() || undefined,
 } as const;
