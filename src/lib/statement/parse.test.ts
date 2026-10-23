@@ -1,0 +1,152 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { describe, expect, it } from "vitest";
+import type { TextItem } from "@/lib/pdf/text-layout";
+import { parseStatement, readAmount, readDate, roleOf } from "./parse";
+
+const items = (name: string) => JSON.parse(readFileSync(path.join(__dirname, "../../../tests/fixtures", name), "utf8")) as TextItem[][];
+
+describe("readAmount", () => {
+  it.each([
+    ["1,234.56", 1234.56, null],
+    ["1.234,56", 1234.56, null],
+    ["(1,234.56)", -1234.56, null],
+    ["-1,234.56", -1234.56, null],
+    ["1,234.56-", -1234.56, null],
+    ["1,234.56 CR", 1234.56, "cr"],
+    ["DR 50.00", 50, "dr"],
+    ["AED 2,000.00", 2000, null],
+    ["١٬٢٣٤٫٥٠", 1234.5, null],
+    ["12.345", 12.345, null],
+  ])("%s", (t, v, mark) => {
+    const a = readAmount(t)!;
+    expect(a.value).toBeCloseTo(v as number, 6);
+    expect(a.mark).toBe(mark);
+  });
+  it("rejects words and long references", () => {
+    expect(readAmount("ATM")).toBeNull();
+    expect(readAmount("20261005123")).toBeNull();
+  });
+});
+
+describe("readDate and roleOf", () => {
+  it("reads common formats", () => {
+    expect(readDate("31/10/2026")).toMatchObject({ a: 31, b: 10, y: 2026 });
+    expect(readDate("2026-10-31")).toMatchObject({ a: 31, b: 10, iso: true });
+    expect(readDate("09/28")).toMatchObject({ a: 9, b: 28, y: null });
+    expect(readDate("05 Oct 2026")).toMatchObject({ a: 5, b: 10, named: true });
+    expect(readDate("Oct 5, 2026")).toMatchObject({ a: 5, b: 10 });
+    expect(readDate("٠١/٠٩/٢٠٢٦")).toMatchObject({ a: 1, b: 9, y: 2026 });
+    expect(readDate("Salary")).toBeNull();
+  });
+  it("recognises column headers", () => {
+    expect(roleOf("Withdrawals")).toBe("debit");
+    expect(roleOf("Deposits")).toBe("credit");
+    expect(roleOf("Running Balance")).toBe("balance");
+    expect(roleOf("Narration")).toBe("description");
+    expect(roleOf("Value Date")).toBe("other");
+    expect(roleOf("البيان")).toBe("description");
+    expect(roleOf("مدين")).toBe("debit");
+    expect(roleOf("الرصيد")).toBe("balance");
+  });
+});
+
+describe("parseStatement", () => {
+  it("English, debit/credit columns over two pages", () => {
+    const s = parseStatement(items("statement-en.items.json"));
+    expect(s.headerFound).toBe(true);
+    expect(s.transactions).toHaveLength(19);
+    expect(s.opening).toBe(3250);
+    expect(s.mismatches).toBe(0);
+    expect(s.checked).toBe(19);
+    expect(s.closing).toBe(s.transactions[18]!.balance);
+    const t2 = s.transactions[1]!;
+    expect(t2.date).toBe("2026-10-02");
+    expect(t2.debit).toBe(412.75);
+    expect(t2.credit).toBeNull();
+    expect(t2.description).toContain("CARREFOUR");
+    expect(t2.description).toContain("4421"); // wrapped line joined
+    expect(s.transactions[0]!.credit).toBe(18500);
+    expect(s.totalCredit).toBeCloseTo(28341.84, 2);
+  });
+
+  it("US statement: month-first dates, signed amount column, newest first", () => {
+    const s = parseStatement(items("statement-us.items.json"));
+    expect(s.transactions).toHaveLength(8);
+    expect(s.dateOrder).toBe("mdy");
+    expect(s.newestFirst).toBe(true);
+    expect(s.mismatches).toBe(0);
+    expect(s.checked).toBe(7);
+    const first = s.transactions[0]!;
+    expect(first.date).toBe("2026-09-28");
+    expect(first.credit).toBe(260.55);
+    expect(s.transactions.find((t) => /MORTGAGE/.test(t.description))!.debit).toBe(1845.2);
+  });
+
+  it("Arabic right-to-left statement", () => {
+    const s = parseStatement(items("statement-ar.items.json"));
+    expect(s.rtl).toBe(true);
+    expect(s.transactions).toHaveLength(6);
+    expect(s.opening).toBe(5400);
+    expect(s.mismatches).toBe(0);
+    expect(s.transactions[0]!.date).toBe("2026-09-01");
+    expect(s.transactions[0]!.credit).toBe(12000);
+    expect(s.transactions[0]!.description).toBe("راتب شهر سبتمبر");
+    expect(s.transactions[1]!.debit).toBe(356.5);
+  });
+
+  it("forced date order and empty pages", () => {
+    const s = parseStatement([[], ...items("statement-en.items.json")], { dateOrder: "mdy" });
+    expect(s.emptyPages).toEqual([1]);
+    expect(s.transactions[1]!.date).toBe("2026-02-10"); // 02/10 read month first
+    expect(s.transactions[7]!.date).toBeNull(); // 13/10 can't be month first
+  });
+});
+
+/** Builds a page from lines of [x, text] cells. */
+const page = (lines: [number, string][][]): TextItem[] =>
+  lines.flatMap((cells, i) => cells.map(([x, str]) => ({ str, x, y: 100 + i * 14, width: str.length * 5, size: 10, rtl: false, bold: false, italic: false })));
+
+describe("parseStatement edge cases", () => {
+  it("no header: date first, last number is the balance, unsigned amounts follow the balance", () => {
+    const s = parseStatement([page([
+      [[40, "Statement of account"]],
+      [[40, "05 Oct 2026"], [120, "Salary"], [400, "5,000.00"], [480, "6,000.00"]],
+      [[40, "06 Oct 2026"], [120, "Groceries"], [400, "250.00"], [480, "5,750.00"]],
+      [[40, "07 Oct 2026"], [120, "Rent"], [400, "3,000.00"], [480, "2,750.00"]],
+    ])]);
+    expect(s.headerFound).toBe(false);
+    expect(s.transactions.map((t) => [t.debit, t.credit])).toEqual([[null, 5000], [250, null], [3000, null]]);
+    expect(s.mismatches).toBe(0);
+    expect(s.checked).toBe(2);
+    expect(s.transactions[0]!.date).toBe("2026-10-05");
+  });
+
+  it("CR/DR balances, totals and a transaction whose amounts sit on the line after its date", () => {
+    const s = parseStatement([page([
+      [[40, "Date"], [120, "Particulars"], [300, "Withdrawals"], [380, "Deposits"], [470, "Balance"]],
+      [[40, "01-10-26"], [120, "Balance brought forward"], [470, "100.00 CR"]],
+      [[40, "02-10-26"], [120, "Card payment"], [300, "150.00"], [470, "50.00 DR"]],
+      [[40, "03-10-26"], [120, "Transfer in from"]],
+      [[120, "Savings"], [380, "500.00"], [470, "450.00 CR"]],
+      [[120, "Total"], [300, "150.00"], [380, "500.00"]],
+    ])]);
+    expect(s.opening).toBe(100);
+    expect(s.transactions).toHaveLength(2);
+    expect(s.transactions[0]!.balance).toBe(-50);
+    expect(s.transactions[1]!.description).toBe("Transfer in from Savings");
+    expect(s.transactions[1]!.credit).toBe(500);
+    expect(s.mismatches).toBe(0);
+  });
+
+  it("flags a row whose balance doesn't follow", () => {
+    const s = parseStatement([page([
+      [[40, "Date"], [120, "Description"], [300, "Debit"], [380, "Credit"], [470, "Balance"]],
+      [[40, "01/10/2026"], [120, "A"], [380, "100.00"], [470, "100.00"]],
+      [[40, "02/10/2026"], [120, "B"], [300, "30.00"], [470, "60.00"]],
+    ])]);
+    expect(s.transactions[1]!.check).toBe("mismatch");
+    expect(s.transactions[1]!.expected).toBe(70);
+    expect(s.mismatches).toBe(1);
+  });
+});
