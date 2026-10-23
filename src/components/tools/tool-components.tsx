@@ -48,6 +48,7 @@ const components: Record<string, ComponentType> = {
   "crop-image": load(() => import("@/tools/crop-image/ui")),
   "pdf-to-word": load(() => import("@/tools/pdf-to-word/ui")),
   "word-to-pdf": load(() => import("@/tools/word-to-pdf/ui")),
+  "image-to-text": load(() => import("@/tools/image-to-text/ui")),
 };
 
 export function ToolWorkspace({ toolId }: { toolId: string }) {
