@@ -60,7 +60,7 @@ export const coreSections: CoreSection[] = [
     icon: "image",
     tone: "pink",
     category: "images",
-    quick: ["remove-background", "compress-image", "image-to-text"],
+    quick: ["remove-background", "image-converter", "compress-image"],
     text: {
       en: { name: "Image Studio", short: "Remove backgrounds, compress, resize and crop photos, and read text.",  description: "Remove backgrounds, compress, resize and crop photos, and read text from images." },
       ar: { name: "استوديو الصور", short: "أزل الخلفية واضغط الصور وغيّر حجمها وقصّها واستخرج النص منها.",  description: "أزل الخلفية واضغط الصور وغيّر حجمها وقصّها واستخرج النص منها." },

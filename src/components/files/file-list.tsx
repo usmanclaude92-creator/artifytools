@@ -10,7 +10,8 @@ import type { QueueItem } from "./use-file-queue";
 
 const THUMB_LIMIT = 30_000_000;
 
-/** Image preview from a local object URL, released when the row goes away. */
+/** Image preview from a local object URL, released when the row goes away. Formats the browser
+ * can't show (HEIC in most browsers) fall back to an image icon instead of a broken picture. */
 function Thumb({ file }: { file: File }) {
   const ref = useCallback(
     (img: HTMLImageElement | null) => {
@@ -21,8 +22,13 @@ function Thumb({ file }: { file: File }) {
     },
     [file],
   );
-  // eslint-disable-next-line @next/next/no-img-element -- local object URL, not a remote asset
-  return <img ref={ref} alt="" className="size-12 shrink-0 rounded-md border border-line object-cover" />;
+  return (
+    <span className="relative grid size-12 shrink-0 place-items-center overflow-hidden rounded-md border border-line bg-surface-2 text-muted">
+      <Icon name="image" size={20} />
+      {/* eslint-disable-next-line @next/next/no-img-element -- local object URL, not a remote asset */}
+      <img ref={ref} alt="" className="absolute inset-0 size-full object-cover" onError={(e) => (e.currentTarget.style.display = "none")} />
+    </span>
+  );
 }
 
 export function FileList<R>({

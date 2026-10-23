@@ -40,6 +40,7 @@ import { metaAr as hijriDateConverter } from "@/tools/hijri-date-converter/meta.
 import { metaAr as bankStatementConverter } from "@/tools/bank-statement-converter/meta.ar";
 import { metaAr as signPdf } from "@/tools/sign-pdf/meta.ar";
 import { metaAr as editPdf } from "@/tools/edit-pdf/meta.ar";
+import { metaAr as imageConverter } from "@/tools/image-converter/meta.ar";
 import { metaAr as pdfToWord } from "@/tools/pdf-to-word/meta.ar";
 import { metaAr as resizeImage } from "@/tools/resize-image/meta.ar";
 
@@ -88,4 +89,5 @@ export const toolTranslationsAr: Record<string, ToolTranslation> = {
   "bank-statement-converter": bankStatementConverter,
   "sign-pdf": signPdf,
   "edit-pdf": editPdf,
+  "image-converter": imageConverter,
 };

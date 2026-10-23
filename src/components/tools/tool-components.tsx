@@ -63,6 +63,7 @@ const components: Record<string, ComponentType> = {
   "bank-statement-converter": load(() => import("@/tools/bank-statement-converter/ui")),
   "sign-pdf": load(() => import("@/tools/sign-pdf/ui")),
   "edit-pdf": load(() => import("@/tools/edit-pdf/ui")),
+  "image-converter": load(() => import("@/tools/image-converter/ui")),
 };
 
 export function ToolWorkspace({ toolId }: { toolId: string }) {

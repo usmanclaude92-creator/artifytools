@@ -49,6 +49,7 @@ import { meta as hijriDateConverter } from "@/tools/hijri-date-converter/meta";
 import { meta as bankStatementConverter } from "@/tools/bank-statement-converter/meta";
 import { meta as signPdf } from "@/tools/sign-pdf/meta";
 import { meta as editPdf } from "@/tools/edit-pdf/meta";
+import { meta as imageConverter } from "@/tools/image-converter/meta";
 
 /**
  * Single source of truth for every tool. Directory cards, categories, search,
@@ -86,6 +87,7 @@ export const tools: readonly ToolDefinition[] = [
   pdfToJpg,
   resizeImage,
   cropImage,
+  imageConverter,
   pdfToWord,
   wordToPdf,
   imageToText,
