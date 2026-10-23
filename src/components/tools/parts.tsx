@@ -62,7 +62,7 @@ export function ResultRow({
     <div className={cx("flex items-center justify-between gap-3 rounded-md px-4 py-3", emphasis ? "bg-accent-soft" : "bg-surface-2")}>
       <div className="min-w-0">
         <div className="text-sm text-muted">{label}</div>
-        <div className={cx("break-all font-semibold tabular-nums", emphasis ? "text-2xl" : "text-lg")}>{value}</div>
+        <div className={cx("font-semibold tabular-nums [overflow-wrap:anywhere]", emphasis ? "text-2xl" : "text-lg")}>{value}</div>
       </div>
       <CopyButton value={value} ariaLabel={m.copyAria(copyLabel ?? label)} />
     </div>

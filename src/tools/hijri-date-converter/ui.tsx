@@ -98,7 +98,7 @@ export default function HijriDateConverter() {
             )}
           </Field>
         ) : (
-          <div className="grid grid-cols-[5rem_1fr_6.5rem] gap-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-[5rem_1fr_6.5rem]">
             <Field label={t.hDay}>
               {(p) => (
                 <Select {...p} value={hDay} onChange={(e) => setHDay(Number(e.target.value))}>
@@ -106,7 +106,7 @@ export default function HijriDateConverter() {
                 </Select>
               )}
             </Field>
-            <Field label={t.hMonth}>
+            <Field label={t.hMonth} className="order-first col-span-2 sm:order-none sm:col-span-1">
               {(p) => (
                 <Select {...p} value={hMonth} onChange={(e) => setHMonth(Number(e.target.value))}>
                   {t.hijriMonths.map((m, i) => <option key={m} value={i + 1}>{`${i + 1}. ${m}`}</option>)}
