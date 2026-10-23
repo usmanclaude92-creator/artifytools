@@ -61,6 +61,8 @@ const components: Record<string, ComponentType> = {
   "end-of-service-calculator": load(() => import("@/tools/end-of-service-calculator/ui")),
   "hijri-date-converter": load(() => import("@/tools/hijri-date-converter/ui")),
   "bank-statement-converter": load(() => import("@/tools/bank-statement-converter/ui")),
+  "sign-pdf": load(() => import("@/tools/sign-pdf/ui")),
+  "edit-pdf": load(() => import("@/tools/edit-pdf/ui")),
 };
 
 export function ToolWorkspace({ toolId }: { toolId: string }) {
