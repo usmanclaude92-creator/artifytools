@@ -45,6 +45,7 @@ import { meta as protectPdf } from "@/tools/protect-pdf/meta";
 import { meta as pdfToWord } from "@/tools/pdf-to-word/meta";
 import { meta as resizeImage } from "@/tools/resize-image/meta";
 import { meta as endOfServiceCalculator } from "@/tools/end-of-service-calculator/meta";
+import { meta as hijriDateConverter } from "@/tools/hijri-date-converter/meta";
 
 /**
  * Single source of truth for every tool. Directory cards, categories, search,
@@ -68,6 +69,7 @@ export const tools: readonly ToolDefinition[] = [
   passwordGenerator,
   qrCodeGenerator,
   dateDifference,
+  hijriDateConverter,
   colorConverter,
   aiTextSummarizer,
   mergePdf,

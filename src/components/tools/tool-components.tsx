@@ -59,6 +59,7 @@ const components: Record<string, ComponentType> = {
   "unlock-pdf": load(() => import("@/tools/unlock-pdf/ui")),
   "protect-pdf": load(() => import("@/tools/protect-pdf/ui")),
   "end-of-service-calculator": load(() => import("@/tools/end-of-service-calculator/ui")),
+  "hijri-date-converter": load(() => import("@/tools/hijri-date-converter/ui")),
 };
 
 export function ToolWorkspace({ toolId }: { toolId: string }) {
