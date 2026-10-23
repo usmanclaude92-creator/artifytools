@@ -283,19 +283,28 @@ test.describe("directory", () => {
 });
 
 test.describe("home core cards", () => {
-  test("More opens one card at a time and Less closes it", async ({ page }) => {
+  test("More opens a panel over one card; Close, Escape and outside clicks close it", async ({ page }) => {
     await page.goto("/", { waitUntil: "networkidle" });
     const pdfMore = page.getByRole("button", { name: "More: PDF Converter & Editor" });
+    const docY = () => page.getByRole("button", { name: "More: Image Studio" }).evaluate((e) => e.getBoundingClientRect().top + window.scrollY);
+    const row = await docY();
     await expect(page.getByRole("link", { name: "Split PDF", exact: true })).toHaveCount(0);
     await pdfMore.click();
-    await expect(page.getByRole("button", { name: "Less: PDF Converter & Editor" })).toHaveAttribute("aria-expanded", "true");
+    await expect(pdfMore).toHaveAttribute("aria-expanded", "true");
     await expect(page.getByRole("link", { name: "Split PDF", exact: true })).toBeVisible();
-    await page.getByRole("button", { name: "More: Image Studio" }).click();
-    await expect(page.getByRole("link", { name: "Split PDF", exact: true })).toHaveCount(0);
-    await expect(page.getByRole("link", { name: "Crop Image", exact: true }).first()).toBeVisible();
+    // The row does not move when a panel opens.
+    expect(await docY()).toBe(row);
     const axe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
     expect(axe.violations.map((v) => v.id)).toEqual([]);
-    await page.getByRole("button", { name: "Less: Image Studio" }).click();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("link", { name: "Split PDF", exact: true })).toHaveCount(0);
+    await expect(pdfMore).toBeFocused();
+    await page.getByRole("button", { name: "More: Image Studio" }).click();
+    await expect(page.getByRole("link", { name: "Crop Image", exact: true }).first()).toBeVisible();
+    await page.getByRole("region", { name: "Image Studio" }).getByRole("button", { name: "Close" }).click();
     await expect(page.getByRole("button", { name: "More: Image Studio" })).toHaveAttribute("aria-expanded", "false");
+    await pdfMore.click();
+    await page.mouse.click(5, 5);
+    await expect(pdfMore).toHaveAttribute("aria-expanded", "false");
   });
 });

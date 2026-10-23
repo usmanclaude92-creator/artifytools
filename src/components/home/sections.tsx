@@ -65,7 +65,7 @@ export async function CoreSections() {
   return (
     <section aria-labelledby="core-heading" className="container-page pt-4 sm:pt-6">
       <SectionTitle id="core-heading" title={t.home.coreTitle} description={t.home.coreText} />
-      <CoreCards cards={cards} labels={{ more: t.home.more, less: t.home.less, comingSoon: t.common.comingSoon }} />
+      <CoreCards cards={cards} labels={{ more: t.home.more, close: t.home.close, comingSoon: t.common.comingSoon }} />
     </section>
   );
 }
