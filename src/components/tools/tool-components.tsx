@@ -53,6 +53,11 @@ const components: Record<string, ComponentType> = {
   "remove-background": load(() => import("@/tools/remove-background/ui")),
   "excel-to-pdf": load(() => import("@/tools/excel-to-pdf/ui")),
   "pdf-to-excel": load(() => import("@/tools/pdf-to-excel/ui")),
+  "rotate-pdf": load(() => import("@/tools/rotate-pdf/ui")),
+  "add-page-numbers": load(() => import("@/tools/add-page-numbers/ui")),
+  "watermark-pdf": load(() => import("@/tools/watermark-pdf/ui")),
+  "unlock-pdf": load(() => import("@/tools/unlock-pdf/ui")),
+  "protect-pdf": load(() => import("@/tools/protect-pdf/ui")),
 };
 
 export function ToolWorkspace({ toolId }: { toolId: string }) {

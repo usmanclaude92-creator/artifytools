@@ -1,0 +1,130 @@
+/** Page edits for the small PDF tools: rotate, page numbers, watermarks. All lossless except the stamps added. */
+import { finish, lib, open } from "./pdf";
+import { anchorBox, pageLabel, toUserSpace, visualSize, type Anchor, type NumberFormat } from "./place";
+
+const RTL = /[֐-ࣿיִ-﷿ﹰ-﻿]/;
+
+/**
+ * Draws text with the browser (so Arabic is shaped and any script works) and returns a
+ * transparent PNG plus its size in points at `pt` font size.
+ */
+export async function textImage(text: string, opts: { pt: number; color: string; bold?: boolean; scale?: number }): Promise<{ png: Uint8Array; w: number; h: number }> {
+  const scale = opts.scale ?? 4;
+  const px = opts.pt * scale;
+  const font = `${opts.bold ? 700 : 500} ${px}px Inter, "IBM Plex Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif`;
+  const c = document.createElement("canvas");
+  const ctx = c.getContext("2d")!;
+  ctx.font = font;
+  const m = ctx.measureText(text);
+  const pad = Math.ceil(px * 0.15);
+  c.width = Math.ceil(m.width) + pad * 2;
+  c.height = Math.ceil(px * 1.35) + pad * 2;
+  const g = c.getContext("2d")!;
+  g.font = font;
+  g.fillStyle = opts.color;
+  g.textBaseline = "middle";
+  g.direction = RTL.test(text) ? "rtl" : "ltr";
+  g.textAlign = "center";
+  g.fillText(text, c.width / 2, c.height / 2);
+  const blob = await new Promise<Blob>((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error("encode"))), "image/png"));
+  return { png: new Uint8Array(await blob.arrayBuffer()), w: c.width / scale, h: c.height / scale };
+}
+
+/** Rotates pages by the given amounts (degrees clockwise, multiples of 90). Lossless. */
+export async function rotatePages(bytes: Uint8Array, deltas: number[]): Promise<Uint8Array> {
+  const { degrees } = await lib();
+  const doc = await open(bytes);
+  doc.getPages().forEach((p, i) => {
+    const d = deltas[i] ?? 0;
+    if (d % 360) p.setRotation(degrees((((p.getRotation().angle + d) % 360) + 360) % 360));
+  });
+  return finish(doc);
+}
+
+export interface NumberOptions {
+  anchor: Anchor;
+  format: NumberFormat;
+  start: number;
+  pt: number;
+  margin: number;
+  skipFirst: boolean;
+  color: string;
+  locale: "en" | "ar";
+  arabicDigits: boolean;
+}
+
+export async function addPageNumbers(bytes: Uint8Array, o: NumberOptions, onProgress?: (f: number) => void): Promise<Uint8Array> {
+  const { degrees } = await lib();
+  const doc = await open(bytes);
+  const pages = doc.getPages();
+  const counted = o.skipFirst ? pages.length - 1 : pages.length;
+  const total = counted + o.start - 1;
+  for (const [i, page] of pages.entries()) {
+    if (o.skipFirst && i === 0) continue;
+    const n = o.start + (o.skipFirst ? i - 1 : i);
+    const img = await textImage(pageLabel(o.format, n, total, o.locale, o.arabicDigits), { pt: o.pt, color: o.color });
+    const embedded = await doc.embedPng(img.png);
+    const { width, height } = page.getSize();
+    const rot = page.getRotation().angle;
+    const vis = visualSize(width, height, rot);
+    const at = anchorBox(vis, { w: img.w, h: img.h }, o.anchor, o.margin);
+    const p = toUserSpace(at.x, at.y, width, height, rot);
+    page.drawImage(embedded, { x: p.x, y: p.y, width: img.w, height: img.h, rotate: degrees(p.rotate) });
+    onProgress?.((i + 1) / pages.length);
+  }
+  return finish(doc);
+}
+
+export interface WatermarkOptions {
+  kind: "text" | "image";
+  text: string;
+  color: string;
+  pt: number;
+  image?: { bytes: Uint8Array; type: "png" | "jpg" };
+  /** Image width as a share of the page width (0–1). */
+  imageScale: number;
+  opacity: number;
+  /** Degrees, counter-clockwise as seen on the page. */
+  angle: number;
+  layout: "center" | "tile";
+}
+
+export async function addWatermark(bytes: Uint8Array, o: WatermarkOptions, onProgress?: (f: number) => void): Promise<Uint8Array> {
+  const { degrees } = await lib();
+  const doc = await open(bytes);
+  let stamp;
+  let base = { w: 0, h: 0 };
+  if (o.kind === "text") {
+    const img = await textImage(o.text, { pt: o.pt, color: o.color, bold: true });
+    stamp = await doc.embedPng(img.png);
+    base = { w: img.w, h: img.h };
+  } else if (o.image) {
+    stamp = o.image.type === "png" ? await doc.embedPng(o.image.bytes) : await doc.embedJpg(o.image.bytes);
+    base = { w: stamp.width, h: stamp.height };
+  } else throw new Error("no image");
+
+  const pages = doc.getPages();
+  for (const [i, page] of pages.entries()) {
+    const { width, height } = page.getSize();
+    const rot = page.getRotation().angle;
+    const vis = visualSize(width, height, rot);
+    const size = o.kind === "image" ? { w: vis.w * o.imageScale, h: (vis.w * o.imageScale * base.h) / base.w } : base;
+    // Centres of each copy, in displayed coordinates.
+    const centres: [number, number][] = [];
+    if (o.layout === "center") centres.push([vis.w / 2, vis.h / 2]);
+    else {
+      const stepX = Math.max(size.w, size.h) * 1.6, stepY = Math.max(size.h * 3, size.w * 0.9);
+      for (let y = stepY / 2; y < vis.h + stepY / 2; y += stepY) for (let x = (Math.round(y / stepY) % 2) * (stepX / 2); x < vis.w + stepX / 2; x += stepX) centres.push([x, y]);
+    }
+    for (const [cx, cy] of centres) {
+      // Rotate around the centre: start from the box's bottom-left offset by the rotated half-size.
+      const a = (o.angle * Math.PI) / 180;
+      const ox = cx - (size.w / 2) * Math.cos(a) + (size.h / 2) * Math.sin(a);
+      const oy = cy - (size.w / 2) * Math.sin(a) - (size.h / 2) * Math.cos(a);
+      const p = toUserSpace(ox, oy, width, height, rot);
+      page.drawImage(stamp, { x: p.x, y: p.y, width: size.w, height: size.h, rotate: degrees(p.rotate + o.angle), opacity: o.opacity });
+    }
+    onProgress?.((i + 1) / pages.length);
+  }
+  return finish(doc);
+}

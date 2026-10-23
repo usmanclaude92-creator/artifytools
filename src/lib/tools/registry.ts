@@ -37,6 +37,11 @@ import { meta as translatePdf } from "@/tools/translate-pdf/meta";
 import { meta as removeBackground } from "@/tools/remove-background/meta";
 import { meta as excelToPdf } from "@/tools/excel-to-pdf/meta";
 import { meta as pdfToExcel } from "@/tools/pdf-to-excel/meta";
+import { meta as rotatePdf } from "@/tools/rotate-pdf/meta";
+import { meta as addPageNumbers } from "@/tools/add-page-numbers/meta";
+import { meta as watermarkPdf } from "@/tools/watermark-pdf/meta";
+import { meta as unlockPdf } from "@/tools/unlock-pdf/meta";
+import { meta as protectPdf } from "@/tools/protect-pdf/meta";
 import { meta as pdfToWord } from "@/tools/pdf-to-word/meta";
 import { meta as resizeImage } from "@/tools/resize-image/meta";
 
@@ -80,6 +85,11 @@ export const tools: readonly ToolDefinition[] = [
   removeBackground,
   excelToPdf,
   pdfToExcel,
+  rotatePdf,
+  addPageNumbers,
+  watermarkPdf,
+  unlockPdf,
+  protectPdf,
 ];
 
 const bySlug = new Map(tools.map((t) => [t.slug, t]));

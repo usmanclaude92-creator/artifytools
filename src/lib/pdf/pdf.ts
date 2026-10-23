@@ -12,7 +12,7 @@ export class PdfError extends Error {
   }
 }
 
-async function lib() {
+export async function lib() {
   return import("pdf-lib");
 }
 
@@ -27,7 +27,7 @@ export async function inspectPdf(bytes: Uint8Array): Promise<LoadedPdf> {
   return { bytes, pageCount: doc.getPageCount() };
 }
 
-async function open(bytes: Uint8Array): Promise<PDFDocumentType> {
+export async function open(bytes: Uint8Array): Promise<PDFDocumentType> {
   const { PDFDocument, EncryptedPDFError } = await lib();
   try {
     return await PDFDocument.load(bytes, { updateMetadata: false });
@@ -37,7 +37,7 @@ async function open(bytes: Uint8Array): Promise<PDFDocumentType> {
   }
 }
 
-async function finish(doc: PDFDocumentType): Promise<Uint8Array> {
+export async function finish(doc: PDFDocumentType): Promise<Uint8Array> {
   doc.setProducer("Artify Tools (tools.artifysols.com)");
   doc.setCreator("Artify Tools");
   doc.setModificationDate(new Date());

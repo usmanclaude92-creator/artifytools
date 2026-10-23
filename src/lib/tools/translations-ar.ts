@@ -30,6 +30,11 @@ import { metaAr as translatePdf } from "@/tools/translate-pdf/meta.ar";
 import { metaAr as removeBackground } from "@/tools/remove-background/meta.ar";
 import { metaAr as excelToPdf } from "@/tools/excel-to-pdf/meta.ar";
 import { metaAr as pdfToExcel } from "@/tools/pdf-to-excel/meta.ar";
+import { metaAr as rotatePdf } from "@/tools/rotate-pdf/meta.ar";
+import { metaAr as addPageNumbers } from "@/tools/add-page-numbers/meta.ar";
+import { metaAr as watermarkPdf } from "@/tools/watermark-pdf/meta.ar";
+import { metaAr as unlockPdf } from "@/tools/unlock-pdf/meta.ar";
+import { metaAr as protectPdf } from "@/tools/protect-pdf/meta.ar";
 import { metaAr as pdfToWord } from "@/tools/pdf-to-word/meta.ar";
 import { metaAr as resizeImage } from "@/tools/resize-image/meta.ar";
 
@@ -68,4 +73,9 @@ export const toolTranslationsAr: Record<string, ToolTranslation> = {
   "remove-background": removeBackground,
   "excel-to-pdf": excelToPdf,
   "pdf-to-excel": pdfToExcel,
+  "rotate-pdf": rotatePdf,
+  "add-page-numbers": addPageNumbers,
+  "watermark-pdf": watermarkPdf,
+  "unlock-pdf": unlockPdf,
+  "protect-pdf": protectPdf,
 };
