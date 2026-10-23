@@ -336,3 +336,11 @@ html[lang="ar"] :is(h1, h2, h3, h4, .eyebrow, [class*="tracking-"]) { letter-spa
 /* Monospace fallbacks draw Arabic letters unjoined and spaced apart. When a code-style box
    holds right-to-left text (dir="auto" resolved to rtl), use the Arabic font instead. */
 html[lang="ar"] :is(.font-mono, code, kbd, pre, textarea):dir(rtl) { font-family: var(--font-arabic), var(--font-sans); }
+
+/* Brand gradient for the "Tools" half of the wordmark (from the Artify Tools logo set). */
+.text-brand-gradient {
+  background-image: linear-gradient(90deg, #00c6f0 0%, #145bff 42%, #7b2bff 72%, #e500f5 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}

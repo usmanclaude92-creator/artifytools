@@ -52,6 +52,8 @@ const en = {
     exploreToolsLink: "Explore tools",
   },
   footer: {
+    brandTagline: "The right tool. For whatever you’re doing.",
+    byParent: "By Artify Solutions",
     blurb: "Thoughtfully designed online tools for writing, calculating, and building — most of them running right in your browser.",
     contact: "Contact:",
     explore: "Explore",
@@ -369,6 +371,8 @@ const ar: Messages = {
     exploreToolsLink: "استكشف الأدوات",
   },
   footer: {
+    brandTagline: "الأداة المناسبة. لكل ما تقوم به.",
+    byParent: "من Artify Solutions",
     blurb: "أدوات إلكترونية مصممة بعناية للكتابة والحساب والبرمجة — ويعمل معظمها مباشرة داخل متصفحك.",
     contact: "للتواصل:",
     explore: "استكشف",

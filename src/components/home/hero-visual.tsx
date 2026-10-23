@@ -1,8 +1,9 @@
 import { Icon, type IconName } from "@/components/ui/icon";
+import { LogoMark } from "@/components/layout/logo";
 
 /**
- * Decorative brand illustration: a glowing Artify tile surrounded by floating tool tiles
- * (images, documents, code, calculators) on soft orbital curves. Pure SVG/CSS, no raster assets.
+ * Decorative brand illustration: the Artify Tools app icon surrounded by floating tool tiles
+ * (images, documents, code, calculators) on soft orbital curves. SVG/CSS plus the logo mark.
  */
 const tiles: { icon: IconName; className: string; float: string; tone: string }[] = [
   { icon: "image", className: "right-[6%] top-[4%] size-[4.5rem] sm:size-20", float: "motion-float", tone: "tile-blue" },
@@ -36,13 +37,10 @@ export function HeroVisual() {
       <div className="glass-tile absolute left-1/2 top-[48%] size-[46%] -translate-x-1/2 -translate-y-1/2 rotate-6 rounded-[2rem]" />
       <div className="glass-tile absolute left-1/2 top-[48%] size-[40%] -translate-x-[48%] -translate-y-[54%] -rotate-3 rounded-[1.75rem] opacity-70" />
 
-      {/* central Artify tile */}
+      {/* central Artify Tools app icon */}
       <div className="absolute left-1/2 top-[48%] -translate-x-1/2 -translate-y-1/2">
-        <div className="motion-float grid size-[7.25rem] place-items-center rounded-[1.9rem] bg-gradient-to-br from-[#7b5cff] to-[#4a35f0] shadow-[0_24px_50px_-10px_rgba(74,53,240,0.6)] ring-1 ring-white/30 sm:size-36">
-          <svg viewBox="0 0 32 32" className="size-[58%]" fill="none">
-            <path d="M8 24 16 7l8 17" stroke="#fff" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M11.2 18.5h9.6" stroke="#fff" strokeWidth="2.8" strokeLinecap="round" />
-          </svg>
+        <div className="motion-float grid size-[7.25rem] place-items-center rounded-[1.9rem] bg-white shadow-[0_24px_50px_-12px_rgba(20,91,255,0.45)] ring-1 ring-black/5 sm:size-40">
+          <LogoMark height={84} className="w-[78%] h-auto" priority />
         </div>
       </div>
 

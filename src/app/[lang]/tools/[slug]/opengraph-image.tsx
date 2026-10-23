@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { OgBrand, ogMark } from "@/lib/brand-og";
 import { getCategory } from "@/lib/tools/categories";
 import { getPublishedTools, getTool } from "@/lib/tools/registry";
 
@@ -15,14 +16,12 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   const name = tool?.name ?? "Artify Tools";
   const description = tool?.description ?? "";
   const category = tool ? getCategory(tool.category).name : "";
+  const mark = await ogMark();
   return new ImageResponse(
     (
       <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", background: "#FAF8F5", padding: 72, color: "#17151F" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <div style={{ width: 56, height: 56, borderRadius: 16, background: "#5B3DF5", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 34, fontWeight: 700 }}>A</div>
-            <div style={{ fontSize: 32, fontWeight: 700 }}>Artify Tools</div>
-          </div>
+          <OgBrand mark={mark} height={72} />
           <div style={{ fontSize: 28, color: "#4C2FE0" }}>{category}</div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>

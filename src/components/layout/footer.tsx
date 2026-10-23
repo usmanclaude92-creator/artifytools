@@ -1,6 +1,6 @@
 import Link from "@/components/ui/locale-link";
 import { siteConfig } from "@/lib/config";
-import { Logo } from "./logo";
+import { LogoLockup } from "./logo";
 import { footerGroups } from "./nav-links";
 import { getT } from "@/lib/locale-server";
 
@@ -10,9 +10,7 @@ export async function Footer() {
     <footer className="mt-16 border-t border-line bg-surface">
       <div className="container-page grid gap-10 py-14 md:grid-cols-[1.4fr_repeat(3,1fr)]">
         <div>
-          <Link href="/" aria-label={t.common.homeAria} className="inline-block rounded-md">
-            <Logo />
-          </Link>
+          <LogoLockup tagline={t.footer.brandTagline} byLine={t.footer.byParent} homeLabel={t.common.homeAria} homeLink={Link} />
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted">{t.site.tagline} {t.footer.blurb}</p>
           {siteConfig.contactEmail && (
             <p className="mt-4 text-sm text-muted">

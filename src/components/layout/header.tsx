@@ -94,10 +94,10 @@ export function Header({ items, categories, suggestions }: Props) {
     <header className="sticky top-0 z-header border-b border-line/80 bg-surface/85 backdrop-blur-lg supports-[backdrop-filter]:bg-surface/75">
       <div className="container-page flex h-16 items-center gap-4">
         <Link href="/" aria-label={t.common.homeAria} className="-ms-1 rounded-md p-1">
-          <Logo />
+          <Logo priority />
         </Link>
 
-        <nav aria-label={t.nav.primaryLabel} className="ms-6 hidden lg:block">
+        <nav aria-label={t.nav.primaryLabel} className="ms-6 hidden xl:block">
           <ul className="flex items-center gap-1">
             {primaryNav.map((l) => l.href === "/categories" ? (
               <li key={l.href}>
@@ -109,7 +109,7 @@ export function Header({ items, categories, suggestions }: Props) {
                   href={l.href}
                   aria-current={isActive(l.href) ? "page" : undefined}
                   className={cx(
-                    "inline-flex min-h-10 items-center rounded-md px-3 text-[0.95rem] font-medium transition-colors hover:text-fg",
+                    "inline-flex min-h-10 items-center whitespace-nowrap rounded-md px-3 text-[0.95rem] font-medium transition-colors hover:text-fg",
                     isActive(l.href) ? "text-fg" : "text-muted",
                   )}
                 >
@@ -123,8 +123,10 @@ export function Header({ items, categories, suggestions }: Props) {
 
         <div className="ms-auto flex items-center gap-1 sm:gap-2">
           <SearchDialog items={items} categories={categories} suggestions={suggestions} />
-          <LanguageSwitcher />
-          <ThemeToggle />
+          <span className="hidden sm:contents">
+            <LanguageSwitcher />
+            <ThemeToggle />
+          </span>
           <span className="hidden md:block">
             <Link href="/tools" className={buttonClasses({ size: "md", className: "rounded-full px-5 shadow-[0_8px_22px_-8px_rgba(124,58,237,0.65)]" })}>
               {t.nav.exploreTools} <Icon name="arrow-right" size={16} />
@@ -135,7 +137,7 @@ export function Header({ items, categories, suggestions }: Props) {
             aria-label={t.nav.openMenu}
             aria-haspopup="dialog"
             onClick={() => menuRef.current?.showModal()}
-            className="grid size-11 place-items-center rounded-md text-fg hover:bg-surface-2 lg:hidden"
+            className="grid size-11 place-items-center rounded-md text-fg hover:bg-surface-2 xl:hidden"
           >
             <Icon name="menu" size={22} />
           </button>
@@ -172,6 +174,11 @@ export function Header({ items, categories, suggestions }: Props) {
               ))}
             </ul>
           </nav>
+          {/* On phones the language and theme switches live here instead of the header bar. */}
+          <div className="mb-4 flex items-center gap-2 border-t border-line pt-4 sm:hidden">
+            <LanguageSwitcher />
+            <ThemeToggle />
+          </div>
           <Link href="/tools" onClick={() => menuRef.current?.close()} className={buttonClasses({ size: "lg", className: "w-full rounded-full" })}>
             {t.nav.exploreTools} <Icon name="arrow-right" size={17} />
           </Link>
