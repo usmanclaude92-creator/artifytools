@@ -220,7 +220,7 @@ test.describe("directory", () => {
   test("filters by category, combines with search, syncs the URL, and clears", async ({ page }) => {
     await page.goto("/tools");
     const count = page.getByRole("status").filter({ hasText: /tools?(\s|$)/ }).first();
-    await expect(count).toContainText("30 tools");
+    await expect(count).toContainText("31 tools");
     await page.getByRole("button", { name: /^Calculators/ }).click();
     await expect(page).toHaveURL(/category=calculators/);
     await expect(count).toContainText("4 tools");
@@ -229,7 +229,7 @@ test.describe("directory", () => {
     await expect(count).toContainText("1 tool");
     await expect(page.getByRole("button", { name: /Category: Calculators/ })).toBeVisible();
     await page.getByRole("button", { name: "Clear all" }).click();
-    await expect(count).toContainText("30 tools");
+    await expect(count).toContainText("31 tools");
     await expect(page.getByLabel("Search all tools")).toHaveValue("");
   });
 
@@ -251,7 +251,7 @@ test.describe("directory", () => {
     await expect(page).toHaveURL(/kind=pdf/);
     await expect(page.locator("article h2")).toHaveText(["Merge PDF", "Compress PDF", "PDF to Word", "PDF to JPG", "Split PDF", "Translate PDF"]);
     await page.getByLabel("Works with").selectOption("images");
-    await expect(page.locator("article h2")).toHaveText(["JPG to PDF", "Compress Image", "Resize Image", "Crop Image"]);
+    await expect(page.locator("article h2")).toHaveText(["JPG to PDF", "Compress Image", "Remove Background", "Resize Image", "Crop Image"]);
   });
 
   test("paginates beyond 12 tools", async ({ page }) => {

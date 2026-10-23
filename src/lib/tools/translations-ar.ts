@@ -27,6 +27,7 @@ import { metaAr as cropImage } from "@/tools/crop-image/meta.ar";
 import { metaAr as wordToPdf } from "@/tools/word-to-pdf/meta.ar";
 import { metaAr as imageToText } from "@/tools/image-to-text/meta.ar";
 import { metaAr as translatePdf } from "@/tools/translate-pdf/meta.ar";
+import { metaAr as removeBackground } from "@/tools/remove-background/meta.ar";
 import { metaAr as pdfToWord } from "@/tools/pdf-to-word/meta.ar";
 import { metaAr as resizeImage } from "@/tools/resize-image/meta.ar";
 
@@ -62,4 +63,5 @@ export const toolTranslationsAr: Record<string, ToolTranslation> = {
   "word-to-pdf": wordToPdf,
   "image-to-text": imageToText,
   "translate-pdf": translatePdf,
+  "remove-background": removeBackground,
 };

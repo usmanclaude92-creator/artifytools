@@ -21,3 +21,7 @@ const ocr = dir(`tesseract-${version("tesseract.js")}`);
 copyFileSync(nm("tesseract.js/dist/worker.min.js"), new URL("worker.min.js", ocr));
 for (const f of ["tesseract-core-simd-lstm.wasm.js", "tesseract-core-lstm.wasm.js"]) copyFileSync(nm(`tesseract.js-core/${f}`), new URL(f, ocr));
 for (const lang of ["eng", "ara"]) copyFileSync(nm(`@tesseract.js-data/${lang}/4.0.0_best_int/${lang}.traineddata.gz`), new URL(`${lang}.traineddata.gz`, ocr));
+
+// ONNX Runtime Web (background removal): one engine with WebGPU and a WebAssembly fallback.
+const ort = dir(`ort-${version("onnxruntime-web")}`);
+for (const f of ["ort-wasm-simd-threaded.jsep.mjs", "ort-wasm-simd-threaded.jsep.wasm"]) copyFileSync(nm(`onnxruntime-web/dist/${f}`), new URL(f, ort));
