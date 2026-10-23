@@ -1,16 +1,25 @@
-import Image from "next/image";
 import { cx } from "@/components/ui/cx";
 
 /** The full brand lockup artwork (mark, wordmark, tagline, parent brand), in light and dark versions. */
-const LOCKUP = { light: "/brand/artify-tools-logo-light.webp", dark: "/brand/artify-tools-logo-dark.webp", width: 1192, height: 316 };
+const LOCKUP = { width: 1192, height: 316 };
+const SIZES = [400, 600, 800];
+const srcSet = (theme: "light" | "dark") => [...SIZES.map((w) => `/brand/artify-tools-logo-${theme}-${w}.webp ${w}w`), `/brand/artify-tools-logo-${theme}.webp ${LOCKUP.width}w`].join(", ");
 
-/** Lockup image at `height` px; the theme decides which version shows (see .logo-on-light / .logo-on-dark). */
-export function LogoLockupImage({ height, className, priority }: { height: number; className?: string; priority?: boolean }) {
+/**
+ * Lockup image at `height` px; the theme decides which version shows (see .logo-on-light / .logo-on-dark).
+ * Both are lazy so the hidden one (display: none) is never downloaded, and srcset picks the
+ * smallest file that is sharp at the screen's pixel density.
+ */
+export function LogoLockupImage({ height, className }: { height: number; className?: string; priority?: boolean }) {
   const width = Math.round((height * LOCKUP.width) / LOCKUP.height);
+  const img = (theme: "light" | "dark") => (
+    // eslint-disable-next-line @next/next/no-img-element -- static artwork with a hand-made srcset
+    <img src={`/brand/artify-tools-logo-${theme}-${SIZES[0]}.webp`} srcSet={srcSet(theme)} sizes={`${width}px`} alt="" width={width} height={height} loading="lazy" decoding="async" draggable={false} className={`logo-on-${theme} size-full`} />
+  );
   return (
     <span className={cx("inline-block shrink-0 select-none", className)} style={{ width, height }}>
-      <Image src={LOCKUP.light} alt="" width={width} height={height} unoptimized priority={priority} draggable={false} className="logo-on-light size-full" />
-      <Image src={LOCKUP.dark} alt="" width={width} height={height} unoptimized priority={priority} draggable={false} className="logo-on-dark size-full" />
+      {img("light")}
+      {img("dark")}
     </span>
   );
 }

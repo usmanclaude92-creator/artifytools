@@ -9,10 +9,10 @@ import { StatusMessage } from "@/components/ui/feedback";
 import { cx } from "@/components/ui/cx";
 import { canvasToSignature, trimCanvas, typedSignature, uploadedSignature, type SignatureImage } from "@/lib/images/signature";
 
-const dancing = Dancing_Script({ subsets: ["latin"], weight: "600", display: "swap" });
-const vibes = Great_Vibes({ subsets: ["latin"], weight: "400", display: "swap" });
-const caveat = Caveat({ subsets: ["latin"], weight: "600", display: "swap" });
-const ruqaa = Aref_Ruqaa({ subsets: ["arabic", "latin"], weight: "700", display: "swap" });
+const dancing = Dancing_Script({ subsets: ["latin"], weight: "600", display: "swap", preload: false });
+const vibes = Great_Vibes({ subsets: ["latin"], weight: "400", display: "swap", preload: false });
+const caveat = Caveat({ subsets: ["latin"], weight: "600", display: "swap", preload: false });
+const ruqaa = Aref_Ruqaa({ subsets: ["arabic", "latin"], weight: "700", display: "swap", preload: false });
 const FONTS = [vibes, dancing, caveat, ruqaa];
 
 type Mode = "draw" | "type" | "upload";

@@ -1,5 +1,4 @@
 import { Icon, type IconName } from "@/components/ui/icon";
-import Image from "next/image";
 
 /**
  * Decorative brand illustration: the Artify Tools app icon surrounded by floating tool tiles
@@ -40,7 +39,8 @@ export function HeroVisual() {
       {/* central Artify Tools app icon */}
       <div className="absolute left-1/2 top-[48%] -translate-x-1/2 -translate-y-1/2">
         <div className="motion-float grid size-[7.25rem] place-items-center hero-logo-tile rounded-[1.9rem] sm:size-40">
-          <Image src="/brand/artify-tools-mark-full.webp" alt="" width={388} height={340} unoptimized priority draggable={false} className="h-auto w-[84%] select-none object-contain" />
+          {/* eslint-disable-next-line @next/next/no-img-element -- static artwork with a hand-made srcset */}
+          <img src="/brand/artify-tools-mark-full-200.webp" srcSet="/brand/artify-tools-mark-full-200.webp 200w, /brand/artify-tools-mark-full-300.webp 300w, /brand/artify-tools-mark-full.webp 388w" sizes="(min-width: 640px) 135px, 98px" alt="" width={388} height={340} fetchPriority="high" decoding="async" draggable={false} className="h-auto w-[84%] select-none object-contain" />
         </div>
       </div>
 

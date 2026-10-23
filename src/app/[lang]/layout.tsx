@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { GeistSans } from "geist/font/sans";
-import { IBM_Plex_Sans_Arabic, Inter } from "next/font/google";
+import localFont from "next/font/local";
+import { Inter } from "next/font/google";
 import { notFound } from "next/navigation";
-import { GeistMono } from "geist/font/mono";
+import { preload } from "react-dom";
 import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
@@ -18,7 +18,20 @@ import { localizeCategory } from "@/lib/tools/localize";
 import "../globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-const arabic = IBM_Plex_Sans_Arabic({ subsets: ["arabic"], weight: ["400", "500", "600", "700"], variable: "--font-arabic", display: "swap", preload: false });
+// Geist is only a fallback behind Inter and the monospace face for code boxes, so neither is preloaded:
+// the browser fetches them only when a page actually draws with them.
+const geistSans = localFont({ src: "../../../node_modules/geist/dist/fonts/geist-sans/Geist-Variable.woff2", variable: "--font-geist-sans", weight: "100 900", preload: false });
+const geistMono = localFont({
+  src: "../../../node_modules/geist/dist/fonts/geist-mono/GeistMono-Variable.woff2",
+  variable: "--font-geist-mono",
+  weight: "100 900",
+  adjustFontFallback: false,
+  fallback: ["ui-monospace", "SFMono-Regular", "Roboto Mono", "Menlo", "Monaco", "Liberation Mono", "DejaVu Sans Mono", "Courier New", "monospace"],
+  preload: false,
+});
+// The Arabic font (IBM Plex Sans Arabic) is declared in globals.css; Arabic pages preload the
+// weights drawn above the fold.
+const ARABIC_PRELOAD = ["/fonts/arabic/plex-arabic-400.woff2", "/fonts/arabic/plex-arabic-700.woff2", "/fonts/arabic/plex-latin-400.woff2"];
 
 export const dynamicParams = false;
 
@@ -52,11 +65,12 @@ export default async function RootLayout({ children, params }: { children: React
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
   const items = getSearchItems(lang);
+  if (lang === "ar") ARABIC_PRELOAD.forEach((href) => preload(href, { as: "font", type: "font/woff2", crossOrigin: "" }));
   const categories = getPublishedCategories().map((c) => ({ name: localizeCategory(c, lang).name, slug: c.slug }));
   const suggestions = getPopularTools(6).map((t) => toDirectoryItem(t, lang));
 
   return (
-    <html lang={lang} dir={dirOf(lang)} suppressHydrationWarning className={`${inter.variable} ${GeistSans.variable} ${GeistMono.variable}${lang === "ar" ? ` ${arabic.variable}` : ""}`}>
+    <html lang={lang} dir={dirOf(lang)} suppressHydrationWarning className={`${inter.variable} ${geistSans.variable} ${geistMono.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
