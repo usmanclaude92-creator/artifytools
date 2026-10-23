@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { siteConfig } from "@/lib/config";
 import { GRADIENT, MUTED, OG_SIZE, OgChips, OgFrame, OgHeroArt, ogAssets } from "@/lib/brand-og";
@@ -6,7 +8,13 @@ export const alt = `${siteConfig.name}: The right tool. For whatever you're doin
 export const size = OG_SIZE;
 export const contentType = "image/png";
 
-export default async function Image() {
+export default async function Image({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  // Satori can't join Arabic letters, so the Arabic card is pre-drawn by a browser (scripts/og-ar.mjs).
+  if (lang === "ar") {
+    const png = await readFile(join(process.cwd(), "public/og/home-ar.png"));
+    return new Response(new Uint8Array(png), { headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=31536000, immutable" } });
+  }
   const { lockup, mark, fonts } = await ogAssets();
   return new ImageResponse(
     (
