@@ -45,7 +45,7 @@ test.describe("Arabic site", () => {
   });
 
   test("every Arabic tool page renders without errors", async ({ page }) => {
-    const slugs = ["word-counter", "case-converter", "text-cleaner", "remove-duplicate-lines", "percentage-calculator", "vat-calculator", "discount-calculator", "json-formatter", "url-encoder-decoder", "base64-encoder-decoder", "uuid-generator", "password-generator", "qr-code-generator", "date-difference", "color-converter", "ai-text-summarizer", "merge-pdf", "split-pdf", "jpg-to-pdf", "compress-pdf", "compress-image", "amount-in-words", "cheque-printer", "pdf-to-jpg", "resize-image", "crop-image", "pdf-to-word", "word-to-pdf", "image-to-text"];
+    const slugs = ["word-counter", "case-converter", "text-cleaner", "remove-duplicate-lines", "percentage-calculator", "vat-calculator", "discount-calculator", "json-formatter", "url-encoder-decoder", "base64-encoder-decoder", "uuid-generator", "password-generator", "qr-code-generator", "date-difference", "color-converter", "ai-text-summarizer", "merge-pdf", "split-pdf", "jpg-to-pdf", "compress-pdf", "compress-image", "amount-in-words", "cheque-printer", "pdf-to-jpg", "resize-image", "crop-image", "pdf-to-word", "word-to-pdf", "image-to-text", "translate-pdf"];
     for (const slug of slugs) {
       const errors: string[] = [];
       const h = (m: import("@playwright/test").ConsoleMessage) => (m.type() === "error" || m.type() === "warning") && errors.push(m.text());

@@ -49,3 +49,21 @@ describe("anthropic provider", () => {
     await expect(createAnthropicProvider("k").summarize({ text: "t", length: "short" }, signal)).rejects.toThrow(/no text/);
   });
 });
+
+describe("anthropic translate", () => {
+  afterEach(() => vi.unstubAllGlobals());
+  const signal = new AbortController().signal;
+  it("asks for a JSON array in the target language and returns it", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ content: [{ type: "text", text: '["تقرير", "نص"]' }] }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const out = await createAnthropicProvider("sk-test").translate({ segments: ["Report", "Text"], target: "ar" }, signal);
+    expect(out).toEqual(["تقرير", "نص"]);
+    const body = JSON.parse(fetchMock.mock.calls[0]![1].body as string);
+    expect(body.system).toContain("Modern Standard Arabic");
+    expect(body.messages[0].content).toBe('["Report","Text"]');
+  });
+  it("rejects replies with the wrong number of items", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ content: [{ type: "text", text: '["one"]' }] }), { status: 200 })));
+    await expect(createAnthropicProvider("sk-test").translate({ segments: ["a", "b"], target: "fr" }, signal)).rejects.toMatchObject({ kind: "malformed" });
+  });
+});
