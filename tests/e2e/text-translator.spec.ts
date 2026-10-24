@@ -6,10 +6,12 @@ async function open(page: Page, path: string) {
   await page.waitForLoadState("networkidle");
 }
 
-test("Text Translator is a beta page, kept out of the sitemap, and works without any key", async ({ page, request }) => {
+test("Text Translator is indexed, listed in the sitemap, and works without any key", async ({ page, request }) => {
   await page.goto("/tools/text-translator");
-  expect(await page.locator('meta[name="robots"]').getAttribute("content")).toContain("noindex");
-  expect(await (await request.get("/sitemap.xml")).text()).not.toContain("text-translator");
+  await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
+  const sm = await (await request.get("/sitemap.xml")).text();
+  expect(sm).toContain("https://tools.artifysols.com/tools/text-translator");
+  expect(sm).toContain("https://tools.artifysols.com/ar/tools/text-translator");
   await expect(page.getByText("translated on this device and never uploaded")).toBeVisible();
   await expect(page.getByText("isn't switched on")).toHaveCount(0);
 });

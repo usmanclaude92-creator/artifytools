@@ -13,7 +13,7 @@ export const meta: ToolDefinition = {
   icon: "globe",
   tags: ["translate", "translator", "arabic", "english", "offline"],
   keywords: ["translate text", "text translator", "arabic to english", "english to arabic", "online translator", "translate to arabic", "translate to english", "arabic translation"],
-  status: "beta",
+  status: "active",
   processingMode: "browser-local",
   privacyNote: "Your text is translated by a model running in this tab. It is never uploaded, stored, or logged. Only the model is downloaded, once, from Hugging Face, and cached by your browser.",
   seoTitle: "Arabic English Text Translator, Private | Artify Tools",
