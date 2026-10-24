@@ -7,7 +7,7 @@ export const meta: ToolDefinition = {
   description: "Translate text between Arabic and English privately in your browser. No sign-up, no key, nothing uploaded.",
   intro: [
     "Type or paste text and translate it between Arabic and English, in either direction, right next to the original. Line breaks are kept, the direction is suggested from what you type, and a swap button turns the translation into the next input.",
-    "The translation runs on your own device. The first time you use a direction, your browser downloads a translation model (about 118 MB) and keeps it, so later translations start straight away and work without sending your text anywhere. Machine translation can contain mistakes, so have important texts checked. To translate a whole document into more languages, use Translate PDF.",
+    "The translation runs on your own device. The first time you use a direction, your browser downloads a translation model (about 118 MB) and keeps it, so later translations start straight away and work without sending your text anywhere. Machine translation can contain mistakes, so have important texts checked. To translate a whole PDF, use Translate PDF.",
   ],
   category: "text",
   icon: "globe",
@@ -30,7 +30,7 @@ export const meta: ToolDefinition = {
     { label: "Arabic to English", input: "شكرًا لتواصلكم معنا، سنرد عليكم قريبًا.", output: "Thank you for contacting us. We will reply to you soon." },
   ],
   faqs: [
-    { question: "Which languages are supported?", answer: "Arabic to English and English to Arabic. For more languages, translate a document with Translate PDF." },
+    { question: "Which languages are supported?", answer: "Arabic to English and English to Arabic. To translate a whole PDF, use Translate PDF." },
     { question: "Why does the first translation take longer?", answer: "Your browser downloads the translation model for that direction (about 118 MB) the first time, then keeps it. After that it starts straight away, even when you are offline." },
     { question: "Is my text uploaded?", answer: "No. The model runs inside your browser tab, so the text never leaves your device. Only the model files are downloaded, from Hugging Face." },
     { question: "How accurate is it?", answer: "It is a compact model that runs on your device, so it is good for understanding and everyday sentences, but weaker than large online services on idioms, names and legal wording. Have important texts checked by a qualified translator." },

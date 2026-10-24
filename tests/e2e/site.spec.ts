@@ -244,11 +244,11 @@ test.describe("directory", () => {
     expect(names).toEqual([...names].sort((a, b) => b.localeCompare(a)));
     await page.goto("/tools");
     await page.getByLabel("AI-powered only").check();
-    await expect(page.locator("article h2")).toHaveCount(2);
-    expect((await page.locator("article h2").allTextContents()).sort()).toEqual(["AI Text Summarizer", "Translate PDF"]);
+    await expect(page.locator("article h2")).toHaveCount(1);
+    expect((await page.locator("article h2").allTextContents()).sort()).toEqual(["AI Text Summarizer"]);
     await page.getByLabel("AI-powered only").uncheck();
     await page.getByLabel("Processing").selectOption("external-provider");
-    await expect(page.locator("article h2")).toHaveCount(2);
+    await expect(page.locator("article h2")).toHaveCount(1);
     await page.getByLabel("Processing").selectOption("");
     await page.getByLabel("Works with").selectOption("pdf");
     await expect(page).toHaveURL(/kind=pdf/);

@@ -9,7 +9,8 @@ import { Icon } from "@/components/ui/icon";
 import { StatusMessage } from "@/components/ui/feedback";
 import { useLocale } from "@/components/i18n/locale-provider";
 import { createLocalTranslator, LOCAL_PAIRS, pairFor, type LocalLanguage, type LocalPair, type LocalTranslator, type Stage } from "@/lib/translate/local";
-import { detectSource, joinLines, MAX_TEXT_CHARS, splitLines, toPieces } from "./logic";
+import { detectSource, translateParagraphs } from "@/lib/translate/text";
+import { joinLines, MAX_TEXT_CHARS, splitLines } from "./logic";
 
 const mb = (bytes: number) => Math.round(bytes / 1_000_000);
 
@@ -96,19 +97,8 @@ export default function TextTranslator() {
     try {
       setProgress({ kind: "stage", stage: { kind: "starting" } });
       const run = await engine(used);
-      const pieces = parts.segments.map(toPieces);
-      const total = pieces.reduce((n, p) => n + p.length, 0);
-      let done = 0;
-      const translated: string[] = [];
-      for (const line of pieces) {
-        const out: string[] = [];
-        for (const piece of line) {
-          if (stop.current) return;
-          setProgress({ kind: "sentences", done: ++done, total });
-          out.push(await run.translate(piece));
-        }
-        translated.push(out.join(" "));
-      }
+      const translated = await translateParagraphs(run, parts.segments, (done, total) => setProgress({ kind: "sentences", done, total }), () => stop.current);
+      if (!translated) return;
       setResult({ key: `${text}|${used}`, text: joinLines(parts, translated) });
     } catch (e) {
       setError(typeof WebAssembly === "undefined" || (e instanceof Error && /webassembly|wasm/i.test(e.message)) ? t.unsupported : t.failed);

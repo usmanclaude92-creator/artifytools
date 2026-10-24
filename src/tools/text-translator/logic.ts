@@ -1,11 +1,6 @@
-/** Pure helpers for the text translator: line and sentence handling, and language detection (unit-tested). */
-import { splitLong } from "@/lib/translate/chunks";
-import type { LocalLanguage } from "@/lib/translate/local";
-
+/** Pure helpers for the text translator: line handling (unit-tested). */
 /** Translation runs on the device, so the limit keeps a single run to a sensible time. */
 export const MAX_TEXT_CHARS = 10_000;
-/** Longest piece handed to the model at once; the models are trained on sentences. */
-const PIECE_CHARS = 350;
 
 export interface Lines {
   /** The original lines, so blank lines and spacing can be put back after translating. */
@@ -37,32 +32,4 @@ export function joinLines(parts: Lines, translated: string[]): string {
     out[lineIndex] = translated[k] ?? "";
   });
   return out.join("\n");
-}
-
-/** Splits one line into sentences (and cuts any very long one), the unit the model translates best. */
-export function toPieces(segment: string): string[] {
-  return segment
-    .split(/(?<=[.!?؟۔。])\s+/u)
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .flatMap((s) => splitLong(s, PIECE_CHARS));
-}
-
-const ARABIC_SCRIPT = /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/g;
-const LATIN_SCRIPT = /[A-Za-zÀ-ɏ]/g;
-
-/** Rough script of a text, from the share of Arabic-script versus Latin letters. */
-export function detectScript(text: string): "arabic" | "latin" | "other" {
-  const arabic = text.match(ARABIC_SCRIPT)?.length ?? 0;
-  const latin = text.match(LATIN_SCRIPT)?.length ?? 0;
-  if (arabic === 0 && latin === 0) return "other";
-  return arabic >= latin ? "arabic" : "latin";
-}
-
-/** The language to translate from: Arabic script means Arabic, Latin letters mean English. */
-export function detectSource(text: string, fallback: LocalLanguage): LocalLanguage {
-  const script = detectScript(text);
-  if (script === "arabic") return "ar";
-  if (script === "latin") return "en";
-  return fallback;
 }
