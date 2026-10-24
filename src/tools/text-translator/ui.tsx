@@ -6,134 +6,151 @@ import { Button } from "@/components/ui/button";
 import { CopyButton, DownloadButton } from "@/components/ui/actions";
 import { Field, Select, TextArea } from "@/components/ui/form";
 import { Icon } from "@/components/ui/icon";
-import { Spinner, StatusMessage } from "@/components/ui/feedback";
+import { StatusMessage } from "@/components/ui/feedback";
 import { useLocale } from "@/components/i18n/locale-provider";
-import { TRANSLATE_LANGUAGES, type TranslateLanguage } from "@/lib/ai/types";
-import { makeChunks, reassemble, RTL_LANGUAGES } from "@/lib/translate/chunks";
-import { LANGUAGE_NAMES } from "@/lib/translate/languages";
-import { defaultTarget, joinLines, looksLikeTarget, MAX_TEXT_CHARS, splitLines } from "./logic";
+import { createLocalTranslator, LOCAL_PAIRS, pairFor, type LocalLanguage, type LocalPair, type LocalTranslator, type Stage } from "@/lib/translate/local";
+import { detectSource, joinLines, MAX_TEXT_CHARS, splitLines, toPieces } from "./logic";
+
+const mb = (bytes: number) => Math.round(bytes / 1_000_000);
 
 const strings = {
   en: {
-    notConfigured: "Translation isn't switched on yet on this site. Please check back soon.",
-    privacy: "When you press Translate, your text is sent to Artify's server and on to a third-party AI provider (Anthropic) to be translated. It isn't stored. Don't translate confidential text you aren't allowed to share.",
-    input: "Text to translate", placeholder: "Type or paste text…", clear: "Clear", count: (n: number, max: number) => `${n.toLocaleString("en-US")} / ${max.toLocaleString("en-US")} characters`,
+    privacy: (size: number) => `Your text is translated on this device and never uploaded. The first time, your browser downloads the translation model (about ${size} MB for each direction) and keeps it for next time.`,
+    input: "Text to translate", placeholder: "Type or paste text…", clear: "Clear",
+    count: (n: number, max: number) => `${n.toLocaleString("en-US")} / ${max.toLocaleString("en-US")} characters`,
     tooLong: (n: number, max: number) => `Text is ${n.toLocaleString("en-US")} characters; the limit is ${max.toLocaleString("en-US")}.`,
-    target: "Translate into", swap: "Swap: use the translation as the new text", translate: "Translate", translating: (d: number, n: number) => (n > 1 ? `Translating part ${d} of ${n}…` : "Translating…"), stop: "Stop",
-    result: "Translation", idle: "Your translation will appear here.", idleOff: "Translation is unavailable until it is switched on for this site.",
-    copy: "Copy translation", download: "Download .txt", failed: "Translation failed. Please try again in a moment.", offline: "Couldn't reach the server. Check your connection and try again.",
-    same: "This text already looks like it is in the target language. Choose another language to translate it.", stale: "The text or language changed. Translate again to update the result.",
+    direction: "Translate", pairs: { "ar-en": "Arabic to English", "en-ar": "English to Arabic" } as Record<LocalPair, string>,
+    swap: "Swap: use the translation as the new text", translate: "Translate", stop: "Stop",
+    download: (l: number, t: number) => `Downloading the translation model… ${l} of ${t} MB (first time only)`, starting: "Starting the translation model…",
+    translating: (d: number, n: number) => `Translating sentence ${d} of ${n}…`,
+    result: "Translation", idle: "Your translation will appear here.", copy: "Copy translation", save: "Download .txt",
+    failed: "Translation failed. Check your connection for the first download, then try again.", unsupported: "This browser can't run the translation model. Try a recent version of Chrome, Edge, Firefox or Safari.",
+    wrong: "This text doesn't look like the language you chose to translate from. The result may be poor.",
+    stale: "The text or direction changed. Translate again to update the result.",
     machine: "Machine translation can contain mistakes. Have important texts checked by a qualified translator.",
   },
   ar: {
-    notConfigured: "الترجمة غير مفعّلة بعد على هذا الموقع. يرجى العودة قريبًا.",
-    privacy: "عند الضغط على «ترجمة» يُرسل نصك إلى خادم Artify ثم إلى مزوّد ذكاء اصطناعي خارجي (Anthropic) لترجمته، ولا يُخزَّن. لا تترجم نصوصًا سرية غير مسموح لك بمشاركتها.",
-    input: "النص المراد ترجمته", placeholder: "اكتب نصًا أو الصقه…", clear: "مسح", count: (n: number, max: number) => `${n.toLocaleString("en-US")} / ${max.toLocaleString("en-US")} حرف`,
+    privacy: (size: number) => `تُترجم نصوصك على جهازك ولا تُرفع إلى أي مكان. في المرة الأولى يحمّل متصفحك نموذج الترجمة (نحو ${size} ميغابايت لكل اتجاه) ويحتفظ به للمرات القادمة.`,
+    input: "النص المراد ترجمته", placeholder: "اكتب نصًا أو الصقه…", clear: "مسح",
+    count: (n: number, max: number) => `${n.toLocaleString("en-US")} / ${max.toLocaleString("en-US")} حرف`,
     tooLong: (n: number, max: number) => `طول النص ${n.toLocaleString("en-US")} حرف، والحد الأقصى ${max.toLocaleString("en-US")}.`,
-    target: "الترجمة إلى", swap: "تبديل: استخدام الترجمة كنص جديد", translate: "ترجمة", translating: (d: number, n: number) => (n > 1 ? `جارٍ ترجمة الجزء ${d} من ${n}…` : "جارٍ الترجمة…"), stop: "إيقاف",
-    result: "الترجمة", idle: "ستظهر ترجمتك هنا.", idleOff: "الترجمة غير متاحة حتى تُفعَّل لهذا الموقع.",
-    copy: "نسخ الترجمة", download: "تنزيل .txt", failed: "فشلت الترجمة. يرجى المحاولة بعد قليل.", offline: "تعذّر الوصول إلى الخادم. تحقق من اتصالك وحاول مجددًا.",
-    same: "يبدو أن هذا النص مكتوب أصلًا باللغة المختارة. اختر لغة أخرى لترجمته.", stale: "تغيّر النص أو اللغة. ترجم مجددًا لتحديث النتيجة.",
+    direction: "الترجمة", pairs: { "ar-en": "من العربية إلى الإنجليزية", "en-ar": "من الإنجليزية إلى العربية" } as Record<LocalPair, string>,
+    swap: "تبديل: استخدام الترجمة كنص جديد", translate: "ترجمة", stop: "إيقاف",
+    download: (l: number, t: number) => `جارٍ تحميل نموذج الترجمة… ${l} من ${t} ميغابايت (أول مرة فقط)`, starting: "جارٍ تشغيل نموذج الترجمة…",
+    translating: (d: number, n: number) => `جارٍ ترجمة الجملة ${d} من ${n}…`,
+    result: "الترجمة", idle: "ستظهر ترجمتك هنا.", copy: "نسخ الترجمة", save: "تنزيل .txt",
+    failed: "فشلت الترجمة. تحقق من اتصالك أثناء التحميل الأول ثم حاول مجددًا.", unsupported: "لا يستطيع هذا المتصفح تشغيل نموذج الترجمة. جرّب إصدارًا حديثًا من Chrome أو Edge أو Firefox أو Safari.",
+    wrong: "لا يبدو أن هذا النص مكتوب باللغة التي اخترت الترجمة منها، وقد تكون النتيجة ضعيفة.",
+    stale: "تغيّر النص أو الاتجاه. ترجم مجددًا لتحديث النتيجة.",
     machine: "قد تحتوي الترجمة الآلية على أخطاء. اطلب مراجعة النصوص المهمة من مترجم معتمد.",
   },
 };
 
+type Progress = { kind: "stage"; stage: Stage } | { kind: "sentences"; done: number; total: number };
+
 export default function TextTranslator() {
   const locale = useLocale();
   const t = strings[locale];
-  const fallback: TranslateLanguage = locale === "ar" ? "en" : "ar";
-  const [configured, setConfigured] = useState<boolean | null>(null);
+  const fallback: LocalLanguage = locale === "ar" ? "ar" : "en";
   const [text, setText] = useState("");
-  const [target, setTarget] = useState<TranslateLanguage>(fallback);
-  // The suggested target follows the text until the person picks a language themselves.
+  const [pair, setPair] = useState<LocalPair>(pairFor(fallback));
+  // The direction follows the text until the person picks one themselves.
   const [picked, setPicked] = useState(false);
-  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const [progress, setProgress] = useState<Progress | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ key: string; text: string } | null>(null);
-  const abort = useRef<AbortController | null>(null);
+  const stop = useRef(false);
+  const engines = useRef(new Map<LocalPair, Promise<LocalTranslator>>());
 
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/ai/status", { cache: "no-store" })
-      .then((r) => r.json() as Promise<{ configured?: boolean }>)
-      .then((d) => !cancelled && setConfigured(Boolean(d.configured)))
-      .catch(() => !cancelled && setConfigured(false));
-    return () => {
-      cancelled = true;
-      abort.current?.abort();
-    };
-  }, []);
+  useEffect(() => () => { stop.current = true; }, []);
 
   function onText(value: string) {
     setText(value);
-    if (!picked) setTarget(defaultTarget(value, fallback));
+    if (!picked) setPair(pairFor(detectSource(value, fallback)));
   }
 
   const tooLong = text.length > MAX_TEXT_CHARS;
   const busy = progress !== null;
-  const sameLanguage = text.trim() !== "" && looksLikeTarget(text, target);
-  const key = `${text}|${target}`;
+  const key = `${text}|${pair}`;
   const current = result && result.key === key ? result : null;
-  const rtl = RTL_LANGUAGES.has(target);
-  const canTranslate = Boolean(configured) && text.trim() !== "" && !tooLong && !busy;
+  const target = LOCAL_PAIRS[pair].target;
+  const wrongLanguage = text.trim() !== "" && detectSource(text, LOCAL_PAIRS[pair].source) !== LOCAL_PAIRS[pair].source;
+
+  function engine(p: LocalPair) {
+    let e = engines.current.get(p);
+    if (!e) {
+      e = createLocalTranslator(p, (stage) => setProgress({ kind: "stage", stage }));
+      // A failed start must not be cached, or "try again" would fail forever.
+      e.catch(() => engines.current.delete(p));
+      engines.current.set(p, e);
+    }
+    return e;
+  }
 
   async function translate() {
-    abort.current?.abort();
-    const controller = new AbortController();
-    abort.current = controller;
-    setError(null);
     const parts = splitLines(text);
     if (!parts.segments.length) return;
-    const chunks = makeChunks(parts.segments);
-    const translated: string[][] = [];
+    stop.current = false;
+    setError(null);
+    const used = pair;
     try {
-      for (const [i, chunk] of chunks.entries()) {
-        setProgress({ done: i + 1, total: chunks.length });
-        const res = await fetch("/api/ai/translate", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ segments: chunk.map((p) => p.text), target }),
-          signal: controller.signal,
-        });
-        const data = (await res.json().catch(() => ({}))) as { segments?: string[]; message?: string };
-        if (!res.ok || !data.segments) throw new Error(locale === "en" && data.message ? data.message : t.failed);
-        translated.push(data.segments);
+      setProgress({ kind: "stage", stage: { kind: "starting" } });
+      const run = await engine(used);
+      const pieces = parts.segments.map(toPieces);
+      const total = pieces.reduce((n, p) => n + p.length, 0);
+      let done = 0;
+      const translated: string[] = [];
+      for (const line of pieces) {
+        const out: string[] = [];
+        for (const piece of line) {
+          if (stop.current) return;
+          setProgress({ kind: "sentences", done: ++done, total });
+          out.push(await run.translate(piece));
+        }
+        translated.push(out.join(" "));
       }
-      setResult({ key, text: joinLines(parts, reassemble(parts.segments.length, chunks, translated)) });
+      setResult({ key: `${text}|${used}`, text: joinLines(parts, translated) });
     } catch (e) {
-      if ((e as Error).name === "AbortError") return;
-      setError(e instanceof TypeError ? t.offline : (e as Error).message || t.failed);
+      setError(typeof WebAssembly === "undefined" || (e instanceof Error && /webassembly|wasm/i.test(e.message)) ? t.unsupported : t.failed);
     } finally {
-      if (abort.current === controller) setProgress(null);
+      setProgress(null);
     }
   }
 
   function swap() {
     if (!current) return;
-    abort.current?.abort();
+    stop.current = true;
     setProgress(null);
-    const next = current.text;
-    setText(next);
+    setText(current.text);
+    setPair(pairFor(target));
     setPicked(false);
-    setTarget(defaultTarget(next, fallback));
     setResult(null);
     setError(null);
   }
 
   function clear() {
-    abort.current?.abort();
+    stop.current = true;
     setProgress(null);
     setText("");
     setPicked(false);
-    setTarget(fallback);
+    setPair(pairFor(fallback));
     setResult(null);
     setError(null);
   }
 
+  const status =
+    progress?.kind === "sentences"
+      ? t.translating(progress.done, progress.total)
+      : progress?.stage.kind === "download"
+        ? t.download(mb(progress.stage.loaded), mb(progress.stage.total))
+        : progress
+          ? t.starting
+          : null;
+  const download = progress?.kind === "stage" && progress.stage.kind === "download" ? progress.stage : null;
+
   return (
     <div className="flex flex-col gap-5">
-      {configured === false && <StatusMessage tone="warning">{t.notConfigured}</StatusMessage>}
-      <StatusMessage tone="info">{t.privacy}</StatusMessage>
+      <StatusMessage tone="info">{t.privacy(mb(LOCAL_PAIRS[pair].bytes))}</StatusMessage>
       <Workspace>
         <Panel
           title={t.input}
@@ -146,25 +163,30 @@ export default function TextTranslator() {
           <Field label={<span className="sr-only">{t.input}</span>} error={tooLong ? t.tooLong(text.length, MAX_TEXT_CHARS) : null} hint={t.count(text.length, MAX_TEXT_CHARS)}>
             {(p) => <TextArea {...p} rows={12} value={text} onChange={(e) => onText(e.target.value)} placeholder={t.placeholder} className="font-sans text-base" />}
           </Field>
-          <Field label={t.target}>
+          <Field label={t.direction}>
             {(p) => (
-              <Select {...p} value={target} onChange={(e) => { setTarget(e.target.value as TranslateLanguage); setPicked(true); }} disabled={busy}>
-                {TRANSLATE_LANGUAGES.map((l) => <option key={l} value={l}>{LANGUAGE_NAMES[locale][l]}</option>)}
+              <Select {...p} value={pair} onChange={(e) => { setPair(e.target.value as LocalPair); setPicked(true); }} disabled={busy}>
+                {(Object.keys(LOCAL_PAIRS) as LocalPair[]).map((k) => <option key={k} value={k}>{t.pairs[k]}</option>)}
               </Select>
             )}
           </Field>
-          {sameLanguage && <StatusMessage tone="info">{t.same}</StatusMessage>}
+          {wrongLanguage && <StatusMessage tone="warning">{t.wrong}</StatusMessage>}
           <div className="flex flex-wrap items-center gap-3">
-            <Button onClick={translate} disabled={!canTranslate}>
+            <Button onClick={translate} disabled={text.trim() === "" || tooLong || busy}>
               <Icon name={busy ? "loader" : "globe"} size={18} className={busy ? "animate-spin" : undefined} /> {t.translate}
             </Button>
-            {progress && (
-              <>
-                <span role="status" className="text-sm text-muted">{t.translating(progress.done, progress.total)}</span>
-                <Button variant="ghost" size="sm" onClick={() => { abort.current?.abort(); setProgress(null); }}>{t.stop}</Button>
-              </>
-            )}
+            {busy && <Button variant="ghost" size="sm" onClick={() => { stop.current = true; }}>{t.stop}</Button>}
           </div>
+          {status && (
+            <div role="status" className="flex flex-col gap-2 text-sm text-muted">
+              <span>{status}</span>
+              {download && (
+                <div className="h-1.5 overflow-hidden rounded-full bg-surface-2">
+                  <div className="h-full rounded-full bg-accent transition-[width]" style={{ width: `${Math.min(100, Math.round((download.loaded / download.total) * 100))}%` }} />
+                </div>
+              )}
+            </div>
+          )}
           {error && <StatusMessage tone="error">{error}</StatusMessage>}
         </Panel>
         <Panel
@@ -176,20 +198,19 @@ export default function TextTranslator() {
                   <Icon name="arrow-up-down" size={16} />
                 </Button>
                 <CopyButton value={current.text} label={t.copy} />
-                <DownloadButton filename={`translation-${target}.txt`} getBlob={() => new Blob([current.text], { type: "text/plain;charset=utf-8" })} label={t.download} />
+                <DownloadButton filename={`translation-${target}.txt`} getBlob={() => new Blob([current.text], { type: "text/plain;charset=utf-8" })} label={t.save} />
               </>
             )
           }
         >
-          {busy && !result && <Spinner label={t.translating(progress.done, progress.total)} />}
-          {!busy && !result && <IdleHint>{configured === false ? t.idleOff : t.idle}</IdleHint>}
+          {!result && <IdleHint>{t.idle}</IdleHint>}
           {result && (
             <div aria-live="polite">
               {!current ? (
                 <p className="text-sm text-muted">{t.stale}</p>
               ) : (
                 <>
-                  <p dir={rtl ? "rtl" : "ltr"} lang={target} data-testid="translation" className="whitespace-pre-wrap text-base leading-relaxed">{current.text}</p>
+                  <p dir={target === "ar" ? "rtl" : "ltr"} lang={target} data-testid="translation" className="whitespace-pre-wrap text-base leading-relaxed">{current.text}</p>
                   <p className="mt-4 text-sm text-muted">{t.machine}</p>
                 </>
               )}

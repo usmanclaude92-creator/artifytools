@@ -1,70 +1,59 @@
 import { expect, test, type Page } from "@playwright/test";
 
-async function mockAi(page: Page, configured = true) {
-  await page.route("**/api/ai/status", (r) => r.fulfill({ json: { configured } }));
-  await page.route("**/api/ai/translate", async (r) => {
-    const { segments, target } = r.request().postDataJSON() as { segments: string[]; target: string };
-    await r.fulfill({ json: { segments: segments.map((s) => `[${target}] ${s}`) } });
-  });
-}
-
 // Wait for hydration so fills aren't lost to a pre-hydration race.
 async function open(page: Page, path: string) {
   await page.goto(path);
   await page.waitForLoadState("networkidle");
 }
 
-test("Text Translator is a beta page, kept out of the sitemap", async ({ page, request }) => {
+test("Text Translator is a beta page, kept out of the sitemap, and works without any key", async ({ page, request }) => {
   await page.goto("/tools/text-translator");
   expect(await page.locator('meta[name="robots"]').getAttribute("content")).toContain("noindex");
   expect(await (await request.get("/sitemap.xml")).text()).not.toContain("text-translator");
+  await expect(page.getByText("translated on this device and never uploaded")).toBeVisible();
+  await expect(page.getByText("isn't switched on")).toHaveCount(0);
 });
 
-test("translates text line by line, suggests Arabic for English, and swaps back", async ({ page }) => {
-  await mockAi(page);
+test("suggests the direction from the text and warns when it doesn't match", async ({ page }) => {
   await open(page, "/tools/text-translator");
-  const input = page.getByRole("textbox");
-  await input.fill("Hello there\n\nSecond line");
-  await expect(page.getByLabel("Translate into")).toHaveValue("ar");
-  await page.getByRole("button", { name: "Translate", exact: true }).click();
-  const out = page.getByTestId("translation");
-  await expect(out).toHaveText("[ar] Hello there\n\n[ar] Second line");
-  await expect(out).toHaveAttribute("dir", "rtl");
-  await page.getByRole("button", { name: /Swap/ }).click();
-  await expect(input).toHaveValue("[ar] Hello there\n\n[ar] Second line");
-  await expect(page.getByTestId("translation")).toHaveCount(0);
-});
-
-test("suggests English for Arabic text and warns when text is already in the target language", async ({ page }) => {
-  await mockAi(page);
-  await open(page, "/tools/text-translator");
+  const direction = page.getByLabel("Translate", { exact: true });
+  await page.getByRole("textbox").fill("Good morning");
+  await expect(direction).toHaveValue("en-ar");
   await page.getByRole("textbox").fill("مرحبا بكم");
-  await expect(page.getByLabel("Translate into")).toHaveValue("en");
-  await page.getByLabel("Translate into").selectOption("ar");
-  await expect(page.getByText("already looks like it is in the target language")).toBeVisible();
+  await expect(direction).toHaveValue("ar-en");
+  await direction.selectOption("en-ar");
+  await expect(page.getByText("doesn't look like the language you chose")).toBeVisible();
 });
 
-test("shows an error when the provider fails, and stays off when not configured", async ({ page }) => {
-  await page.route("**/api/ai/status", (r) => r.fulfill({ json: { configured: true } }));
-  await page.route("**/api/ai/translate", (r) => r.fulfill({ status: 429, json: { error: "rate_limited", message: "Too many requests. Please wait a moment and try again." } }));
+test("never sends the text anywhere, and reports a failed model download", async ({ page }) => {
+  const posts: string[] = [];
+  page.on("request", (r) => r.method() === "POST" && posts.push(r.url()));
+  await page.route("https://huggingface.co/**", (r) => r.abort());
   await open(page, "/tools/text-translator");
-  await page.getByRole("textbox").fill("Hello");
+  await page.getByRole("textbox").fill("Hello there");
   await page.getByRole("button", { name: "Translate", exact: true }).click();
-  await expect(page.getByText("Too many requests")).toBeVisible();
-
-  await mockAi(page, false);
-  await page.reload();
-  await page.waitForLoadState("networkidle");
-  await expect(page.getByText("isn't switched on yet")).toBeVisible();
-  await page.getByRole("textbox").fill("Hello");
-  await expect(page.getByRole("button", { name: "Translate", exact: true })).toBeDisabled();
+  await expect(page.getByText("Translation failed")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Translate", exact: true })).toBeEnabled();
+  expect(posts.filter((u) => u.includes("/api/"))).toEqual([]);
 });
 
-test("Arabic page works right-to-left", async ({ page }) => {
-  await mockAi(page);
+test("Arabic page is right-to-left with Arabic labels", async ({ page }) => {
   await open(page, "/ar/tools/text-translator");
   await expect(page.locator("h1")).toHaveText("مترجم النصوص");
   await page.getByRole("textbox").fill("Good morning");
-  await page.getByRole("button", { name: "ترجمة", exact: true }).click();
-  await expect(page.getByTestId("translation")).toHaveText("[ar] Good morning");
+  await expect(page.locator("select")).toHaveValue("en-ar");
+});
+
+// Downloads the real models (about 118 MB per direction), so it only runs on request: RUN_MODEL_TESTS=1.
+test("translates English to Arabic and swaps back, with the real model", async ({ page }) => {
+  test.skip(!process.env.RUN_MODEL_TESTS, "downloads the translation model");
+  test.setTimeout(240_000);
+  await open(page, "/tools/text-translator");
+  await page.getByRole("textbox").fill("Good morning.\n\nHow are you today?");
+  await page.getByRole("button", { name: "Translate", exact: true }).click();
+  const out = page.getByTestId("translation");
+  await expect(out).toContainText("صباح", { timeout: 200_000 });
+  await expect(out).toHaveAttribute("dir", "rtl");
+  await page.getByRole("button", { name: /Swap/ }).click();
+  await expect(page.getByLabel("Translate", { exact: true })).toHaveValue("ar-en");
 });

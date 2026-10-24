@@ -1,14 +1,18 @@
-/** Pure helpers for the text translator: line handling, script detection and default target (unit-tested). */
-import type { TranslateLanguage } from "@/lib/ai/types";
+/** Pure helpers for the text translator: line and sentence handling, and language detection (unit-tested). */
+import { splitLong } from "@/lib/translate/chunks";
+import type { LocalLanguage } from "@/lib/translate/local";
 
-export const MAX_TEXT_CHARS = 20_000;
+/** Translation runs on the device, so the limit keeps a single run to a sensible time. */
+export const MAX_TEXT_CHARS = 10_000;
+/** Longest piece handed to the model at once; the models are trained on sentences. */
+const PIECE_CHARS = 350;
 
 export interface Lines {
   /** The original lines, so blank lines and spacing can be put back after translating. */
   lines: string[];
   /** Index into `lines` for every line that has text, in order. */
   indexes: number[];
-  /** The text of those lines, trimmed. This is what gets translated. */
+  /** The text of those lines, trimmed. */
   segments: string[];
 }
 
@@ -35,6 +39,15 @@ export function joinLines(parts: Lines, translated: string[]): string {
   return out.join("\n");
 }
 
+/** Splits one line into sentences (and cuts any very long one), the unit the model translates best. */
+export function toPieces(segment: string): string[] {
+  return segment
+    .split(/(?<=[.!?؟۔。])\s+/u)
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .flatMap((s) => splitLong(s, PIECE_CHARS));
+}
+
 const ARABIC_SCRIPT = /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/g;
 const LATIN_SCRIPT = /[A-Za-zÀ-ɏ]/g;
 
@@ -46,19 +59,10 @@ export function detectScript(text: string): "arabic" | "latin" | "other" {
   return arabic >= latin ? "arabic" : "latin";
 }
 
-/** Arabic text is most often translated into English, and anything else into Arabic. */
-export function defaultTarget(text: string, fallback: TranslateLanguage): TranslateLanguage {
+/** The language to translate from: Arabic script means Arabic, Latin letters mean English. */
+export function detectSource(text: string, fallback: LocalLanguage): LocalLanguage {
   const script = detectScript(text);
-  if (script === "arabic") return "en";
-  if (script === "latin") return "ar";
+  if (script === "arabic") return "ar";
+  if (script === "latin") return "en";
   return fallback;
-}
-
-/** Same language as the chosen target (by script only), so we can warn instead of "translating" it. */
-export function looksLikeTarget(text: string, target: TranslateLanguage): boolean {
-  const script = detectScript(text);
-  if (script === "other") return false;
-  if (target === "ar" || target === "fa" || target === "ur") return script === "arabic";
-  if (target === "en") return script === "latin" && !/[^\x00-\x7F]/.test(text.replace(/[‘-‟–—… ]/g, ""));
-  return false;
 }

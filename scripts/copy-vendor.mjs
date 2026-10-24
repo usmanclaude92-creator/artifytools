@@ -25,3 +25,8 @@ for (const lang of ["eng", "ara"]) copyFileSync(nm(`@tesseract.js-data/${lang}/4
 // ONNX Runtime Web (background removal): one engine with WebGPU and a WebAssembly fallback.
 const ort = dir(`ort-${version("onnxruntime-web")}`);
 for (const f of ["ort-wasm-simd-threaded.jsep.mjs", "ort-wasm-simd-threaded.jsep.wasm"]) copyFileSync(nm(`onnxruntime-web/dist/${f}`), new URL(f, ort));
+
+// Transformers.js (text translator): the ONNX Runtime WebAssembly engine it ships with, served from our own domain.
+const hf = dir(`transformers-${version("@huggingface/transformers")}`);
+const hfOrt = (f) => nm(`@huggingface/transformers/node_modules/onnxruntime-web/dist/${f}`);
+for (const f of ["ort-wasm-simd-threaded.asyncify.mjs", "ort-wasm-simd-threaded.asyncify.wasm"]) copyFileSync(hfOrt(f), new URL(f, hf));
