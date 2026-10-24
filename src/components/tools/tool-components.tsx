@@ -50,6 +50,7 @@ const components: Record<string, ComponentType> = {
   "word-to-pdf": load(() => import("@/tools/word-to-pdf/ui")),
   "image-to-text": load(() => import("@/tools/image-to-text/ui")),
   "translate-pdf": load(() => import("@/tools/translate-pdf/ui")),
+  "text-translator": load(() => import("@/tools/text-translator/ui")),
   "remove-background": load(() => import("@/tools/remove-background/ui")),
   "excel-to-pdf": load(() => import("@/tools/excel-to-pdf/ui")),
   "pdf-to-excel": load(() => import("@/tools/pdf-to-excel/ui")),

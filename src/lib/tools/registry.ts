@@ -50,6 +50,7 @@ import { meta as bankStatementConverter } from "@/tools/bank-statement-converter
 import { meta as signPdf } from "@/tools/sign-pdf/meta";
 import { meta as editPdf } from "@/tools/edit-pdf/meta";
 import { meta as imageConverter } from "@/tools/image-converter/meta";
+import { meta as textTranslator } from "@/tools/text-translator/meta";
 
 /**
  * Single source of truth for every tool. Directory cards, categories, search,
@@ -92,6 +93,7 @@ export const tools: readonly ToolDefinition[] = [
   wordToPdf,
   imageToText,
   translatePdf,
+  textTranslator,
   removeBackground,
   excelToPdf,
   pdfToExcel,

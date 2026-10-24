@@ -43,6 +43,7 @@ import { metaAr as editPdf } from "@/tools/edit-pdf/meta.ar";
 import { metaAr as imageConverter } from "@/tools/image-converter/meta.ar";
 import { metaAr as pdfToWord } from "@/tools/pdf-to-word/meta.ar";
 import { metaAr as resizeImage } from "@/tools/resize-image/meta.ar";
+import { metaAr as textTranslator } from "@/tools/text-translator/meta.ar";
 
 /** Arabic text for each tool, keyed by tool id. Tools missing here are shown in English. */
 export const toolTranslationsAr: Record<string, ToolTranslation> = {
@@ -76,6 +77,7 @@ export const toolTranslationsAr: Record<string, ToolTranslation> = {
   "word-to-pdf": wordToPdf,
   "image-to-text": imageToText,
   "translate-pdf": translatePdf,
+  "text-translator": textTranslator,
   "remove-background": removeBackground,
   "excel-to-pdf": excelToPdf,
   "pdf-to-excel": pdfToExcel,
