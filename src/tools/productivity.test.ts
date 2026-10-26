@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { activeSets, estimateEntropy, generatePassword, secureRandomInt, strengthLabel } from "./password-generator/logic";
-import { dateDifference, parseIsoDate, fromDayNumber, toDayNumber, weekdayName } from "./date-difference/logic";
+import { dateDifference, parseIsoDate, fromDayNumber, toDayNumber, weekdayName, shiftDate } from "./date-difference/logic";
 import { qrContrastWarning, validateQrInput } from "./qr-code-generator/logic";
 
 const base = { length: 16, lowercase: true, uppercase: true, digits: true, symbols: true, excludeAmbiguous: false };
@@ -109,5 +109,47 @@ describe("QR helpers", () => {
     expect(qrContrastWarning("#000000", "#ffffff")).toBeNull();
     expect(qrContrastWarning("#cccccc", "#ffffff")).toMatch(/Low contrast/);
     expect(qrContrastWarning("#ffffff", "#000000")).toMatch(/inverted/);
+  });
+});
+
+describe("date add and subtract", () => {
+  const iso = (start: string, dir: "add" | "subtract", y = "", m = "", d = "") => {
+    const r = shiftDate(start, dir, y, m, d);
+    if (!r.ok) throw new Error(r.error);
+    return r.result.iso;
+  };
+  it("adds and subtracts days across month, year and leap-day boundaries", () => {
+    expect(iso("2024-02-28", "add", "", "", "2")).toBe("2024-03-01");
+    expect(iso("2023-02-28", "add", "", "", "2")).toBe("2023-03-02");
+    expect(iso("2024-01-01", "subtract", "", "", "1")).toBe("2023-12-31");
+    expect(iso("2026-10-26", "add", "", "", "100")).toBe("2027-02-03");
+  });
+  it("clamps to the last day of a shorter month", () => {
+    expect(iso("2024-01-31", "add", "", "1")).toBe("2024-02-29");
+    expect(iso("2023-01-31", "add", "", "1")).toBe("2023-02-28");
+    expect(iso("2024-03-31", "subtract", "", "1")).toBe("2024-02-29");
+    expect(iso("2024-02-29", "add", "1")).toBe("2025-02-28");
+  });
+  it("moves years and months first, then days", () => {
+    expect(iso("2020-01-15", "add", "4", "2", "5")).toBe("2024-03-20");
+    expect(iso("2024-03-20", "subtract", "4", "2", "5")).toBe("2020-01-15");
+    expect(iso("2024-05-10", "add", "1", "14", "")).toBe("2026-07-10");
+  });
+  it("reports the weekday and the day count", () => {
+    const r = shiftDate("2026-10-26", "add", "", "", "7");
+    expect(r.ok && r.result.weekday).toBe("Monday");
+    expect(r.ok && r.result.totalDays).toBe(7);
+    const back = shiftDate("2026-10-26", "subtract", "", "", "7");
+    expect(back.ok && back.result.totalDays).toBe(-7);
+  });
+  it("treats empty boxes as zero and rejects bad input", () => {
+    expect(iso("2026-10-26", "add")).toBe("2026-10-26");
+    expect(shiftDate("", "add", "1", "", "").ok).toBe(false);
+    expect(shiftDate("2023-02-30", "add", "1", "", "").ok).toBe(false);
+    expect(shiftDate("2026-10-26", "add", "-1", "", "").ok).toBe(false);
+    expect(shiftDate("2026-10-26", "add", "1.5", "", "").ok).toBe(false);
+    expect(shiftDate("2026-10-26", "add", "", "", "2000000").ok).toBe(false);
+    expect(shiftDate("9999-12-31", "add", "", "", "1").ok).toBe(false);
+    expect(shiftDate("0001-01-01", "subtract", "", "", "1").ok).toBe(false);
   });
 });

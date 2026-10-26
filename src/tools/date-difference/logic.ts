@@ -124,3 +124,48 @@ export function dateDifference(startRaw: string, endRaw: string, includeEndDay =
     },
   };
 }
+
+export type Direction = "add" | "subtract";
+
+export interface ShiftedDate {
+  date: Ymd;
+  iso: string;
+  weekday: string;
+  /** Calendar days from the start date to the result (negative when going back). */
+  totalDays: number;
+}
+
+export type ShiftOutcome = { ok: true; result: ShiftedDate } | { ok: false; error: string };
+
+const MAX_AMOUNT = 1_000_000;
+
+/** An empty box counts as 0. Only whole, non-negative numbers are accepted. */
+export function parseAmount(raw: string): number | null {
+  const t = raw.trim();
+  if (t === "") return 0;
+  if (!/^\d+$/.test(t)) return null;
+  const n = Number(t);
+  return n <= MAX_AMOUNT ? n : null;
+}
+
+export const formatIso = ({ y, m, d }: Ymd) => `${String(y).padStart(4, "0")}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+
+/**
+ * Adds or subtracts years, months and days. Years and months move first, keeping the day of the month
+ * (clamped to the last day of a shorter month: 31 Jan + 1 month = 28/29 Feb), then days are counted.
+ */
+export function shiftDate(startRaw: string, direction: Direction, yearsRaw: string, monthsRaw: string, daysRaw: string): ShiftOutcome {
+  if (!startRaw.trim()) return { ok: false, error: "Choose a start date." };
+  const start = parseIsoDate(startRaw);
+  if (!start) return { ok: false, error: "The start date isn't a valid date (use YYYY-MM-DD)." };
+  const years = parseAmount(yearsRaw);
+  const months = parseAmount(monthsRaw);
+  const days = parseAmount(daysRaw);
+  if (years === null || months === null || days === null) return { ok: false, error: "Enter whole numbers of years, months and days (0 to 1,000,000)." };
+
+  const sign = direction === "add" ? 1 : -1;
+  const moved = addMonths(start, sign * (years * 12 + months));
+  const date = fromDayNumber(toDayNumber(moved) + sign * days);
+  if (date.y < 1 || date.y > 9999) return { ok: false, error: "The result is outside the supported years (1 to 9999)." };
+  return { ok: true, result: { date, iso: formatIso(date), weekday: weekdayName(date), totalDays: toDayNumber(date) - toDayNumber(start) } };
+}
