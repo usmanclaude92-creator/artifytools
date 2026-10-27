@@ -495,21 +495,14 @@ export default function OrganizePdf() {
               <span className="text-sm text-muted">{t.kept(items.length, totalPages)}</span>
               <Button variant="ghost" size="sm" disabled={unchanged} onClick={reset}>{t.reset}</Button>
               <Button variant="ghost" size="sm" onClick={clearAll}>{t.clearAll}</Button>
-            </div>
-          }
-        >
-          <p className="text-sm text-muted">{t.hint}</p>
-          {truncated && <StatusMessage tone="info">{t.many(MAX_PAGES)}</StatusMessage>}
-          {items.length === 0 && <StatusMessage tone="info">{t.empty}</StatusMessage>}
-
-          <div className="flex items-center gap-2 self-start rounded-full border border-line bg-surface-2 px-2 py-1 shadow-sm">
+          <div className="flex items-center gap-1.5 rounded-full border border-line bg-surface-2 px-2 py-1 shadow-sm">
             <button type="button" aria-label={t.zoomOut} disabled={zoom <= ZOOM_MIN} onClick={() => changeZoom(zoom - ZOOM_STEP * 2)} className="grid size-8 place-items-center rounded-full text-muted transition-colors hover:bg-surface hover:text-fg disabled:opacity-40">
               <span aria-hidden="true" className="block h-0.5 w-3.5 rounded bg-current" />
             </button>
             <input
               id="organize-zoom"
               type="range"
-              className="zoom-range w-36 sm:w-52"
+              className="zoom-range w-24 sm:w-36"
               min={ZOOM_MIN}
               max={ZOOM_MAX}
               step={ZOOM_STEP}
@@ -523,6 +516,12 @@ export default function OrganizePdf() {
             </button>
             <span className="min-w-10 text-end text-xs font-medium tabular-nums text-muted" aria-hidden="true">{Math.round((zoom / ZOOM_DEFAULT) * 100)}%</span>
           </div>
+            </div>
+          }
+        >
+          <p className="text-sm text-muted">{t.hint}</p>
+          {truncated && <StatusMessage tone="info">{t.many(MAX_PAGES)}</StatusMessage>}
+          {items.length === 0 && <StatusMessage tone="info">{t.empty}</StatusMessage>}
 
           <ul className="grid items-start gap-3" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(min(${zoom}px, 100%), ${zoom}px))` }}>
             {items.map((it, i) => (
