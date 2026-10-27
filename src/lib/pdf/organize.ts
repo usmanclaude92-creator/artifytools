@@ -8,21 +8,34 @@ export interface OrganizedPage {
   turn: number;
 }
 
-export async function organizePdf(bytes: Uint8Array, pages: OrganizedPage[], onProgress?: (fraction: number) => void): Promise<Uint8Array> {
+/** A page taken from one of several source PDFs; `file` is the index into the list of inputs. */
+export interface OrganizedFilePage extends OrganizedPage {
+  file: number;
+}
+
+/** Builds one PDF from pages of one or more source PDFs, in the order given. */
+export async function organizePdfs(inputs: Uint8Array[], pages: OrganizedFilePage[], onProgress?: (fraction: number) => void): Promise<Uint8Array> {
   if (pages.length === 0) throw new Error("No pages to keep.");
   const { PDFDocument, degrees } = await lib();
-  const src = await open(bytes);
-  const total = src.getPageCount();
-  if (pages.some((p) => !Number.isInteger(p.source) || p.source < 1 || p.source > total)) throw new Error("Page out of range.");
+  const sources = await Promise.all(inputs.map((bytes) => open(bytes)));
+  for (const p of pages) {
+    const src = sources[p.file];
+    if (!src || !Number.isInteger(p.source) || p.source < 1 || p.source > src.getPageCount()) throw new Error("Page out of range.");
+  }
   const out = await PDFDocument.create();
-  const copied = await out.copyPages(src, pages.map((p) => p.source - 1));
-  copied.forEach((page, i) => {
-    const turn = pages[i]!.turn;
-    if (turn % 360) page.setRotation(degrees((((page.getRotation().angle + turn) % 360) + 360) % 360));
-    out.addPage(page);
-    onProgress?.((i + 1) / copied.length);
-  });
+  for (let i = 0; i < pages.length; i++) {
+    const p = pages[i]!;
+    const [page] = await out.copyPages(sources[p.file]!, [p.source - 1]);
+    if (p.turn % 360) page!.setRotation(degrees((((page!.getRotation().angle + p.turn) % 360) + 360) % 360));
+    out.addPage(page!);
+    onProgress?.((i + 1) / pages.length);
+  }
   return finish(out);
+}
+
+/** Rebuilds one PDF from a list of its own pages: any order, any subset, with extra rotation. */
+export function organizePdf(bytes: Uint8Array, pages: OrganizedPage[], onProgress?: (fraction: number) => void): Promise<Uint8Array> {
+  return organizePdfs([bytes], pages.map((p) => ({ ...p, file: 0 })), onProgress);
 }
 
 /** Moves the item at `from` to position `to` (both clamped to the list). */

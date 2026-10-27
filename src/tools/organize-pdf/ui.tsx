@@ -1,23 +1,24 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { SingleFile } from "@/components/files";
+import { FileDropZone } from "@/components/files";
 import { Panel } from "@/components/tools/parts";
 import { Button } from "@/components/ui/button";
 import { DownloadButton } from "@/components/ui/actions";
 import { StatusMessage } from "@/components/ui/feedback";
 import { Icon } from "@/components/ui/icon";
-import { useLocale } from "@/components/i18n/locale-provider";
+import { useLocale, useMessages } from "@/components/i18n/locale-provider";
 import { arCount } from "@/lib/messages";
+import { acceptAttribute, formatBytes, validateFiles, type Rejection } from "@/lib/files";
 import { baseName, safeFileName } from "@/lib/files/names";
-import { moveItem, organizePdf } from "@/lib/pdf/organize";
+import { moveItem, organizePdfs } from "@/lib/pdf/organize";
 import { inspectPdf, PdfError, type PdfErrorCode } from "@/lib/pdf/pdf";
 import { openPdf, renderPage, type RenderedDoc } from "@/lib/pdf/render";
 import { fileRulesFor } from "@/lib/tools/file-spec";
 import { meta } from "./meta";
 
 const rules = fileRulesFor(meta.files!);
-const MAX_THUMBS = 300;
+const MAX_PAGES = 300; // across all files
 const THUMB_DPI = 48;
 const PREVIEW_DPI = 110;
 const ZOOM_MIN = 90;
@@ -33,6 +34,8 @@ const SLOP = { mouse: 6, touch: 10 };
 const strings = {
   en: {
     choose: "Choose a PDF", types: "PDF", pages: (n: number) => `${n} page${n === 1 ? "" : "s"}`, reading: "Reading your PDF…",
+    clearAll: "Clear all", replace: "Replace File", addMore: "Add More Files", removeFile: (name: string) => `Remove ${name}`, filesTitle: "Your files", pageOf: (n: number, name: string) => `Page ${n} of ${name}`, shortPage: (n: number, f: number) => `File ${f} · Page ${n}`,
+    badFile: (name: string) => `“${name}” couldn't be read as a PDF, so it wasn't added.`, lockedFile: (name: string) => `“${name}” is password-protected, so it wasn't added. Unlock it first.`,
     pagesTitle: "Pages", hint: "Click a page to preview it. Press and hold, or drag, to move it. Delete what you don't need and rotate any sideways page.",
     kept: (k: number, n: number) => `${k} of ${n} pages kept`, reset: "Reset",
     zoom: "Thumbnail size", zoomOut: "Smaller thumbnails", zoomIn: "Larger thumbnails",
@@ -40,12 +43,14 @@ const strings = {
     drag: (n: number) => `Drag page ${n} to reorder`, earlier: (n: number) => `Move page ${n} earlier`, later: (n: number) => `Move page ${n} later`, left: (n: number) => `Rotate page ${n} left`, right: (n: number) => `Rotate page ${n} right`,
     remove: (n: number) => `Delete page ${n}`, page: (n: number) => `Page ${n}`,
     save: "Save organized PDF", saving: "Saving…", nothing: "Reorder, delete or rotate a page first.", empty: "Every page is deleted. Press Reset to bring them back.",
-    many: (n: number) => `Only the first ${n} pages can be organized here. Split the PDF first for longer documents.`,
+    many: (n: number) => `Only ${n} pages can be organized at once, so some pages weren't added. Split a long PDF first.`,
     errors: { encrypted: "This PDF is password-protected. Unlock it first, then choose it again.", invalid: "This file couldn't be read as a PDF. It may be damaged." } as Record<PdfErrorCode, string>,
     failed: "Saving failed. The file may be damaged.",
   },
   ar: {
     choose: "اختر ملف PDF", types: "PDF", pages: (n: number) => arCount(n, "صفحة واحدة", "صفحتان", "صفحات", "صفحة"), reading: "جارٍ قراءة ملف PDF…",
+    clearAll: "مسح الكل", replace: "استبدال الملف", addMore: "إضافة ملفات أخرى", removeFile: (name: string) => `إزالة ${name}`, filesTitle: "ملفاتك", pageOf: (n: number, name: string) => `الصفحة ${n} من ${name}`, shortPage: (n: number, f: number) => `الملف ${f} · الصفحة ${n}`,
+    badFile: (name: string) => `تعذّرت قراءة «${name}» كملف PDF، فلم يُضف.`, lockedFile: (name: string) => `«${name}» محمي بكلمة مرور، فلم يُضف. فك حمايته أولًا.`,
     pagesTitle: "الصفحات", hint: "انقر على صفحة لمعاينتها. اضغط مطولًا أو اسحب لنقلها. احذف ما لا تحتاجه ودوّر أي صفحة مائلة.",
     kept: (k: number, n: number) => `${k} من ${n} صفحة محتفظ بها`, reset: "إعادة ضبط",
     zoom: "حجم المصغّرات", zoomOut: "مصغّرات أصغر", zoomIn: "مصغّرات أكبر",
@@ -53,13 +58,14 @@ const strings = {
     drag: (n: number) => `اسحب الصفحة ${n} لإعادة ترتيبها`, earlier: (n: number) => `تقديم الصفحة ${n}`, later: (n: number) => `تأخير الصفحة ${n}`, left: (n: number) => `تدوير الصفحة ${n} لليسار`, right: (n: number) => `تدوير الصفحة ${n} لليمين`,
     remove: (n: number) => `حذف الصفحة ${n}`, page: (n: number) => `الصفحة ${n}`,
     save: "حفظ الملف بعد التنظيم", saving: "جارٍ الحفظ…", nothing: "رتّب صفحة أو احذفها أو دوّرها أولًا.", empty: "حُذفت كل الصفحات. اضغط «إعادة ضبط» لاسترجاعها.",
-    many: (n: number) => `يمكن تنظيم أول ${n} صفحة فقط هنا. قسّم الملف أولًا للمستندات الأطول.`,
+    many: (n: number) => `يمكن تنظيم ${n} صفحة فقط في المرة الواحدة، لذلك لم تُضف بعض الصفحات. قسّم الملف الطويل أولًا.`,
     errors: { encrypted: "هذا الملف محمي بكلمة مرور. فك حمايته أولًا ثم اختره مجددًا.", invalid: "تعذّرت قراءة هذا الملف كملف PDF، وقد يكون تالفًا." } as Record<PdfErrorCode, string>,
     failed: "فشل الحفظ. قد يكون الملف تالفًا.",
   },
 };
 
-interface Item { source: number; turn: number }
+interface Item { doc: number; source: number; turn: number }
+interface Doc { id: number; file: File; bytes: Uint8Array; pageCount: number }
 interface Size { w: number; h: number }
 
 /** The thumbnail size remembered from the last visit. */
@@ -108,11 +114,10 @@ function PageImage({ src, size, turn, alt, maxHeight }: { src?: string; size?: S
 export default function OrganizePdf() {
   const locale = useLocale();
   const t = strings[locale];
-  const [file, setFile] = useState<File | null>(null);
-  const [bytes, setBytes] = useState<Uint8Array | null>(null);
-  const [count, setCount] = useState(0);
-  const [thumbs, setThumbs] = useState<string[]>([]);
-  const [sizes, setSizes] = useState<Size[]>([]);
+  const fm = useMessages().files;
+  const [docs, setDocs] = useState<Doc[]>([]);
+  const [thumbs, setThumbs] = useState<Record<string, string>>({});
+  const [sizes, setSizes] = useState<Record<string, Size>>({});
   const [items, setItems] = useState<Item[]>([]);
   // The size controls only appear after a file is chosen, so reading the saved size up front can't cause a hydration mismatch.
   const [zoom, setZoom] = useState(readZoom);
@@ -120,17 +125,24 @@ export default function OrganizePdf() {
   const [overIndex, setOverIndex] = useState<number | null>(null);
   const [ghost, setGhost] = useState<{ x: number; y: number } | null>(null);
   const [previewAt, setPreviewAt] = useState<number | null>(null);
-  const [previewImg, setPreviewImg] = useState<{ source: number; url: string } | null>(null);
+  const [previewImg, setPreviewImg] = useState<{ key: string; url: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [rejections, setRejections] = useState<Rejection<File>[]>([]);
+  const [truncated, setTruncated] = useState(false);
+  const [reading, setReading] = useState(false);
   const [result, setResult] = useState<{ key: string; blob: Blob } | null>(null);
   const [busy, setBusy] = useState(false);
-  const urls = useRef<string[]>([]);
-  const job = useRef(0);
+  const urls = useRef<Map<string, string>>(new Map());
+  const pdfs = useRef<Map<number, RenderedDoc>>(new Map());
+  const generation = useRef(0); // bumped whenever the whole set is replaced, which cancels in-flight thumbnail work
+  const nextId = useRef(1);
+  const pageTotal = useRef(0);
   const over = useRef<number | null>(null);
   const pointerY = useRef(0);
   const justOpened = useRef(false);
-  const doc = useRef<RenderedDoc | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
+  const replaceInput = useRef<HTMLInputElement>(null);
+  const addInput = useRef<HTMLInputElement>(null);
   const previewJob = useRef(0);
   const previewUrl = useRef<string | null>(null);
 
@@ -140,60 +152,135 @@ export default function OrganizePdf() {
     try { localStorage.setItem(ZOOM_KEY, String(next)); } catch { /* storage unavailable */ }
   };
 
-  const releaseDoc = () => {
-    void doc.current?.destroy();
-    doc.current = null;
-  };
-  const clearThumbs = () => {
-    urls.current.forEach((u) => URL.revokeObjectURL(u));
-    urls.current = [];
-    setThumbs([]);
-    setSizes([]);
+  const forget = (id?: number) => {
+    // Free the thumbnails and the open PDF of one file, or of every file.
+    for (const [key, u] of [...urls.current]) {
+      if (id === undefined || key.startsWith(`${id}:`)) { URL.revokeObjectURL(u); urls.current.delete(key); }
+    }
+    for (const [docId, d] of [...pdfs.current]) {
+      if (id === undefined || docId === id) { void d.destroy(); pdfs.current.delete(docId); }
+    }
   };
   useEffect(() => () => {
-    urls.current.forEach((u) => URL.revokeObjectURL(u));
+    const u = urls.current;
+    const p = pdfs.current;
+    u.forEach((x) => URL.revokeObjectURL(x));
+    p.forEach((d) => void d.destroy());
     if (previewUrl.current) URL.revokeObjectURL(previewUrl.current);
-    void doc.current?.destroy();
   }, []);
 
-  const fresh = (n: number): Item[] => Array.from({ length: Math.min(n, MAX_THUMBS) }, (_, i) => ({ source: i + 1, turn: 0 }));
+  const key = (it: { doc: number; source: number }) => `${it.doc}:${it.source}`;
+  const freshItems = (list: Doc[], limit = MAX_PAGES): Item[] => {
+    const out: Item[] = [];
+    for (const d of list) for (let p = 1; p <= d.pageCount && out.length < limit; p++) out.push({ doc: d.id, source: p, turn: 0 });
+    return out;
+  };
 
-  async function open(f: File) {
-    const id = ++job.current;
-    clearThumbs();
-    releaseDoc();
-    closePreview();
-    setFile(f);
-    setBytes(null);
+  async function readFiles(files: File[], replace: boolean) {
+    const id = replace ? ++generation.current : generation.current;
+    if (replace) {
+      forget();
+      closePreview();
+      setDocs([]);
+      setItems([]);
+      setThumbs({});
+      setSizes({});
+      pageTotal.current = 0;
+    }
     setError(null);
     setResult(null);
-    try {
-      const b = new Uint8Array(await f.arrayBuffer());
-      const info = await inspectPdf(b);
-      setBytes(b);
-      setCount(info.pageCount);
-      setItems(fresh(info.pageCount));
-      const d = await openPdf(b);
-      if (job.current !== id) { void d.destroy(); return; }
-      doc.current = d;
-      for (let p = 1; p <= Math.min(d.numPages, MAX_THUMBS); p++) {
-        if (job.current !== id) break;
-        const r = await renderPage(d, p, { dpi: THUMB_DPI, format: "jpg", quality: 0.75 });
-        const u = URL.createObjectURL(r.blob);
-        urls.current.push(u);
-        setThumbs((x) => [...x, u]);
-        setSizes((x) => [...x, { w: r.width, h: r.height }]);
+    setTruncated(false);
+    setReading(true);
+    const added: Doc[] = [];
+    let cut = false;
+    for (const f of files) {
+      if (generation.current !== id) return;
+      try {
+        const bytes = new Uint8Array(await f.arrayBuffer());
+        const info = await inspectPdf(bytes);
+        const room = MAX_PAGES - pageTotal.current;
+        if (room <= 0) { cut = true; continue; }
+        const used = Math.min(info.pageCount, room);
+        if (used < info.pageCount) cut = true;
+        const doc: Doc = { id: nextId.current++, file: f, bytes, pageCount: used };
+        pageTotal.current += used;
+        added.push(doc);
+        setDocs((x) => [...x, doc]);
+        setItems((x) => [...x, ...freshItems([doc])]);
+      } catch (e) {
+        const name = `⁨${f.name}⁩`;
+        setError(e instanceof PdfError && e.code === "encrypted" ? t.lockedFile(name) : t.badFile(name));
       }
-    } catch (e) {
-      setError(e instanceof PdfError ? t.errors[e.code] : t.errors.invalid);
+    }
+    setTruncated(cut);
+    setReading(false);
+    // Thumbnails fill in file by file, page by page, so the grid is usable straight away.
+    for (const doc of added) {
+      if (generation.current !== id) return;
+      try {
+        const d = await openPdf(doc.bytes);
+        if (generation.current !== id) { void d.destroy(); return; }
+        pdfs.current.set(doc.id, d);
+        for (let p = 1; p <= doc.pageCount; p++) {
+          if (generation.current !== id || !pdfs.current.has(doc.id)) break;
+          const r = await renderPage(d, p, { dpi: THUMB_DPI, format: "jpg", quality: 0.75 });
+          if (!pdfs.current.has(doc.id)) break; // the file was removed meanwhile
+          const k = `${doc.id}:${p}`;
+          const u = URL.createObjectURL(r.blob);
+          urls.current.set(k, u);
+          setThumbs((x) => ({ ...x, [k]: u }));
+          setSizes((x) => ({ ...x, [k]: { w: r.width, h: r.height } }));
+        }
+      } catch {
+        setError(t.errors.invalid);
+      }
     }
   }
 
-  const shown = Math.min(count, MAX_THUMBS);
+  const pick = (list: FileList | null, replace: boolean) => {
+    const files = Array.from(list ?? []);
+    if (files.length === 0) return;
+    // A replacement starts from nothing, so the limits are checked against no existing files.
+    const existing = replace ? [] : docs.map((d) => d.file);
+    const { accepted, rejected } = validateFiles(files, existing, rules);
+    setRejections(rejected);
+    if (accepted.length) void readFiles(replace ? accepted.slice(0, 1) : accepted, replace);
+  };
+
+  const removeDoc = (id: number) => {
+    forget(id);
+    closePreview();
+    pageTotal.current -= docs.find((d) => d.id === id)?.pageCount ?? 0;
+    setDocs((x) => x.filter((d) => d.id !== id));
+    setItems((x) => x.filter((it) => it.doc !== id));
+    setThumbs((x) => Object.fromEntries(Object.entries(x).filter(([k]) => !k.startsWith(`${id}:`))));
+    setSizes((x) => Object.fromEntries(Object.entries(x).filter(([k]) => !k.startsWith(`${id}:`))));
+    setResult(null);
+  };
+
+  const clearAll = () => {
+    generation.current++;
+    forget();
+    closePreview();
+    pageTotal.current = 0;
+    setDocs([]);
+    setItems([]);
+    setThumbs({});
+    setSizes({});
+    setError(null);
+    setResult(null);
+    setRejections([]);
+    setTruncated(false);
+  };
+
+  const docIndex = (id: number) => docs.findIndex((d) => d.id === id);
+  const multi = docs.length > 1;
+  const labelOf = (it: Item) => (multi ? t.pageOf(it.source, docs[docIndex(it.doc)]?.file.name ?? "") : t.page(it.source));
   const turn = (i: number, d: number) => setItems((xs) => xs.map((x, k) => (k === i ? { ...x, turn: (x.turn + d + 360) % 360 } : x)));
   const remove = (i: number) => setItems((xs) => xs.filter((_, k) => k !== i));
   const move = (from: number, to: number) => setItems((xs) => moveItem(xs, from, to));
-  const reset = () => setItems(fresh(count));
+  const reset = () => setItems(freshItems(docs));
+  const totalPages = docs.reduce((n, d) => n + d.pageCount, 0);
 
   // ---- Preview popup -------------------------------------------------------
   function openPreview(i: number) {
@@ -207,19 +294,22 @@ export default function OrganizePdf() {
     if (dialog.current?.open) dialog.current.close();
     setPreviewAt(null);
   }
-  const previewSource = previewAt !== null ? items[previewAt]?.source : undefined;
+  const previewItem = previewAt !== null ? items[previewAt] : undefined;
+  const previewKey = previewItem ? key(previewItem) : undefined;
   useEffect(() => {
-    if (previewSource === undefined || !doc.current) return;
+    if (!previewKey) return;
+    const [docId, page] = previewKey.split(":").map(Number) as [number, number];
+    const d = pdfs.current.get(docId);
+    if (!d) return;
     const id = ++previewJob.current;
-    const d = doc.current;
-    void renderPage(d, previewSource, { dpi: PREVIEW_DPI, format: "jpg", quality: 0.88 }).then((r) => {
+    void renderPage(d, page, { dpi: PREVIEW_DPI, format: "jpg", quality: 0.88 }).then((r) => {
       if (previewJob.current !== id) return;
       const u = URL.createObjectURL(r.blob);
       if (previewUrl.current) URL.revokeObjectURL(previewUrl.current);
       previewUrl.current = u;
-      setPreviewImg({ source: previewSource, url: u });
+      setPreviewImg({ key: previewKey, url: u });
     }).catch(() => { /* the thumbnail stays as the fallback */ });
-  }, [previewSource]);
+  }, [previewKey]);
 
   // ---- Picking a page up: click, hold or drag ---------------------------------
   // A pending press decides what the gesture is. Release early (without moving) = click = preview.
@@ -316,17 +406,19 @@ export default function OrganizePdf() {
     };
   }, [dragFrom]);
 
-  const unchanged = items.length === shown && items.every((x, i) => x.source === i + 1 && x.turn === 0);
-  const key = `${file?.name}|${file?.size}|${items.map((x) => `${x.source}:${x.turn}`).join(",")}`;
-  const current = result && result.key === key ? result : null;
+  // One file with every page in its original order and no turns is exactly the input: nothing to save.
+  const unchanged = docs.length === 1 && items.length === docs[0]!.pageCount && items.every((x, i) => x.doc === docs[0]!.id && x.source === i + 1 && x.turn === 0);
+  const saveKey = `${docs.map((d) => `${d.file.name}|${d.file.size}`).join(";")}|${items.map((x) => `${x.doc}.${x.source}:${x.turn}`).join(",")}`;
+  const current = result && result.key === saveKey ? result : null;
 
   async function save() {
-    if (!bytes || items.length === 0) return;
+    if (items.length === 0) return;
     setBusy(true);
     setError(null);
     try {
-      const out = await organizePdf(bytes, items);
-      setResult({ key, blob: new Blob([out.buffer as ArrayBuffer], { type: "application/pdf" }) });
+      const order = new Map(docs.map((d, i) => [d.id, i] as const));
+      const out = await organizePdfs(docs.map((d) => d.bytes), items.map((x) => ({ file: order.get(x.doc)!, source: x.source, turn: x.turn })));
+      setResult({ key: saveKey, blob: new Blob([out.buffer as ArrayBuffer], { type: "application/pdf" }) });
     } catch {
       setError(t.failed);
     } finally {
@@ -334,29 +426,80 @@ export default function OrganizePdf() {
     }
   }
 
-  const name = file ? `${safeFileName(baseName(file.name), "document")}-organized.pdf` : "organized.pdf";
-  const previewItem = previewAt !== null ? items[previewAt] : undefined;
+  const name = docs.length === 1 ? `${safeFileName(baseName(docs[0]!.file.name), "document")}-organized.pdf` : "organized.pdf";
   const pct = ((zoom - ZOOM_MIN) / (ZOOM_MAX - ZOOM_MIN)) * 100;
   const stepPreview = (d: number) => setPreviewAt((p) => (p === null ? p : Math.min(items.length - 1, Math.max(0, p + d))));
+  const reasonText = (r: Rejection<File>) => {
+    const n = `⁨${r.file.name || "—"}⁩`;
+    const max = formatBytes(rules.maxFileBytes, locale);
+    switch (r.reason) {
+      case "type": return fm.rejected.type(n);
+      case "size": return fm.rejected.size(n, max);
+      case "empty": return fm.rejected.empty(n);
+      case "count": return fm.rejected.count(n, rules.maxFiles);
+      case "total": return fm.rejected.total(n, formatBytes(rules.maxTotalBytes ?? 0, locale));
+    }
+  };
+  const accept = acceptAttribute(rules.accept);
+
   return (
     <div className="flex flex-col gap-5">
-      <Panel title={t.choose}>
-        <SingleFile file={file} rules={rules} typesLabel={t.types} status={bytes ? t.pages(count) : file && !error ? t.reading : null} onFile={open} onClear={() => { job.current++; clearThumbs(); releaseDoc(); closePreview(); setFile(null); setBytes(null); setItems([]); setError(null); setResult(null); }} />
+      <Panel title={docs.length > 1 ? t.filesTitle : t.choose}>
+        {docs.length === 0 ? (
+          <FileDropZone rules={rules} onFiles={(fs) => void readFiles(fs, true)} typesLabel={t.types} disabled={reading} />
+        ) : (
+          <div className="flex flex-col gap-3">
+            <ul className="flex flex-col gap-2">
+              {docs.map((d, n) => (
+                <li key={d.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-line p-3">
+                  <span className="grid size-12 shrink-0 place-items-center rounded-md bg-surface-2 text-muted"><Icon name="file-text" size={22} /></span>
+                  <div className="min-w-0 flex-1 basis-40">
+                    <p className="truncate font-medium" title={d.file.name}>{multi && <span className="me-1.5 text-muted">{n + 1}.</span>}<bdi>{d.file.name}</bdi></p>
+                    <p className="text-sm text-muted">{formatBytes(d.file.size, locale)} · {t.pages(d.pageCount)}</p>
+                  </div>
+                  {multi && (
+                    <button type="button" aria-label={t.removeFile(d.file.name)} onClick={() => removeDoc(d.id)} className="grid size-9 place-items-center rounded-md text-muted transition-colors hover:bg-surface-2 hover:text-danger">
+                      <Icon name="x" size={18} />
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="secondary" size="sm" disabled={reading} onClick={() => replaceInput.current?.click()}>
+                <Icon name="rotate-ccw" size={16} /> {t.replace}
+              </Button>
+              <Button variant="secondary" size="sm" disabled={reading || docs.length >= rules.maxFiles} onClick={() => addInput.current?.click()}>
+                <Icon name="upload" size={16} /> {t.addMore}
+              </Button>
+              {reading && <span className="inline-flex items-center gap-1.5 text-sm text-muted"><Icon name="loader" size={15} className="animate-spin" /> {t.reading}</span>}
+            </div>
+            <input ref={replaceInput} type="file" className="sr-only" tabIndex={-1} aria-hidden="true" accept={accept} onChange={(e) => { pick(e.target.files, true); e.target.value = ""; }} />
+            <input ref={addInput} type="file" className="sr-only" tabIndex={-1} aria-hidden="true" accept={accept} multiple onChange={(e) => { pick(e.target.files, false); e.target.value = ""; }} />
+          </div>
+        )}
+        {rejections.length > 0 && (
+          <StatusMessage tone="warning">
+            <ul className="space-y-1">{rejections.map((r, i) => <li key={`${i}-${r.file.name}`}>{reasonText(r)}</li>)}</ul>
+          </StatusMessage>
+        )}
         {error && <StatusMessage tone="error">{error}</StatusMessage>}
+        {docs.length === 0 && reading && <p className="text-sm text-muted">{t.reading}</p>}
       </Panel>
 
-      {bytes && (
+      {docs.length > 0 && (
         <Panel
           title={t.pagesTitle}
           actions={
             <div className="flex flex-wrap items-center gap-3">
-              <span className="text-sm text-muted">{t.kept(items.length, count)}</span>
+              <span className="text-sm text-muted">{t.kept(items.length, totalPages)}</span>
               <Button variant="ghost" size="sm" disabled={unchanged} onClick={reset}>{t.reset}</Button>
+              <Button variant="ghost" size="sm" onClick={clearAll}>{t.clearAll}</Button>
             </div>
           }
         >
           <p className="text-sm text-muted">{t.hint}</p>
-          {count > MAX_THUMBS && <StatusMessage tone="info">{t.many(MAX_THUMBS)}</StatusMessage>}
+          {truncated && <StatusMessage tone="info">{t.many(MAX_PAGES)}</StatusMessage>}
           {items.length === 0 && <StatusMessage tone="info">{t.empty}</StatusMessage>}
 
           <div className="flex items-center gap-2 self-start rounded-full border border-line bg-surface-2 px-2 py-1 shadow-sm">
@@ -384,7 +527,7 @@ export default function OrganizePdf() {
           <ul className="grid items-start gap-3" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(min(${zoom}px, 100%), ${zoom}px))` }}>
             {items.map((it, i) => (
               <li
-                key={it.source}
+                key={key(it)}
                 data-page-index={i}
                 className={`relative flex flex-col gap-2 rounded-lg border p-2 ${overIndex === i && dragFrom !== null && dragFrom !== i ? "border-accent bg-accent-soft" : "border-line"} ${dragFrom === i ? "opacity-40" : ""}`}
               >
@@ -397,7 +540,7 @@ export default function OrganizePdf() {
                   onContextMenu={(e) => e.preventDefault()}
                   className={`select-none rounded-md [-webkit-touch-callout:none] [touch-action:pan-y] focus-visible:outline-2 ${dragFrom === null ? "cursor-pointer" : "cursor-grabbing"}`}
                 >
-                  <PageImage src={thumbs[it.source - 1]} size={sizes[it.source - 1]} turn={it.turn} alt={t.page(it.source)} />
+                  <PageImage src={thumbs[key(it)]} size={sizes[key(it)]} turn={it.turn} alt={labelOf(it)} />
                 </div>
                 <button
                   type="button"
@@ -407,7 +550,7 @@ export default function OrganizePdf() {
                 >
                   <Icon name="arrow-up-down" size={15} className="rotate-90" />
                 </button>
-                <span className="text-center text-xs text-muted">{t.page(it.source)}</span>
+                <span className="text-center text-xs text-muted">{multi ? t.shortPage(it.source, docIndex(it.doc) + 1) : t.page(it.source)}</span>
                 <div className="flex w-full flex-wrap items-center justify-center gap-0.5">
                   <Button variant="ghost" size="sm" className="!px-1.5" aria-label={t.earlier(it.source)} disabled={i === 0} onClick={() => move(i, i - 1)}><Icon name="chevron-up" size={16} className="-rotate-90 rtl:rotate-90" /></Button>
                   <Button variant="ghost" size="sm" className="!px-1.5" aria-label={t.later(it.source)} disabled={i === items.length - 1} onClick={() => move(i, i + 1)}><Icon name="chevron-down" size={16} className="-rotate-90 rtl:rotate-90" /></Button>
@@ -430,7 +573,7 @@ export default function OrganizePdf() {
 
       <dialog
         ref={dialog}
-        aria-label={previewItem ? t.page(previewItem.source) : t.pagesTitle}
+        aria-label={previewItem ? labelOf(previewItem) : t.pagesTitle}
         onClose={() => setPreviewAt(null)}
         // A touch tap opens the preview on release and the browser then sends its click to whatever is on top, which is now the backdrop; ignore that one.
         onClick={(e) => { if (e.target === dialog.current && !justOpened.current) closePreview(); }}
@@ -449,10 +592,10 @@ export default function OrganizePdf() {
             </div>
             <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto rounded-lg bg-surface-2 p-3">
               <PageImage
-                src={previewImg && previewImg.source === previewItem.source ? previewImg.url : thumbs[previewItem.source - 1]}
-                size={sizes[previewItem.source - 1]}
+                src={previewImg && previewImg.key === key(previewItem) ? previewImg.url : thumbs[key(previewItem)]}
+                size={sizes[key(previewItem)]}
                 turn={previewItem.turn}
-                alt={t.page(previewItem.source)}
+                alt={labelOf(previewItem)}
                 maxHeight="72dvh"
               />
             </div>
@@ -464,10 +607,10 @@ export default function OrganizePdf() {
         )}
       </dialog>
 
-      {ghost && dragFrom !== null && items[dragFrom] && thumbs[items[dragFrom]!.source - 1] && (
+      {ghost && dragFrom !== null && items[dragFrom] && thumbs[key(items[dragFrom]!)] && (
         // eslint-disable-next-line @next/next/no-img-element -- local object URL
         <img
-          src={thumbs[items[dragFrom]!.source - 1]}
+          src={thumbs[key(items[dragFrom]!)]}
           alt=""
           aria-hidden="true"
           className="pointer-events-none fixed z-50 w-20 rounded-md border-2 border-accent bg-surface shadow-lg"

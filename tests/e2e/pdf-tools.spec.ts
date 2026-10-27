@@ -54,6 +54,46 @@ test.describe("Organize PDF", () => {
   });
 });
 
+test.describe("Organize PDF files", () => {
+  test("Replace File and Add More Files replace the old Choose another file button", async ({ page }) => {
+    await open(page, "/tools/organize-pdf");
+    await page.locator('input[type="file"]').setInputFiles(fixture("plain-3-pages.pdf"));
+    await expect(page.getByRole("img", { name: "Page 3" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Replace File" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Add More Files" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Choose another file" })).toHaveCount(0);
+
+    // Add More Files: pages from a second PDF join the end, labelled by file.
+    await page.locator('input[type="file"][multiple]').setInputFiles(fixture("plain-2-pages.pdf"));
+    await expect(page.getByText("5 of 5 pages kept")).toBeVisible();
+    await expect(page.getByRole("img", { name: "Page 2 of plain-2-pages.pdf" })).toBeVisible();
+    await expect(page.getByRole("img", { name: "Page 3 of plain-3-pages.pdf" })).toBeVisible();
+    await page.getByRole("button", { name: "Save organized PDF" }).click();
+    const [d] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download" }).click()]);
+    expect(d.suggestedFilename()).toBe("organized.pdf");
+    expect((await PDFDocument.load(await bytesOf(d))).getPageCount()).toBe(5);
+
+    // Removing a file drops its pages.
+    await page.getByRole("button", { name: "Remove plain-2-pages.pdf" }).click();
+    await expect(page.getByText("3 of 3 pages kept")).toBeVisible();
+
+    // Replace File starts over with a different PDF.
+    await page.locator('input[type="file"]:not([multiple])').setInputFiles(fixture("plain-2-pages.pdf"));
+    await expect(page.getByText("2 of 2 pages kept")).toBeVisible();
+    await expect(page.getByText("plain-3-pages.pdf")).toHaveCount(0);
+    await expect(page.getByRole("img", { name: "Page 2" })).toBeVisible();
+  });
+
+  test("a file that is not a PDF is refused when adding", async ({ page }) => {
+    await open(page, "/tools/organize-pdf");
+    await page.locator('input[type="file"]').setInputFiles(fixture("plain-2-pages.pdf"));
+    await expect(page.getByText("2 of 2 pages kept")).toBeVisible();
+    await page.locator('input[type="file"][multiple]').setInputFiles(fixture("photo-upright.jpg"));
+    await expect(page.getByText(/isn't a supported file type/)).toBeVisible();
+    await expect(page.getByText("2 of 2 pages kept")).toBeVisible();
+  });
+});
+
 test.describe("Organize PDF dragging", () => {
   // Bring the thumbnails fully into view first: dragging uses real pointer coordinates.
   const reveal = (page: Page) => page.locator("li[data-page-index]").first().evaluate((el) => el.parentElement!.scrollIntoView({ block: "center" }));

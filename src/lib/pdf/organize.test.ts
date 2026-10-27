@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { PDFDocument, StandardFonts } from "pdf-lib";
-import { moveItem, organizePdf } from "./organize";
+import { moveItem, organizePdf, organizePdfs } from "./organize";
 
 async function makePdf(pages: number): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
@@ -36,6 +36,27 @@ describe("organizePdf", () => {
     await expect(organizePdf(pdf, [])).rejects.toThrow();
     await expect(organizePdf(pdf, [{ source: 3, turn: 0 }])).rejects.toThrow();
     await expect(organizePdf(pdf, [{ source: 0, turn: 0 }])).rejects.toThrow();
+  });
+});
+
+describe("organizePdfs", () => {
+  test("combines pages from several files in the chosen order", async () => {
+    const a = await makePdf(2); // widths 101, 102
+    const b = await (async () => {
+      const doc = await PDFDocument.create();
+      for (let i = 1; i <= 3; i++) doc.addPage([200 + i, 200]); // widths 201..203
+      return doc.save();
+    })();
+    const out = await organizePdfs([a, b], [{ file: 1, source: 3, turn: 0 }, { file: 0, source: 1, turn: 0 }, { file: 1, source: 1, turn: 90 }]);
+    const doc = await PDFDocument.load(out);
+    expect(doc.getPages().map((p) => p.getWidth())).toEqual([203, 101, 201]);
+    expect(doc.getPages().map((p) => p.getRotation().angle)).toEqual([0, 0, 90]);
+  });
+
+  test("rejects an unknown file or an out-of-range page", async () => {
+    const a = await makePdf(2);
+    await expect(organizePdfs([a], [{ file: 1, source: 1, turn: 0 }])).rejects.toThrow();
+    await expect(organizePdfs([a], [{ file: 0, source: 3, turn: 0 }])).rejects.toThrow();
   });
 });
 
