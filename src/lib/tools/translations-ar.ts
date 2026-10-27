@@ -31,6 +31,7 @@ import { metaAr as removeBackground } from "@/tools/remove-background/meta.ar";
 import { metaAr as excelToPdf } from "@/tools/excel-to-pdf/meta.ar";
 import { metaAr as pdfToExcel } from "@/tools/pdf-to-excel/meta.ar";
 import { metaAr as rotatePdf } from "@/tools/rotate-pdf/meta.ar";
+import { metaAr as organizePdf } from "@/tools/organize-pdf/meta.ar";
 import { metaAr as addPageNumbers } from "@/tools/add-page-numbers/meta.ar";
 import { metaAr as watermarkPdf } from "@/tools/watermark-pdf/meta.ar";
 import { metaAr as unlockPdf } from "@/tools/unlock-pdf/meta.ar";
@@ -82,6 +83,7 @@ export const toolTranslationsAr: Record<string, ToolTranslation> = {
   "excel-to-pdf": excelToPdf,
   "pdf-to-excel": pdfToExcel,
   "rotate-pdf": rotatePdf,
+  "organize-pdf": organizePdf,
   "add-page-numbers": addPageNumbers,
   "watermark-pdf": watermarkPdf,
   "unlock-pdf": unlockPdf,

@@ -38,6 +38,7 @@ import { meta as removeBackground } from "@/tools/remove-background/meta";
 import { meta as excelToPdf } from "@/tools/excel-to-pdf/meta";
 import { meta as pdfToExcel } from "@/tools/pdf-to-excel/meta";
 import { meta as rotatePdf } from "@/tools/rotate-pdf/meta";
+import { meta as organizePdf } from "@/tools/organize-pdf/meta";
 import { meta as addPageNumbers } from "@/tools/add-page-numbers/meta";
 import { meta as watermarkPdf } from "@/tools/watermark-pdf/meta";
 import { meta as unlockPdf } from "@/tools/unlock-pdf/meta";
@@ -98,6 +99,7 @@ export const tools: readonly ToolDefinition[] = [
   excelToPdf,
   pdfToExcel,
   rotatePdf,
+  organizePdf,
   addPageNumbers,
   watermarkPdf,
   unlockPdf,

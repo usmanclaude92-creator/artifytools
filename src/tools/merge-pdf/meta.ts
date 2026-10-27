@@ -35,5 +35,5 @@ export const meta: ToolDefinition = {
   ],
   files: { inputFormats: ["PDF"], accept: ["application/pdf", ".pdf"], outputFormats: ["PDF"], maxFileBytes: 100_000_000, maxFiles: 30, maxTotalBytes: 300_000_000 },
   popularRank: 1.4,
-  related: ["split-pdf", "compress-pdf", "pdf-to-word"],
+  related: ["split-pdf", "compress-pdf", "pdf-to-word", "organize-pdf"],
 };

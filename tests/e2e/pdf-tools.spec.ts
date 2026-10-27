@@ -32,6 +32,28 @@ test.describe("Rotate PDF", () => {
   });
 });
 
+test.describe("Organize PDF", () => {
+  test("reorders, deletes and rotates pages", async ({ page }) => {
+    await open(page, "/tools/organize-pdf");
+    await page.locator('input[type="file"]').setInputFiles(fixture("plain-3-pages.pdf"));
+    await expect(page.getByRole("img", { name: "Page 3" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Save organized PDF" })).toBeDisabled();
+    await page.getByRole("button", { name: "Move page 3 earlier" }).click();
+    await page.getByRole("button", { name: "Move page 3 earlier" }).click();
+    await page.getByRole("button", { name: "Delete page 2" }).click();
+    await page.getByRole("button", { name: "Rotate page 1 right" }).click();
+    await expect(page.getByText("2 of 3 pages kept")).toBeVisible();
+    await page.getByRole("button", { name: "Save organized PDF" }).click();
+    const [d] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download" }).click()]);
+    expect(d.suggestedFilename()).toBe("plain-3-pages-organized.pdf");
+    const doc = await PDFDocument.load(await bytesOf(d));
+    // Order is now page 3, page 1 (rotated right); page 2 is gone.
+    expect(doc.getPages().map((p) => p.getRotation().angle)).toEqual([0, 90]);
+    await page.getByRole("button", { name: "Reset" }).click();
+    await expect(page.getByText("3 of 3 pages kept")).toBeVisible();
+  });
+});
+
 test.describe("Add Page Numbers", () => {
   test("numbers pages in English and Arabic", async ({ page }) => {
     await open(page, "/tools/add-page-numbers");

@@ -37,5 +37,5 @@ export const meta: ToolDefinition = {
   ],
   files: { inputFormats: ["PDF"], accept: ["application/pdf", ".pdf"], outputFormats: ["PDF", "ZIP"], maxFileBytes: 100_000_000, maxFiles: 1 },
   popularRank: 1.9,
-  related: ["merge-pdf", "pdf-to-jpg", "compress-pdf"],
+  related: ["merge-pdf", "pdf-to-jpg", "compress-pdf", "organize-pdf"],
 };
