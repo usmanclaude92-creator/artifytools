@@ -10,7 +10,7 @@ import { SiteAnalytics } from "@/components/layout/site-analytics";
 import { ToastProvider } from "@/components/ui/toast";
 import { themeInitScript } from "@/components/ui/theme";
 import { siteConfig } from "@/lib/config";
-import { getPopularTools, getPublishedCategories, getSearchItems, toDirectoryItem } from "@/lib/tools/registry";
+import { getPopularTools, getPublishedCategories, toDirectoryItem } from "@/lib/tools/registry";
 import { LocaleProvider } from "@/components/i18n/locale-provider";
 import { dirOf, isLocale, locales } from "@/lib/i18n";
 import { getMessages } from "@/lib/messages";
@@ -64,7 +64,6 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children, params }: { children: React.ReactNode; params: Promise<{ lang: string }> }) {
   const { lang } = await params;
   if (!isLocale(lang)) notFound();
-  const items = getSearchItems(lang);
   if (lang === "ar") ARABIC_PRELOAD.forEach((href) => preload(href, { as: "font", type: "font/woff2", crossOrigin: "" }));
   const categories = getPublishedCategories().map((c) => ({ name: localizeCategory(c, lang).name, slug: c.slug }));
   const suggestions = getPopularTools(6).map((t) => toDirectoryItem(t, lang));
@@ -84,7 +83,7 @@ export default async function RootLayout({ children, params }: { children: React
             {getMessages(lang).common.skipToContent}
           </a>
           <AnnouncementBar />
-          <Header items={items} categories={categories} suggestions={suggestions} />
+          <Header categories={categories} suggestions={suggestions} />
           <main id="main" tabIndex={-1} className="flex-1 outline-none">
             {children}
           </main>
