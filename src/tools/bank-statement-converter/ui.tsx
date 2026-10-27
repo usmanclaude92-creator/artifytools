@@ -7,7 +7,7 @@ import { Panel, Stat } from "@/components/tools/parts";
 import { Button } from "@/components/ui/button";
 import { DownloadButton } from "@/components/ui/actions";
 import { StatusMessage } from "@/components/ui/feedback";
-import { Field, Select } from "@/components/ui/form";
+import { Field, Select, TextInput } from "@/components/ui/form";
 import { Icon } from "@/components/ui/icon";
 import { cx } from "@/components/ui/cx";
 import { useLocale } from "@/components/i18n/locale-provider";
@@ -22,7 +22,8 @@ import { wordsToItems } from "@/lib/statement/ocr-items";
 import type { TextItem } from "@/lib/pdf/text-layout";
 import { readPageText } from "@/lib/pdf/to-word";
 import { ManualSelect, type ManualInput, type ManualStrings, type PageData } from "./manual";
-import { parseStatement, type DateOrder, type Role, type Statement } from "@/lib/statement/parse";
+import { parseStatement, readAmount, type DateOrder, type Role, type Statement } from "@/lib/statement/parse";
+import { reconcile, withCalculatedBalances } from "@/lib/statement/reconcile";
 import { statementToCsv, statementToXlsx, type ExportLabels } from "@/lib/statement/export";
 import { fileRulesFor } from "@/lib/tools/file-spec";
 import { meta } from "./meta";
@@ -39,8 +40,8 @@ const strings = {
     manual: "Manual Selection", manualHint: "Mark the tables on the pages yourself, then convert only those.",
     ocrLoading: "Preparing OCR…", ocrPage: (d: number, n: number) => `Reading scanned page ${d} of ${n} with OCR…`, ocrFailed: "OCR couldn't read the scanned pages. Try Manual Selection.", ocrUsed: (pages: number[]) => `Page${pages.length === 1 ? "" : "s"} ${pages.join(", ")} ${pages.length === 1 ? "was a scan and was" : "were scans and were"} read with OCR. Check the amounts against the PDF.`,
     manualStrings: {
-      help: "Drag on a page to mark a table. Add column lines and choose what each column holds, then press Convert. Only what is inside your tables is converted.",
-      drawOn: "Drawing tables", drawOff: "Scrolling (tap to draw)", table: (n: number, p: number) => `Table ${n} · page ${p}`, detect: "Detect columns", addColumn: "Add column line", removeTable: "Remove table",
+      help: "Mark a table by dragging on the page with a mouse, or on a touch screen by pressing and holding, then dragging (a quick swipe still scrolls). Drag the corner dots to resize it. Add column lines and choose what each column holds, then press Convert. Only what is inside your tables is converted.",
+      table: (n: number, p: number) => `Table ${n} · page ${p}`, detect: "Detect columns", addColumn: "Add column line", removeTable: "Remove table",
       column: (n: number) => `Column ${n}`, roles: { date: "Date", description: "Description", debit: "Debit", credit: "Credit", amount: "Amount", balance: "Balance", other: "Ignore" } as Record<Role, string>,
       convert: "Convert selected tables", converting: "Converting…", noTables: "Mark at least one table first.", scanned: "Scanned page: read with OCR", detectFailed: "No column headings were found in this table. Add column lines by hand.", detected: "Columns detected.",
       ocrLoading: "Preparing OCR…", ocrReading: (d: number, n: number) => `Reading table ${d} of ${n} with OCR…`, failed: "Converting the tables failed. Try marking them again.", page: (n: number) => `Page ${n}`,
@@ -50,6 +51,14 @@ const strings = {
     found: "Transactions", moneyIn: "Money in (credits)", moneyOut: "Money out (debits)", check: "Balance check",
     allMatch: (n: number) => `All ${n} balances match`, someWrong: (n: number) => `${n} row${n === 1 ? "" : "s"} don't match`, notChecked: "No running balance to check",
     opening: "Opening balance", closing: "Closing balance",
+    openingField: "Opening balance on the statement", closingField: "Closing balance on the statement",
+    balanceHint: "This statement prints no running balance. Type its opening and closing balances to calculate each row's balance and check the total.",
+    balancePlaceholder: "Found automatically",
+    calcMatches: (v: string) => `Calculated balance ${v} matches the statement`,
+    calcDiff: (calc: string, printed: string, diff: string) => `Calculated ${calc}, statement shows ${printed} (difference ${diff})`,
+    calcOnly: "Balances calculated from the opening balance",
+    calcNote: "Balances in italics were calculated from the opening balance; the statement does not print them.",
+    calcCard: "Calculated as a card statement: debits raise the balance owed, credits lower it.",
     newestFirst: "This statement lists the newest transactions first. They are kept in that order, and the balance check runs from the bottom up.",
     noHeader: "No column headings were found, so the columns were worked out from the layout. Check the debit and credit columns before you rely on them.",
     mismatchHelp: "Highlighted rows don't follow from the balance above them. A transaction may be missing or split across lines; compare them with the PDF.",
@@ -73,8 +82,8 @@ const strings = {
     manual: "تحديد يدوي", manualHint: "حدّد الجداول على الصفحات بنفسك ثم حوّلها وحدها.",
     ocrLoading: "جارٍ تجهيز OCR…", ocrPage: (d: number, n: number) => `جارٍ قراءة الصفحة الممسوحة ${d} من ${n} بتقنية OCR…`, ocrFailed: "تعذّرت قراءة الصفحات الممسوحة بتقنية OCR. جرّب التحديد اليدوي.", ocrUsed: (pages: number[]) => `${pages.length === 1 ? "الصفحة" : "الصفحات"} ${pages.join("، ")} ${pages.length === 1 ? "كانت ممسوحة وقُرئت" : "كانت ممسوحة وقُرئت"} بتقنية OCR. قارن المبالغ بملف PDF.`,
     manualStrings: {
-      help: "اسحب على الصفحة لتحديد جدول. أضف خطوط الأعمدة واختر محتوى كل عمود ثم اضغط تحويل. يُحوَّل فقط ما داخل جداولك.",
-      drawOn: "رسم الجداول", drawOff: "التمرير (اضغط للرسم)", table: (n: number, p: number) => `الجدول ${n} · الصفحة ${p}`, detect: "اكتشاف الأعمدة", addColumn: "إضافة خط عمود", removeTable: "حذف الجدول",
+      help: "حدّد جدولًا بالسحب على الصفحة بالفأرة، أو على الشاشة اللمسية بالضغط مطولًا ثم السحب (والسحب السريع يمرّر الصفحة). اسحب النقاط في الزوايا لتغيير الحجم. أضف خطوط الأعمدة واختر محتوى كل عمود ثم اضغط تحويل. يُحوَّل فقط ما داخل جداولك.",
+      table: (n: number, p: number) => `الجدول ${n} · الصفحة ${p}`, detect: "اكتشاف الأعمدة", addColumn: "إضافة خط عمود", removeTable: "حذف الجدول",
       column: (n: number) => `العمود ${n}`, roles: { date: "التاريخ", description: "البيان", debit: "مدين", credit: "دائن", amount: "المبلغ", balance: "الرصيد", other: "تجاهل" } as Record<Role, string>,
       convert: "تحويل الجداول المحددة", converting: "جارٍ التحويل…", noTables: "حدّد جدولًا واحدًا على الأقل أولًا.", scanned: "صفحة ممسوحة: تُقرأ بتقنية OCR", detectFailed: "لم نجد عناوين أعمدة في هذا الجدول. أضف خطوط الأعمدة يدويًا.", detected: "تم اكتشاف الأعمدة.",
       ocrLoading: "جارٍ تجهيز OCR…", ocrReading: (d: number, n: number) => `جارٍ قراءة الجدول ${d} من ${n} بتقنية OCR…`, failed: "فشل تحويل الجداول. حاول تحديدها مجددًا.", page: (n: number) => `الصفحة ${n}`,
@@ -84,6 +93,14 @@ const strings = {
     found: "العمليات", moneyIn: "الإيداعات (دائن)", moneyOut: "المسحوبات (مدين)", check: "مطابقة الرصيد",
     allMatch: (n: number) => `كل الأرصدة مطابقة (${n})`, someWrong: (n: number) => `${arCount(n, "صف واحد", "صفان", "صفوف", "صفًا", "صف")} غير مطابق`, notChecked: "لا يوجد رصيد جارٍ للمطابقة",
     opening: "الرصيد الافتتاحي", closing: "الرصيد الختامي",
+    openingField: "الرصيد الافتتاحي في الكشف", closingField: "الرصيد الختامي في الكشف",
+    balanceHint: "لا يطبع هذا الكشف رصيدًا جاريًا. اكتب رصيديه الافتتاحي والختامي لنحسب رصيد كل صف ونطابق الإجمالي.",
+    balancePlaceholder: "يُكتشف تلقائيًا",
+    calcMatches: (v: string) => `الرصيد المحسوب ${v} مطابق للكشف`,
+    calcDiff: (calc: string, printed: string, diff: string) => `المحسوب ${calc} بينما يظهر في الكشف ${printed} (الفرق ${diff})`,
+    calcOnly: "أرصدة محسوبة من الرصيد الافتتاحي",
+    calcNote: "الأرصدة المائلة محسوبة من الرصيد الافتتاحي ولا يطبعها الكشف.",
+    calcCard: "حُسب كبطاقة ائتمان: المدين يرفع الرصيد المستحق والدائن يخفضه.",
     newestFirst: "يعرض هذا الكشف أحدث العمليات أولًا. احتفظنا بالترتيب نفسه، وتجري مطابقة الرصيد من الأسفل إلى الأعلى.",
     noHeader: "لم نجد عناوين للأعمدة، لذا استنتجنا الأعمدة من تنسيق الصفحة. راجع عمودي المدين والدائن قبل الاعتماد عليهما.",
     mismatchHelp: "الصفوف المظللة لا يتطابق رصيدها مع الرصيد السابق. قد تكون عملية ناقصة أو مقسّمة على عدة أسطر؛ قارنها بملف PDF.",
@@ -116,6 +133,8 @@ export default function BankStatementConverter() {
   const [ocrItems, setOcrItems] = useState<Record<number, TextItem[]>>({});
   const [ocrBusy, setOcrBusy] = useState<string | null>(null);
   const [manual, setManual] = useState<ManualInput | null>(null);
+  const [openingInput, setOpeningInput] = useState("");
+  const [closingInput, setClosingInput] = useState("");
   const generation = useRef(0);
   const ocrStarted = useRef(-1);
 
@@ -136,6 +155,8 @@ export default function BankStatementConverter() {
     setOcrItems({});
     setOcrBusy(null);
     setManual(null);
+    setOpeningInput("");
+    setClosingInput("");
     try {
       const d = await openPdf(new Uint8Array(await f.arrayBuffer()));
       if (generation.current !== id) { void d.destroy(); return; }
@@ -193,7 +214,15 @@ export default function BankStatementConverter() {
   const autoPages = useMemo(() => (pages ? pages.map((p, i) => (p.items.length ? p.items : ocrItems[i] ?? [])) : null), [pages, ocrItems]);
   const autoStatement = useMemo(() => (autoPages ? parseStatement(autoPages, { dateOrder: order }) : null), [autoPages, order]);
   const manualStatement = useMemo(() => (manual ? parseStatement(manual.pages, { dateOrder: order, columns: manual.columns }) : null), [manual, order]);
-  const statement = mode === "auto" ? autoStatement : manualStatement;
+  const baseStatement = mode === "auto" ? autoStatement : manualStatement;
+  // Statements that print no running balance: calculate it from the opening balance and match the closing one.
+  const typed = (v: string) => (v.trim() ? readAmount(v.trim())?.value ?? null : null);
+  const printedBalances = (baseStatement?.checked ?? 0) > 0;
+  const rec = useMemo(
+    () => (baseStatement && !printedBalances ? reconcile(baseStatement, typed(openingInput) ?? baseStatement.opening, typed(closingInput) ?? baseStatement.closing) : null),
+    [baseStatement, printedBalances, openingInput, closingInput],
+  );
+  const statement = useMemo(() => (baseStatement && rec ? withCalculatedBalances(baseStatement, rec) : baseStatement), [baseStatement, rec]);
   const ocrUsed = pages ? pages.flatMap((p, i) => (!p.items.length && (ocrItems[i]?.length ?? 0) > 0 ? [i + 1] : [])) : [];
   const name = safeFileName(baseName(file?.name ?? "statement"), "statement");
   const money = (n: number | null, s: Statement) => (n === null ? "" : n.toLocaleString("en-US", { minimumFractionDigits: s.decimals, maximumFractionDigits: s.decimals }));
@@ -284,13 +313,26 @@ export default function BankStatementConverter() {
                 <Stat label={t.found} value={s.transactions.length.toLocaleString("en-US")} />
                 <Stat label={t.moneyIn} value={money(s.totalCredit, s)} />
                 <Stat label={t.moneyOut} value={money(s.totalDebit, s)} />
-                <div className={cx("rounded-md px-4 py-3", s.mismatches ? "bg-warning-soft" : s.checked ? "bg-success-soft" : "bg-surface-2")}>
-                  <dt className="text-sm text-muted">{t.check}</dt>
-                  <dd className={cx("mt-0.5 flex items-center gap-1.5 text-lg font-semibold", s.mismatches ? "text-warning" : s.checked ? "text-success" : "")}>
-                    <Icon name={s.mismatches ? "triangle-alert" : s.checked ? "circle-check" : "info"} size={18} />
-                    {s.mismatches ? t.someWrong(s.mismatches) : s.checked ? t.allMatch(s.checked) : t.notChecked}
-                  </dd>
-                </div>
+                {(() => {
+                  // Printed balances are checked row by row; otherwise the calculated closing balance is matched with the printed one.
+                  const tone = rec ? (rec.matches === true ? "ok" : rec.matches === false ? "bad" : "info") : s.mismatches ? "bad" : s.checked ? "ok" : "info";
+                  const text = rec
+                    ? rec.matches === true
+                      ? t.calcMatches(money(rec.calculatedClosing, s))
+                      : rec.matches === false
+                        ? t.calcDiff(money(rec.calculatedClosing, s), money(rec.closing, s), money(rec.difference, s))
+                        : t.calcOnly
+                    : s.mismatches ? t.someWrong(s.mismatches) : s.checked ? t.allMatch(s.checked) : t.notChecked;
+                  return (
+                    <div className={cx("rounded-md px-4 py-3", tone === "bad" ? "bg-warning-soft" : tone === "ok" ? "bg-success-soft" : "bg-surface-2")}>
+                      <dt className="text-sm text-muted">{t.check}</dt>
+                      <dd className={cx("mt-0.5 flex items-start gap-1.5 text-base font-semibold leading-snug", tone === "bad" ? "text-warning" : tone === "ok" ? "text-success" : "")}>
+                        <Icon name={tone === "bad" ? "triangle-alert" : tone === "ok" ? "circle-check" : "info"} size={18} className="mt-0.5 shrink-0" />
+                        <span>{text}</span>
+                      </dd>
+                    </div>
+                  );
+                })()}
               </dl>
               <div className="flex flex-wrap items-end justify-between gap-4">
                 <Field label={t.dateOrder} className="w-full max-w-xs">
@@ -306,6 +348,20 @@ export default function BankStatementConverter() {
                   {s.closing !== null && <>{t.closing}: <strong className="text-fg">{money(s.closing, s)}</strong></>}
                 </p>
               </div>
+              {!printedBalances && (
+                <div className="flex flex-col gap-3 rounded-lg border border-line p-4">
+                  <p className="text-sm text-muted">{t.balanceHint}</p>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Field label={t.openingField}>
+                      {(p) => <TextInput {...p} inputMode="decimal" value={openingInput} onChange={(e) => setOpeningInput(e.target.value)} placeholder={baseStatement?.opening !== null && baseStatement?.opening !== undefined ? money(baseStatement.opening, s) : t.balancePlaceholder} dir="ltr" />}
+                    </Field>
+                    <Field label={t.closingField}>
+                      {(p) => <TextInput {...p} inputMode="decimal" value={closingInput} onChange={(e) => setClosingInput(e.target.value)} placeholder={baseStatement?.closing !== null && baseStatement?.closing !== undefined ? money(baseStatement.closing, s) : t.balancePlaceholder} dir="ltr" />}
+                    </Field>
+                  </div>
+                </div>
+              )}
+              {rec && <StatusMessage tone="info">{t.calcNote}{rec.convention === "card" ? ` ${t.calcCard}` : ""}</StatusMessage>}
               {s.mismatches > 0 && <StatusMessage tone="warning">{t.mismatchHelp}</StatusMessage>}
               {s.newestFirst && s.checked > 0 && <StatusMessage tone="info">{t.newestFirst}</StatusMessage>}
               {!s.headerFound && <StatusMessage tone="info">{t.noHeader}</StatusMessage>}
@@ -330,7 +386,7 @@ export default function BankStatementConverter() {
                         <td className="px-3 py-2" dir="auto">{tx.description}</td>
                         <td className="whitespace-nowrap px-3 py-2 text-end">{money(tx.debit, s)}</td>
                         <td className="whitespace-nowrap px-3 py-2 text-end">{money(tx.credit, s)}</td>
-                        <td className="whitespace-nowrap px-3 py-2 text-end">{money(tx.balance, s)}</td>
+                        <td className={cx("whitespace-nowrap px-3 py-2 text-end", rec && baseStatement!.transactions[i]!.balance === null && "italic text-muted")}>{money(tx.balance, s)}</td>
                         <td className="px-2 py-2 text-center">
                           {tx.check === "ok" && <Icon name="check" size={15} className="text-success" />}
                           {tx.check === "mismatch" && (

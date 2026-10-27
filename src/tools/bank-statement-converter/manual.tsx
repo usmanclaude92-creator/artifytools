@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { StatusMessage } from "@/components/ui/feedback";
 import { Icon } from "@/components/ui/icon";
-import { cx } from "@/components/ui/cx";
 import { createOcr, type OcrEngine } from "@/lib/ocr/ocr";
 import { renderPage, renderRegion, type RenderedDoc } from "@/lib/pdf/render";
 import type { TextItem } from "@/lib/pdf/text-layout";
@@ -18,7 +17,7 @@ export interface PageData {
 }
 
 export interface ManualStrings {
-  help: string; drawOn: string; drawOff: string; table: (n: number, page: number) => string; detect: string; addColumn: string; removeTable: string;
+  help: string; table: (n: number, page: number) => string; detect: string; addColumn: string; removeTable: string;
   column: (n: number) => string; roles: Record<Role, string>; convert: string; converting: string; noTables: string; scanned: string; detectFailed: string; detected: string;
   ocrLoading: string; ocrReading: (d: number, n: number) => string; failed: string; page: (n: number) => string; removeLine: (n: number) => string; moveLine: (n: number) => string;
 }
@@ -36,6 +35,9 @@ interface Box {
 const PREVIEW_DPI = 80;
 const MAX_PAGES = 60;
 const MIN_SIZE = 0.02;
+/** Touch: how long a finger rests before a drag draws a table (a quicker swipe just scrolls the page). */
+const HOLD_MS = 280;
+const SLOP = 10;
 const ROLE_ORDER: Role[] = ["date", "description", "debit", "credit", "amount", "balance", "other"];
 const clamp = (v: number, lo = 0, hi = 1) => Math.min(hi, Math.max(lo, v));
 
@@ -51,13 +53,13 @@ export function ManualSelect({ doc, pages, t, onRead }: { doc: RenderedDoc; page
   const [images, setImages] = useState<string[]>([]);
   const [boxes, setBoxes] = useState<Box[]>([]);
   const [draft, setDraft] = useState<{ page: number; x0: number; y0: number; x1: number; y1: number } | null>(null);
-  const [drawing, setDrawing] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const urls = useRef<string[]>([]);
   const nextId = useRef(1);
   const start = useRef<{ x: number; y: number } | null>(null);
+  const pending = useRef<{ cx: number; cy: number; timer: number } | null>(null);
   const engine = useRef<OcrEngine | null>(null);
   const run = useRef(0);
 
@@ -93,25 +95,64 @@ export function ManualSelect({ doc, pages, t, onRead }: { doc: RenderedDoc; page
     return { x: clamp((e.clientX - r.left) / r.width), y: clamp((e.clientY - r.top) / r.height) };
   };
 
+  const clearPending = () => {
+    if (pending.current) window.clearTimeout(pending.current.timer);
+    pending.current = null;
+  };
+  // Mouse and pen draw straight away. A finger must rest for a moment first, so swiping still scrolls the page.
   const onDown = (page: number, e: React.PointerEvent<HTMLDivElement>) => {
-    if (!drawing || e.button !== 0 || e.target !== e.currentTarget) return;
-    e.currentTarget.setPointerCapture(e.pointerId);
+    if (e.button !== 0 || e.target !== e.currentTarget) return;
+    const el = e.currentTarget;
+    const id = e.pointerId;
     const p = point(e);
-    start.current = p;
-    setDraft({ page, x0: p.x, y0: p.y, x1: p.x, y1: p.y });
+    const begin = () => {
+      try { el.setPointerCapture(id); } catch { /* the pointer is already gone */ }
+      start.current = p;
+      setDraft({ page, x0: p.x, y0: p.y, x1: p.x, y1: p.y });
+    };
+    if (e.pointerType === "mouse" || e.pointerType === "pen") { begin(); return; }
+    clearPending();
+    pending.current = { cx: e.clientX, cy: e.clientY, timer: window.setTimeout(() => { pending.current = null; begin(); }, HOLD_MS) };
   };
   const onMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (pending.current) {
+      if (Math.hypot(e.clientX - pending.current.cx, e.clientY - pending.current.cy) > SLOP) clearPending(); // it is a scroll
+      return;
+    }
     if (!start.current) return;
     const p = point(e);
     setDraft((d) => (d ? { ...d, x0: Math.min(start.current!.x, p.x), y0: Math.min(start.current!.y, p.y), x1: Math.max(start.current!.x, p.x), y1: Math.max(start.current!.y, p.y) } : d));
   };
   const onUp = () => {
+    clearPending();
     const d = draft;
     start.current = null;
     setDraft(null);
     if (!d || d.x1 - d.x0 < MIN_SIZE || d.y1 - d.y0 < MIN_SIZE) return;
     setBoxes((bs) => [...bs, { id: nextId.current++, page: d.page, x0: d.x0, y0: d.y0, x1: d.x1, y1: d.y1, splits: [], roles: ["description"] }]);
     onRead(null);
+  };
+
+  // While a table is being drawn, the finger draws instead of scrolling the screen.
+  useEffect(() => {
+    if (!draft) return;
+    const block = (e: TouchEvent) => { if (e.cancelable) e.preventDefault(); };
+    window.addEventListener("touchmove", block, { passive: false });
+    return () => window.removeEventListener("touchmove", block);
+  }, [draft]);
+  useEffect(() => clearPending, []);
+
+  const resize = (b: Box, corner: string, e: React.PointerEvent<HTMLDivElement>) => {
+    if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
+    const r = e.currentTarget.closest<HTMLElement>("[data-testid^=overlay]")!.getBoundingClientRect();
+    const px = clamp((e.clientX - r.left) / r.width);
+    const py = clamp((e.clientY - r.top) / r.height);
+    patch(b.id, (x) => {
+      let { x0, y0, x1, y1 } = x;
+      if (corner.includes("w")) x0 = Math.min(px, x1 - MIN_SIZE); else x1 = Math.max(px, x0 + MIN_SIZE);
+      if (corner.includes("n")) y0 = Math.min(py, y1 - MIN_SIZE); else y1 = Math.max(py, y0 + MIN_SIZE);
+      return { ...x, x0, y0, x1, y1, splits: x.splits.map((sp) => clamp(sp, x0 + 0.01, x1 - 0.01)) };
+    });
   };
 
   const patch = (id: number, f: (b: Box) => Box) => { setBoxes((bs) => bs.map((b) => (b.id === id ? f(b) : b))); onRead(null); };
@@ -203,9 +244,6 @@ export function ManualSelect({ doc, pages, t, onRead }: { doc: RenderedDoc; page
     <div className="flex flex-col gap-4">
       <p className="text-sm text-muted">{t.help}</p>
       <div className="flex flex-wrap items-center gap-2">
-        <Button variant={drawing ? "primary" : "secondary"} size="sm" onClick={() => setDrawing((d) => !d)} aria-pressed={drawing}>
-          <Icon name={drawing ? "crop" : "arrow-up-down"} size={16} /> {drawing ? t.drawOn : t.drawOff}
-        </Button>
         <Button size="md" onClick={convert} disabled={busy !== null || boxes.length === 0}>
           <Icon name={busy ? "loader" : "wand"} size={18} className={busy ? "animate-spin" : undefined} /> {busy ?? t.convert}
         </Button>
@@ -229,15 +267,28 @@ export function ManualSelect({ doc, pages, t, onRead }: { doc: RenderedDoc; page
                 )}
                 <div
                   data-testid={`overlay-${p}`}
-                  className={cx("absolute inset-0", drawing ? "cursor-crosshair [touch-action:none]" : "pointer-events-none")}
+                  className="absolute inset-0 cursor-crosshair [touch-action:pan-y]"
                   onPointerDown={(e) => onDown(p, e)}
                   onPointerMove={onMove}
                   onPointerUp={onUp}
-                  onPointerCancel={() => { start.current = null; setDraft(null); }}
+                  onPointerCancel={() => { clearPending(); start.current = null; setDraft(null); }}
                 >
                   {pageBoxes.map((b) => (
                     <div key={b.id} className="pointer-events-none absolute border-2 border-accent bg-accent/10" style={{ left: `${b.x0 * 100}%`, top: `${b.y0 * 100}%`, width: `${(b.x1 - b.x0) * 100}%`, height: `${(b.y1 - b.y0) * 100}%` }}>
                       <span className="absolute -top-px start-0 rounded-br bg-accent px-1.5 text-[0.7rem] font-semibold text-accent-fg">{boxes.indexOf(b) + 1}</span>
+                      {(["nw", "ne", "sw", "se"] as const).map((corner) => (
+                        <div
+                          key={corner}
+                          aria-hidden="true"
+                          data-handle={corner}
+                          className="pointer-events-auto absolute grid size-8 -translate-x-1/2 -translate-y-1/2 place-items-center [touch-action:none]"
+                          style={{ left: corner.includes("w") ? 0 : "100%", top: corner.includes("n") ? 0 : "100%", cursor: corner === "nw" || corner === "se" ? "nwse-resize" : "nesw-resize" }}
+                          onPointerDown={(e) => { e.stopPropagation(); e.currentTarget.setPointerCapture(e.pointerId); }}
+                          onPointerMove={(e) => resize(b, corner, e)}
+                        >
+                          <span className="size-3.5 rounded-full border-2 border-accent bg-surface shadow-sm" />
+                        </div>
+                      ))}
                       {b.splits.map((s, k) => (
                         <div
                           key={k}

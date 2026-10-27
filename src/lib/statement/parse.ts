@@ -46,6 +46,8 @@ export interface Statement {
   mismatches: number;
   /** Pages that had no text at all (usually scans). */
   emptyPages: number[];
+  /** The opening/closing balances came from the account summary box rather than a table row. */
+  fromSummary?: boolean;
 }
 
 interface Cell {
@@ -271,6 +273,7 @@ export function parseStatement(pages: TextItem[][], opts: ParseOptions = {}): St
   let closing: number | null = null;
   let decimals = 0;
   const rows: RawRow[] = [];
+  const summaryLines: { y: number; cells: Cell[] }[][] = [];
   let rtlLines = 0, allLines = 0;
   const years: number[] = [];
 
@@ -279,6 +282,7 @@ export function parseStatement(pages: TextItem[][], opts: ParseOptions = {}): St
     const fixed = opts.columns?.[pi] ?? null;
     if (opts.columns) { cols = fixed; headerFound = headerFound || Boolean(fixed); }
     const lines = cellsOf(items);
+    summaryLines.push(lines);
     let inTable = Boolean(fixed);
     let last: RawRow | null = null;
     for (let li = 0; li < lines.length; li++) {
@@ -413,6 +417,17 @@ export function parseStatement(pages: TextItem[][], opts: ParseOptions = {}): St
   const newestFirst = detectNewestFirst(tx, opening);
   if (unsigned) resolveBySign(tx, opening, newestFirst);
 
+  // Card statements print the balances in an account summary box instead of a table row.
+  let fromSummary = false;
+  if (opening === null || closing === null) {
+    const sum = readSummary(summaryLines);
+    if (sum) {
+      if (opening === null && sum.opening !== null) { opening = sum.opening; fromSummary = true; }
+      if (closing === null && sum.closing !== null) { closing = sum.closing; fromSummary = true; }
+      decimals = Math.max(decimals, sum.decimals);
+    }
+  }
+
   const { checked, mismatches } = checkBalances(tx, opening, newestFirst, decimals);
   const round = (n: number) => Math.round(n * 10 ** Math.max(decimals, 2)) / 10 ** Math.max(decimals, 2);
   return {
@@ -429,7 +444,45 @@ export function parseStatement(pages: TextItem[][], opts: ParseOptions = {}): St
     checked,
     mismatches,
     emptyPages,
+    fromSummary,
   };
+}
+
+const SUMMARY_OPENING = /^[+\-=]?\s*(previous|opening|prior|last statement|balance (brought )?forward|balance b\/f)\b.*|^[+\-=]?\s*الرصيد (السابق|الافتتاحي)/i;
+const SUMMARY_CLOSING = /^[+\-=]?\s*(current|new|closing|total|statement|ending|outstanding)\s+(balance|outstanding)|^[+\-=]?\s*outstanding (balance|amount)|^[+\-=]?\s*الرصيد (الحالي|الختامي|المستحق)/i;
+
+/**
+ * An account summary: one row of headings ("Previous Balance", "+ Total Activity", "= Current Outstanding")
+ * with the amounts printed on the row below, each under its heading.
+ */
+function readSummary(pages: { y: number; cells: Cell[] }[][]): { opening: number | null; closing: number | null; decimals: number } | null {
+  for (const lines of pages) {
+    for (let i = 0; i < lines.length - 1; i++) {
+      const heads = lines[i]!.cells;
+      const open = heads.find((c) => SUMMARY_OPENING.test(c.text.trim()));
+      const close = heads.find((c) => SUMMARY_CLOSING.test(c.text.trim()));
+      if (!open || !close || open === close) continue;
+      // The amounts sit on one of the next couple of lines.
+      for (const below of lines.slice(i + 1, i + 3)) {
+        if (below.y - lines[i]!.y > 40) break;
+        const amounts = below.cells.filter((c) => isAmount(c.text));
+        if (amounts.length < 2) continue;
+        const under = (h: Cell) => {
+          const centre = (h.x0 + h.x1) / 2;
+          let best: Cell | null = null;
+          let d = Infinity;
+          for (const a of amounts) {
+            const gap = Math.abs((a.x0 + a.x1) / 2 - centre);
+            if (gap < d) { d = gap; best = a; }
+          }
+          return best && d < Math.max(60, (h.x1 - h.x0) * 0.9) ? readAmount(best.text) : null;
+        };
+        const o = under(open), c = under(close);
+        if (o && c) return { opening: signed(o), closing: signed(c), decimals: Math.max(o.decimals, c.decimals) };
+      }
+    }
+  }
+  return null;
 }
 
 /** Whether a cell lies between the columns that flank the description column. */

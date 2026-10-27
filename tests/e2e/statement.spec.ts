@@ -72,6 +72,56 @@ test.describe("Bank Statement Converter", () => {
     expect(text.split("\r\n")[1]).toBe("2026-10-01,Salary October ACME TRADING LLC,,18500.00,21750.00");
   });
 
+  test("Manual Selection: corner dots resize a table", async ({ page }) => {
+    await open(page, "/tools/bank-statement-converter");
+    await page.locator('input[type="file"]').setInputFiles(fixture("statement-en.pdf"));
+    await page.getByRole("radio", { name: /Manual Selection/ }).check();
+    const overlay = page.getByTestId("overlay-1");
+    await expect(page.getByRole("img", { name: "Page 1" })).toBeVisible();
+    await overlay.scrollIntoViewIfNeeded();
+    const box = (await overlay.boundingBox())!;
+    await page.mouse.move(box.x + box.width * 0.1, box.y + box.height * 0.15);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.4, { steps: 6 });
+    await page.mouse.up();
+    const handle = page.locator('[data-handle="se"]').first();
+    const before = (await handle.boundingBox())!;
+    await page.mouse.move(before.x + before.width / 2, before.y + before.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.9, box.y + box.height * 0.8, { steps: 6 });
+    await page.mouse.up();
+    const after = (await handle.boundingBox())!;
+    expect(after.x).toBeGreaterThan(before.x + 50);
+    expect(after.y).toBeGreaterThan(before.y + 50);
+  });
+
+  test("Manual Selection: press, hold and drag draws a table by touch @mobile", async ({ page }) => {
+    await open(page, "/tools/bank-statement-converter");
+    await page.locator('input[type="file"]').setInputFiles(fixture("statement-en.pdf"));
+    await page.getByRole("radio", { name: /Manual Selection/ }).check();
+    await expect(page.getByRole("img", { name: "Page 1" })).toBeVisible();
+    const overlay = page.getByTestId("overlay-1");
+    await overlay.scrollIntoViewIfNeeded();
+    const box = (await overlay.boundingBox())!;
+    const cdp = await page.context().newCDPSession(page);
+    const pt = (x: number, y: number) => [{ x, y, id: 1 }];
+    const sx = box.x + box.width * 0.1, sy = box.y + box.height * 0.2;
+    const ex = box.x + box.width * 0.9;
+    // A quick swipe over the page does not draw anything.
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: pt(sx, sy) });
+    for (let i = 1; i <= 4; i++) await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: pt(sx, sy + i * 30) });
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    await expect(page.getByText(/Table 1 · page 1/)).toHaveCount(0);
+    // Resting the finger first, then dragging, does.
+    const box2 = (await overlay.boundingBox())!;
+    const y0 = box2.y + box2.height * 0.2, y1 = box2.y + box2.height * 0.6;
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: pt(sx, y0) });
+    await page.waitForTimeout(450);
+    for (let i = 1; i <= 10; i++) await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: pt(sx + ((ex - sx) * i) / 10, y0 + ((y1 - y0) * i) / 10) });
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    await expect(page.getByText("Table 1 · page 1")).toBeVisible();
+  });
+
   test("Automatic Conversion reads a scanned statement with OCR", async ({ page }) => {
     await open(page, "/tools/bank-statement-converter");
     await page.locator('input[type="file"]').setInputFiles(fixture("statement-en-scan.pdf"));
@@ -91,6 +141,15 @@ test.describe("Bank Statement Converter", () => {
     await expect(result.getByText("Money out (debits)").locator("xpath=following-sibling::*[1]")).toHaveText("30,149.19");
     await expect(result.getByRole("cell", { name: "BLUE ORCHARD STORE CITYVILLE PK" })).toBeVisible();
     await expect(result.getByRole("cell", { name: /MISSED/ })).toHaveCount(0);
+    // No balance is printed per row, so each one is calculated from the summary's previous balance and matched with the current outstanding.
+    await expect(result).toContainText("Calculated balance 3,949.19 matches the statement");
+    await expect(result).toContainText("Opening balance: 1,000.00");
+    await expect(result.getByRole("cell", { name: "3,949.19", exact: true }).first()).toBeVisible();
+    // Typing a different closing balance shows the difference.
+    await page.getByLabel("Closing balance on the statement").fill("4,000.00");
+    await expect(result).toContainText("difference -50.81");
+    await page.getByLabel("Closing balance on the statement").fill("");
+    await expect(result).toContainText("matches the statement");
     // Page 3 is only a picture: it is reported, not OCR'd into extra rows.
     await expect(result).toContainText("Page 3 had no text");
     await expect(result).not.toContainText("read with OCR");
