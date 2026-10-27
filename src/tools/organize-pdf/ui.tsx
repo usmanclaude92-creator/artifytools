@@ -22,9 +22,9 @@ const MAX_THUMBS = 300;
 const strings = {
   en: {
     choose: "Choose a PDF", types: "PDF", pages: (n: number) => `${n} page${n === 1 ? "" : "s"}`, reading: "Reading your PDF…",
-    pagesTitle: "Pages", hint: "Drag pages to reorder them, or use the arrows. Delete what you don't need and rotate any sideways page.",
+    pagesTitle: "Pages", hint: "Drag pages by their handle to reorder them, or use the arrows. Delete what you don't need and rotate any sideways page.",
     kept: (k: number, n: number) => `${k} of ${n} pages kept`, reset: "Reset",
-    earlier: (n: number) => `Move page ${n} earlier`, later: (n: number) => `Move page ${n} later`, left: (n: number) => `Rotate page ${n} left`, right: (n: number) => `Rotate page ${n} right`,
+    drag: (n: number) => `Drag page ${n} to reorder`, earlier: (n: number) => `Move page ${n} earlier`, later: (n: number) => `Move page ${n} later`, left: (n: number) => `Rotate page ${n} left`, right: (n: number) => `Rotate page ${n} right`,
     remove: (n: number) => `Delete page ${n}`, page: (n: number) => `Page ${n}`,
     save: "Save organized PDF", saving: "Saving…", nothing: "Reorder, delete or rotate a page first.", empty: "Every page is deleted. Press Reset to bring them back.",
     many: (n: number) => `Only the first ${n} pages can be organized here. Split the PDF first for longer documents.`,
@@ -33,9 +33,9 @@ const strings = {
   },
   ar: {
     choose: "اختر ملف PDF", types: "PDF", pages: (n: number) => arCount(n, "صفحة واحدة", "صفحتان", "صفحات", "صفحة"), reading: "جارٍ قراءة ملف PDF…",
-    pagesTitle: "الصفحات", hint: "اسحب الصفحات لإعادة ترتيبها، أو استخدم الأسهم. احذف ما لا تحتاجه ودوّر أي صفحة مائلة.",
+    pagesTitle: "الصفحات", hint: "اسحب الصفحات من مقبضها لإعادة ترتيبها، أو استخدم الأسهم. احذف ما لا تحتاجه ودوّر أي صفحة مائلة.",
     kept: (k: number, n: number) => `${k} من ${n} صفحة محتفظ بها`, reset: "إعادة ضبط",
-    earlier: (n: number) => `تقديم الصفحة ${n}`, later: (n: number) => `تأخير الصفحة ${n}`, left: (n: number) => `تدوير الصفحة ${n} لليسار`, right: (n: number) => `تدوير الصفحة ${n} لليمين`,
+    drag: (n: number) => `اسحب الصفحة ${n} لإعادة ترتيبها`, earlier: (n: number) => `تقديم الصفحة ${n}`, later: (n: number) => `تأخير الصفحة ${n}`, left: (n: number) => `تدوير الصفحة ${n} لليسار`, right: (n: number) => `تدوير الصفحة ${n} لليمين`,
     remove: (n: number) => `حذف الصفحة ${n}`, page: (n: number) => `الصفحة ${n}`,
     save: "حفظ الملف بعد التنظيم", saving: "جارٍ الحفظ…", nothing: "رتّب صفحة أو احذفها أو دوّرها أولًا.", empty: "حُذفت كل الصفحات. اضغط «إعادة ضبط» لاسترجاعها.",
     many: (n: number) => `يمكن تنظيم أول ${n} صفحة فقط هنا. قسّم الملف أولًا للمستندات الأطول.`,
@@ -56,6 +56,8 @@ export default function OrganizePdf() {
   const [items, setItems] = useState<Item[]>([]);
   const [dragFrom, setDragFrom] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
+  const [ghost, setGhost] = useState<{ x: number; y: number } | null>(null);
+  const over = useRef<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ key: string; blob: Blob } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -104,6 +106,62 @@ export default function OrganizePdf() {
   const move = (from: number, to: number) => setItems((xs) => moveItem(xs, from, to));
   const reset = () => setItems(fresh(count));
 
+  // Pointer-based drag: works with mouse, touch and pen. Mouse drags start anywhere on a page card;
+  // touch and pen start from the handle only, so the rest of the card still scrolls the page.
+  const startDrag = (i: number, e: React.PointerEvent) => {
+    if (e.button !== 0 || items.length < 2) return;
+    e.preventDefault();
+    over.current = i;
+    setDragFrom(i);
+    setOverIndex(i);
+    setGhost({ x: e.clientX, y: e.clientY });
+  };
+
+  useEffect(() => {
+    if (dragFrom === null) return;
+    const from = dragFrom;
+    let raf = 0;
+    let lastY = 0;
+    const edge = () => {
+      if (lastY < 70) window.scrollBy(0, -14);
+      else if (lastY > window.innerHeight - 70) window.scrollBy(0, 14);
+      raf = requestAnimationFrame(edge);
+    };
+    raf = requestAnimationFrame(edge);
+    const onMove = (e: PointerEvent) => {
+      lastY = e.clientY;
+      setGhost({ x: e.clientX, y: e.clientY });
+      const el = document.elementFromPoint(e.clientX, e.clientY)?.closest<HTMLElement>("[data-page-index]");
+      if (el) {
+        const idx = Number(el.dataset.pageIndex);
+        over.current = idx;
+        setOverIndex(idx);
+      }
+    };
+    const finish = (commit: boolean) => {
+      const to = over.current;
+      if (commit && to !== null && to !== from) setItems((xs) => moveItem(xs, from, to));
+      over.current = null;
+      setDragFrom(null);
+      setOverIndex(null);
+      setGhost(null);
+    };
+    const onUp = () => finish(true);
+    const onCancel = () => finish(false);
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") finish(false); };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onCancel);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onCancel);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [dragFrom]);
+
   const unchanged = items.length === shown && items.every((x, i) => x.source === i + 1 && x.turn === 0);
   const key = `${file?.name}|${file?.size}|${items.map((x) => `${x.source}:${x.turn}`).join(",")}`;
   const current = result && result.key === key ? result : null;
@@ -149,13 +207,18 @@ export default function OrganizePdf() {
               return (
                 <li
                   key={it.source}
-                  draggable
-                  onDragStart={() => setDragFrom(i)}
-                  onDragOver={(e) => { e.preventDefault(); setOverIndex(i); }}
-                  onDrop={(e) => { e.preventDefault(); if (dragFrom !== null) move(dragFrom, i); setDragFrom(null); setOverIndex(null); }}
-                  onDragEnd={() => { setDragFrom(null); setOverIndex(null); }}
-                  className={`flex cursor-grab flex-col items-center gap-2 rounded-lg border p-2 active:cursor-grabbing ${overIndex === i && dragFrom !== null && dragFrom !== i ? "border-accent bg-accent-soft" : "border-line"} ${dragFrom === i ? "opacity-50" : ""}`}
+                  data-page-index={i}
+                  onPointerDown={(e) => { if (e.pointerType === "mouse" && !(e.target as Element).closest("button")) startDrag(i, e); }}
+                  className={`relative flex select-none flex-col items-center gap-2 rounded-lg border p-2 ${dragFrom === null ? "cursor-grab" : "cursor-grabbing"} ${overIndex === i && dragFrom !== null && dragFrom !== i ? "border-accent bg-accent-soft" : "border-line"} ${dragFrom === i ? "opacity-40" : ""}`}
                 >
+                  <button
+                    type="button"
+                    aria-label={t.drag(it.source)}
+                    onPointerDown={(e) => { if (e.pointerType !== "mouse") startDrag(i, e); }}
+                    className="absolute start-1.5 top-1.5 z-10 grid size-8 cursor-grab touch-none place-items-center rounded-md bg-surface/90 text-muted shadow-sm hover:text-fg active:cursor-grabbing"
+                  >
+                    <Icon name="arrow-up-down" size={15} className="rotate-90" />
+                  </button>
                   <div className="grid aspect-square w-full place-items-center overflow-hidden rounded-md bg-surface-2">
                     {u ? (
                       // eslint-disable-next-line @next/next/no-img-element -- local object URL
@@ -184,6 +247,16 @@ export default function OrganizePdf() {
             {unchanged && <span className="text-sm text-muted">{t.nothing}</span>}
           </div>
         </Panel>
+      )}
+      {ghost && dragFrom !== null && items[dragFrom] && thumbs[items[dragFrom]!.source - 1] && (
+        // eslint-disable-next-line @next/next/no-img-element -- local object URL
+        <img
+          src={thumbs[items[dragFrom]!.source - 1]}
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none fixed z-50 w-20 rounded-md border-2 border-accent bg-surface shadow-lg"
+          style={{ left: ghost.x, top: ghost.y, transform: `translate(-50%, -50%) rotate(${items[dragFrom]!.turn}deg)` }}
+        />
       )}
     </div>
   );
