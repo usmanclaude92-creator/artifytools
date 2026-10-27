@@ -289,6 +289,8 @@ test.describe("home core cards", () => {
     const docY = () => page.getByRole("button", { name: "More: Image Studio" }).evaluate((e) => e.getBoundingClientRect().top + window.scrollY);
     const row = await docY();
     await expect(page.getByRole("link", { name: "Split PDF", exact: true })).toHaveCount(0);
+    // Organize PDF is one of the three chips shown on the card itself.
+    await expect(page.getByRole("link", { name: "Organize PDF", exact: true })).toBeVisible();
     await pdfMore.click();
     await expect(pdfMore).toHaveAttribute("aria-expanded", "true");
     await expect(page.getByRole("link", { name: "Split PDF", exact: true })).toBeVisible();

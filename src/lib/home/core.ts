@@ -27,10 +27,10 @@ export const coreSections: CoreSection[] = [
     tone: "blue",
     category: "pdf",
     alsoCategories: ["pdf-edit"],
-    quick: ["pdf-to-word", "word-to-pdf", "pdf-to-excel", "merge-pdf", "compress-pdf"],
+    quick: ["pdf-to-word", "organize-pdf", "word-to-pdf", "pdf-to-excel", "merge-pdf", "compress-pdf"],
     text: {
-      en: { name: "PDF Converter & Editor", short: "Convert PDFs to Word, Excel or JPG, then merge, compress and protect them.",  description: "Convert PDFs to and from Word, Excel and JPG, then merge, split, compress, rotate, number, watermark and protect them." },
-      ar: { name: "محوّل ومحرّر PDF", short: "حوّل ملفات PDF إلى Word وExcel وJPG، ثم ادمجها واضغطها واحمِها.",  description: "حوّل ملفات PDF من Word وExcel وJPG وإليها، ثم ادمجها وقسّمها واضغطها ودوّرها ورقّمها وأضف إليها علامة مائية واحمِها." },
+      en: { name: "PDF Converter & Editor", short: "Convert PDFs to Word, Excel or JPG, then merge, organize, compress and protect them.",  description: "Convert PDFs to and from Word, Excel and JPG, then merge, split, organize, compress, rotate, number, watermark and protect them." },
+      ar: { name: "محوّل ومحرّر PDF", short: "حوّل ملفات PDF إلى Word وExcel وJPG، ثم ادمجها ونظّمها واضغطها واحمِها.",  description: "حوّل ملفات PDF من Word وExcel وJPG وإليها، ثم ادمجها وقسّمها ونظّمها واضغطها ودوّرها ورقّمها وأضف إليها علامة مائية واحمِها." },
     },
   },
   {
