@@ -56,7 +56,7 @@ test.describe("Organize PDF", () => {
 
 test.describe("Organize PDF dragging", () => {
   // Bring the thumbnails fully into view first: dragging uses real pointer coordinates.
-  const reveal = (page: Page) => page.locator("li[data-page-index]").first().evaluate((el) => el.scrollIntoView({ block: "center" }));
+  const reveal = (page: Page) => page.locator("li[data-page-index]").first().evaluate((el) => el.parentElement!.scrollIntoView({ block: "center" }));
   const order = (page: Page) => page.locator("li[data-page-index] img").evaluateAll((els) => els.map((e) => (e as HTMLImageElement).alt));
 
   test("drags a page with the mouse", async ({ page }) => {
@@ -74,6 +74,63 @@ test.describe("Organize PDF dragging", () => {
     await expect(page.getByRole("button", { name: "Save organized PDF" })).toBeEnabled();
   });
 
+  test("a click opens the page preview; moving past it picks the page up instead", async ({ page }) => {
+    await open(page, "/tools/organize-pdf");
+    await page.locator('input[type="file"]').setInputFiles(fixture("plain-3-pages.pdf"));
+    await expect(page.getByRole("img", { name: "Page 3" })).toBeVisible();
+    await reveal(page);
+    await page.getByRole("button", { name: "Preview page 2" }).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByText("Page 2 · position 2 of 3")).toBeVisible();
+    await dialog.getByRole("button", { name: "Next page" }).click();
+    await expect(dialog.getByText("Page 3 · position 3 of 3")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    expect(await order(page)).toEqual(["Page 1", "Page 2", "Page 3"]);
+    await expect(page.getByRole("button", { name: "Save organized PDF" })).toBeDisabled();
+  });
+
+  test("press and hold picks a page up without moving first", async ({ page }) => {
+    await open(page, "/tools/organize-pdf");
+    await page.locator('input[type="file"]').setInputFiles(fixture("plain-3-pages.pdf"));
+    await expect(page.getByRole("img", { name: "Page 3" })).toBeVisible();
+    await reveal(page);
+    const from = (await page.getByRole("button", { name: "Preview page 3" }).boundingBox())!;
+    const to = (await page.locator("li[data-page-index]").nth(0).boundingBox())!;
+    await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+    await page.mouse.down();
+    await page.waitForTimeout(450); // longer than the hold time, no movement
+    await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 6 });
+    await page.mouse.up();
+    await expect(page.getByRole("dialog")).toBeHidden();
+    expect(await order(page)).toEqual(["Page 3", "Page 1", "Page 2"]);
+  });
+
+  test("the size slider changes the thumbnail size", async ({ page }) => {
+    await open(page, "/tools/organize-pdf");
+    await page.locator('input[type="file"]').setInputFiles(fixture("plain-3-pages.pdf"));
+    await expect(page.getByRole("img", { name: "Page 3" })).toBeVisible();
+    const width = async () => (await page.locator("li[data-page-index]").first().boundingBox())!.width;
+    const before = await width();
+    await page.getByRole("button", { name: "Larger thumbnails" }).click();
+    await page.getByRole("button", { name: "Larger thumbnails" }).click();
+    await expect.poll(width).toBeGreaterThan(before + 20);
+    const larger = await width();
+    await page.getByRole("button", { name: "Smaller thumbnails" }).click();
+    await expect.poll(width).toBeLessThan(larger - 10);
+  });
+
+  test("the thumbnail picture fills its frame", async ({ page }) => {
+    await open(page, "/tools/organize-pdf");
+    await page.locator('input[type="file"]').setInputFiles(fixture("plain-3-pages.pdf"));
+    const img = page.getByRole("img", { name: "Page 1" });
+    await expect(img).toBeVisible();
+    const [a, b] = await Promise.all([img.boundingBox(), img.locator("xpath=..").boundingBox()]);
+    expect(Math.abs(a!.width - b!.width)).toBeLessThan(2);
+    expect(Math.abs(a!.height - b!.height)).toBeLessThan(2);
+  });
+
   test("Escape cancels a drag", async ({ page }) => {
     await open(page, "/tools/organize-pdf");
     await page.locator('input[type="file"]').setInputFiles(fixture("plain-3-pages.pdf"));
@@ -87,6 +144,28 @@ test.describe("Organize PDF dragging", () => {
     await page.keyboard.press("Escape");
     await page.mouse.up();
     expect(await order(page)).toEqual(["Page 1", "Page 2", "Page 3"]);
+  });
+
+  test("long press picks a page up and a tap opens the preview @mobile", async ({ page }) => {
+    await open(page, "/tools/organize-pdf");
+    await page.locator('input[type="file"]').setInputFiles(fixture("plain-3-pages.pdf"));
+    await expect(page.getByRole("img", { name: "Page 3" })).toBeVisible();
+    await reveal(page);
+    await page.getByRole("button", { name: "Preview page 2" }).tap();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await page.getByRole("button", { name: "Close preview" }).tap();
+    await expect(page.getByRole("dialog")).toBeHidden();
+    const frame = (await page.getByRole("button", { name: "Preview page 3" }).boundingBox())!;
+    const target = (await page.locator("li[data-page-index]").nth(0).boundingBox())!;
+    const cdp = await page.context().newCDPSession(page);
+    const pt = (x: number, y: number) => [{ x, y, id: 1 }];
+    const sx = frame.x + frame.width / 2, sy = frame.y + frame.height / 2;
+    const ex = target.x + target.width / 2, ey = target.y + target.height / 2;
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: pt(sx, sy) });
+    await page.waitForTimeout(600); // a long press
+    for (let i = 1; i <= 10; i++) await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: pt(sx + ((ex - sx) * i) / 10, sy + ((ey - sy) * i) / 10) });
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    await expect.poll(() => order(page)).toEqual(["Page 3", "Page 1", "Page 2"]);
   });
 
   test("drags a page by its handle with touch @mobile", async ({ page }) => {

@@ -381,3 +381,45 @@ html[lang="ar"] :is(.font-mono, code, kbd, pre, textarea):dir(rtl) { font-family
   background: radial-gradient(120% 120% at 30% 20%, #2a1d4d 0%, #170f2c 55%, #0f0a1f 100%);
   box-shadow: 0 24px 60px -14px rgba(101, 71, 255, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
+
+/* Slim pill slider with an accent fill (set --fill as a percentage on the element) */
+.zoom-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 1.5rem;
+  background: transparent;
+  cursor: pointer;
+}
+.zoom-range::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent) var(--fill, 50%), var(--line-strong) var(--fill, 50%));
+}
+.zoom-range::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent) var(--fill, 50%), var(--line-strong) var(--fill, 50%));
+}
+.zoom-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--accent);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+.zoom-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--accent);
+  box-shadow: var(--shadow-sm);
+}
+.zoom-range:hover::-webkit-slider-thumb,
+.zoom-range:active::-webkit-slider-thumb { transform: scale(1.15); }
+.zoom-range:focus-visible { outline-offset: 4px; }
