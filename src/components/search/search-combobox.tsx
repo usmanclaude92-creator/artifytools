@@ -8,6 +8,7 @@ import { useId, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/ui/icon";
 import { cx } from "@/components/ui/cx";
 import { searchTools } from "@/lib/search";
+import { useSearchIndex } from "./use-search-index";
 import type { SearchItem } from "@/lib/tools/registry";
 
 export interface SearchCategoryLink {
@@ -16,7 +17,6 @@ export interface SearchCategoryLink {
 }
 
 interface Props {
-  items: SearchItem[];
   categories: SearchCategoryLink[];
   /** Shown when the query is empty (dialog only). */
   suggestions?: SearchItem[];
@@ -27,7 +27,7 @@ interface Props {
   inputId?: string;
 }
 
-export function SearchCombobox({ items, categories, suggestions, variant, autoFocus, onNavigate, placeholder, inputId }: Props) {
+export function SearchCombobox({ categories, suggestions, variant, autoFocus, onNavigate, placeholder, inputId }: Props) {
   const t = useMessages();
   const router = useRouter();
   const locale = useLocale();
@@ -37,11 +37,16 @@ export function SearchCombobox({ items, categories, suggestions, variant, autoFo
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  // The tool list is fetched the first time the box is used, not shipped with every page.
+  const [wanted, setWanted] = useState(variant === "dialog");
+  const items = useSearchIndex(wanted);
 
   const trimmed = query.trim();
-  const results = useMemo(() => (trimmed ? searchTools(items, trimmed, 8) : (suggestions ?? [])), [items, trimmed, suggestions]);
+  const results = useMemo(() => (trimmed ? (items ? searchTools(items, trimmed, 8) : []) : (suggestions ?? [])), [items, trimmed, suggestions]);
+  // While the list is still downloading a typed query shows nothing yet, rather than "no match".
+  const loading = trimmed !== "" && !items;
   const showList = (variant === "dialog" || open) && (trimmed !== "" || (suggestions?.length ?? 0) > 0);
-  const noResults = trimmed !== "" && results.length === 0;
+  const noResults = !loading && trimmed !== "" && results.length === 0;
   const active = results.length ? Math.min(activeIndex, results.length - 1) : -1;
 
   function go(href: string) {
@@ -113,10 +118,12 @@ export function SearchCombobox({ items, categories, suggestions, variant, autoFo
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
+            setWanted(true);
             setActiveIndex(0);
             setOpen(true);
           }}
-          onFocus={() => setOpen(true)}
+          onFocus={() => { setOpen(true); setWanted(true); }}
+          onPointerEnter={() => setWanted(true)}
           onBlur={(e) => {
             // Keep the list open while interacting with it.
             if (!e.relatedTarget || !e.currentTarget.parentElement?.parentElement?.contains(e.relatedTarget as Node)) setOpen(false);
@@ -150,10 +157,10 @@ export function SearchCombobox({ items, categories, suggestions, variant, autoFo
       </div>
 
       <div className="sr-only" role="status" aria-live="polite">
-        {trimmed ? (results.length ? t.search.results(results.length) : t.search.noResultsAnnounce) : ""}
+        {trimmed && !loading ? (results.length ? t.search.results(results.length) : t.search.noResultsAnnounce) : ""}
       </div>
 
-      {showList && !noResults && (
+      {showList && !noResults && !loading && (
         <div
           className={cx(
             "overflow-hidden rounded-lg border border-line bg-surface text-start",
@@ -190,7 +197,7 @@ export function SearchCombobox({ items, categories, suggestions, variant, autoFo
         </div>
       )}
       {/* The listbox element must exist for aria-controls even when closed. */}
-      {!(showList && !noResults) && <ul id={listId} role="listbox" aria-label={t.search.matching} hidden />}
+      {!(showList && !noResults && !loading) && <ul id={listId} role="listbox" aria-label={t.search.matching} hidden />}
 
       {noResults && (
         <div className={cx("rounded-lg border border-line bg-surface p-5 text-start", variant === "hero" ? "absolute inset-x-0 top-full z-30 mt-2 shadow-overlay" : "mt-3")}>

@@ -3,7 +3,7 @@ import { Hero } from "@/components/home/hero";
 import { ClosingCta, CoreSections, HowItWorks, MoreTools, PopularTools, PrivacySection, PromoBanner, TrustStrip } from "@/components/home/sections";
 import { JsonLd } from "@/components/ui/json-ld";
 import { absoluteUrl, siteConfig } from "@/lib/config";
-import { getPublishedCategories, getSearchItems } from "@/lib/tools/registry";
+import { getPublishedCategories } from "@/lib/tools/registry";
 import { pageMetadata } from "@/lib/seo/metadata";
 import { getLocale, getT } from "@/lib/locale-server";
 import { localizeHref } from "@/lib/i18n";
@@ -42,7 +42,7 @@ export default async function HomePage() {
           },
         }}
       />
-      <Hero items={getSearchItems(locale)} categories={categories} />
+      <Hero categories={categories} />
       <CoreSections />
       <PopularTools />
       <TrustStrip />

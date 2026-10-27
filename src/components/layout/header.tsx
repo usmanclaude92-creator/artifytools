@@ -17,12 +17,11 @@ import { Logo } from "./logo";
 import { primaryNav } from "./nav-links";
 
 interface Props {
-  items: SearchItem[];
   categories: SearchCategoryLink[];
   suggestions: SearchItem[];
 }
 
-export function Header({ items, categories, suggestions }: Props) {
+export function Header({ categories, suggestions }: Props) {
   const pathname = stripLocale(usePathname());
   const menuRef = useRef<HTMLDialogElement>(null);
   const t = useMessages();
@@ -63,7 +62,7 @@ export function Header({ items, categories, suggestions }: Props) {
         </nav>
 
         <div className="ms-auto flex items-center gap-1 sm:gap-2">
-          <SearchDialog items={items} categories={categories} suggestions={suggestions} />
+          <SearchDialog categories={categories} suggestions={suggestions} />
           <span className="hidden sm:contents">
             <LanguageSwitcher />
             <ThemeToggle />

@@ -7,13 +7,12 @@ import type { SearchItem } from "@/lib/tools/registry";
 import { SearchCombobox, type SearchCategoryLink } from "./search-combobox";
 
 interface Props {
-  items: SearchItem[];
   categories: SearchCategoryLink[];
   suggestions: SearchItem[];
 }
 
 /** Header search: a modal command-palette built on the native <dialog> element (focus trap + Esc for free). */
-export function SearchDialog({ items, categories, suggestions }: Props) {
+export function SearchDialog({ categories, suggestions }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const t = useMessages();
@@ -70,7 +69,7 @@ export function SearchDialog({ items, categories, suggestions }: Props) {
           }}
           className="m-0 mx-auto mt-[8vh] w-[min(40rem,calc(100vw-1.5rem))] max-w-none rounded-xl border border-line bg-canvas p-3 text-fg shadow-overlay backdrop:bg-black/50 open:animate-[artify-rise_200ms_ease-out]"
         >
-          <SearchCombobox key={openCount} items={items} categories={categories} suggestions={suggestions} variant="dialog" autoFocus onNavigate={closeDialog} />
+          <SearchCombobox key={openCount} categories={categories} suggestions={suggestions} variant="dialog" autoFocus onNavigate={closeDialog} />
           <div className="mt-3 flex items-center justify-between px-1 text-xs text-muted">
             <span>{t.search.dialogHint}</span>
             <button type="button" onClick={closeDialog} className="rounded px-2 py-1 hover:bg-surface-2">{t.search.close}</button>

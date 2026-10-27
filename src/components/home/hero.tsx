@@ -1,12 +1,12 @@
 import Link from "@/components/ui/locale-link";
 import { SearchCombobox, type SearchCategoryLink } from "@/components/search/search-combobox";
-import { getTool, type SearchItem } from "@/lib/tools/registry";
+import { getTool } from "@/lib/tools/registry";
 import { HeroVisual } from "./hero-visual";
 import { getT } from "@/lib/locale-server";
 
 const chipSlugs = ["pdf-to-word", "remove-background", "cheque-printer", "compress-pdf"].filter((s) => getTool(s));
 
-export async function Hero({ items, categories }: { items: SearchItem[]; categories: SearchCategoryLink[] }) {
+export async function Hero({ categories }: { categories: SearchCategoryLink[] }) {
   const t = await getT();
   const chips = chipSlugs.map((slug) => ({ slug, label: t.home.chips[slug] ?? slug }));
   return (
@@ -24,7 +24,7 @@ export async function Hero({ items, categories }: { items: SearchItem[]; categor
           </p>
 
           <div className="mt-8 max-w-[38rem]">
-            <SearchCombobox items={items} categories={categories} variant="hero" inputId="hero-search" />
+            <SearchCombobox categories={categories} variant="hero" inputId="hero-search" />
             <div className="mt-4 flex flex-wrap items-center gap-x-1.5 gap-y-2">
               <span className="text-sm text-muted">{t.home.trySearching}</span>
               {chips.map((c) => (
