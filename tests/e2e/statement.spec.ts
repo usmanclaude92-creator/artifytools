@@ -81,6 +81,21 @@ test.describe("Bank Statement Converter", () => {
     await expect(result.getByRole("cell", { name: /CARREFOUR.*4421/ })).toBeVisible();
   });
 
+  test("Card statement: two-line headings, D/C letters, a picture-only last page", async ({ page }) => {
+    await open(page, "/tools/bank-statement-converter");
+    await page.locator('input[type="file"]').setInputFiles(fixture("statement-card.pdf"));
+    const result = page.getByRole("region", { name: "Transactions" });
+    await expect(result).toContainText("9 transactions");
+    // D is money out (debit) and C is money in (credit), whatever the sign printed next to the amount.
+    await expect(result.getByText("Money in (credits)").locator("xpath=following-sibling::*[1]")).toHaveText("27,200.00");
+    await expect(result.getByText("Money out (debits)").locator("xpath=following-sibling::*[1]")).toHaveText("30,149.19");
+    await expect(result.getByRole("cell", { name: "BLUE ORCHARD STORE CITYVILLE PK" })).toBeVisible();
+    await expect(result.getByRole("cell", { name: /MISSED/ })).toHaveCount(0);
+    // Page 3 is only a picture: it is reported, not OCR'd into extra rows.
+    await expect(result).toContainText("Page 3 had no text");
+    await expect(result).not.toContainText("read with OCR");
+  });
+
   test("US statement: month-first dates, newest first", async ({ page }) => {
     await open(page, "/tools/bank-statement-converter");
     await page.locator('input[type="file"]').setInputFiles(fixture("statement-us.pdf"));

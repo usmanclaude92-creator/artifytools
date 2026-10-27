@@ -133,10 +133,10 @@ function isoOf(d: RawDate, order: DateOrder, fallbackYear: number): string | nul
 export function readAmount(text: string): { value: number; decimals: number; mark: "cr" | "dr" | null } | null {
   let t = DIGITS(text).replace(/[٫]/g, ".").replace(/[٬]/g, ",").replace(/ /g, " ").trim();
   let mark: "cr" | "dr" | null = null;
-  const crdr = /\b(cr|dr)\.?$|^(cr|dr)\.?\b|(دائن|مدين)$/i.exec(t);
+  const crdr = /\b(cr|dr)\.?$|^(cr|dr)\.?\b|(دائن|مدين)$|(?<=\d)\s+([cd])$/i.exec(t);
   if (crdr) {
-    const w = (crdr[1] ?? crdr[2] ?? crdr[3])!.toLowerCase();
-    mark = w === "cr" || w === "دائن" ? "cr" : "dr";
+    const w = (crdr[1] ?? crdr[2] ?? crdr[3] ?? crdr[4])!.toLowerCase();
+    mark = w === "cr" || w === "دائن" || w === "c" ? "cr" : "dr";
     t = t.replace(crdr[0], "").trim();
   }
   t = t.replace(/^(?:[A-Z]{3}|[$€£¥₹]|ر\.?س\.?|د\.?إ\.?|ر\.?ع\.?|د\.?ك\.?|ر\.?ق\.?)\s*/i, "").replace(/\s*(?:[A-Z]{3}|[$€£¥₹]|ر\.?س\.?|د\.?إ\.?|ر\.?ع\.?)$/i, "").trim();
@@ -169,6 +169,24 @@ function cellsOf(items: TextItem[]): { y: number; size: number; cells: Cell[] }[
   return groupLines(items).map((l) => ({ y: l.y, size: l.size, cells: lineCells(l.items, l.rtl).map((c) => ({ x0: c.x0, x1: c.x1, text: c.text })) }));
 }
 
+/**
+ * Headings printed over two lines ("Transaction" above "Date", "Amount" above "(PKR)") become one heading each:
+ * a cell on the lower line joins the cell above it when they share horizontal space.
+ */
+function mergeHeaderLines(upper: Cell[], lower: Cell[]): Cell[] {
+  const used = new Set<Cell>();
+  const merged: Cell[] = [];
+  for (const l of lower) {
+    const u = upper.find((c) => !used.has(c) && Math.min(c.x1, l.x1) - Math.max(c.x0, l.x0) > 0);
+    if (u) {
+      used.add(u);
+      merged.push({ x0: Math.min(u.x0, l.x0), x1: Math.max(u.x1, l.x1), text: `${u.text} ${l.text}` });
+    } else merged.push(l);
+  }
+  for (const u of upper) if (!used.has(u)) merged.push(u);
+  return merged.sort((a, b) => a.x0 - b.x0);
+}
+
 /** Header row: a line where 3+ cells name statement columns (including a balance or money column). */
 function headerColumns(cells: Cell[]): Column[] | null {
   const cols: Column[] = [];
@@ -186,7 +204,8 @@ function headerColumns(cells: Cell[]): Column[] | null {
     if (seenDate) c.role = "other";
     seenDate = true;
   }
-  return cols.sort((a, b) => a.x0 - b.x0);
+  cols.sort((a, b) => a.x0 - b.x0);
+  return cols;
 }
 
 /** Nearest header column: numbers line up on an edge, text on the start; the cell must at least come close. */
@@ -215,7 +234,16 @@ interface RawRow {
   credit: ReturnType<typeof readAmount>;
   amount: ReturnType<typeof readAmount>;
   balance: ReturnType<typeof readAmount>;
+  /** A lone D/C (or Dr/Cr) cell beside the amount says which way the money moved. */
+  mark?: "cr" | "dr";
+  /** Horizontal extent of the description text, to tell a wrapped line from a footer note. */
+  dx0?: number;
+  dx1?: number;
 }
+
+/** A cell that is just a debit/credit letter. */
+const MARKER = /^(dr|cr|d|c)\.?$/i;
+const MONEY_ROLES: Role[] = ["amount", "debit", "credit", "balance"];
 
 export interface ParseOptions {
   dateOrder?: DateOrder | "auto";
@@ -253,11 +281,21 @@ export function parseStatement(pages: TextItem[][], opts: ParseOptions = {}): St
     const lines = cellsOf(items);
     let inTable = Boolean(fixed);
     let last: RawRow | null = null;
-    for (const line of lines) {
+    for (let li = 0; li < lines.length; li++) {
+      const line = lines[li]!;
       allLines++;
       if (line.cells.some((c) => /[؀-ۿ]/.test(c.text))) rtlLines++;
       for (const c of line.cells) for (const y of DIGITS(c.text).match(/\b(19|20)\d{2}\b/g) ?? []) years.push(+y);
-      const header = fixed ? null : headerColumns(line.cells);
+      let header = fixed ? null : headerColumns(line.cells);
+      if (!fixed && li > 0) {
+        // Headings split over two lines ("Transaction" / "Date"): use the joined heading when it names more columns.
+        const up = lines[li - 1]!;
+        const textOnly = (cells: Cell[]) => cells.every((c) => !isAmount(c.text) && !readDate(c.text));
+        if (line.y - up.y < Math.max(up.size, line.size) * 2.4 && textOnly(up.cells) && textOnly(line.cells)) {
+          const joined = headerColumns(mergeHeaderLines(up.cells, line.cells));
+          if (joined && (!header || joined.length > header.length)) header = joined;
+        }
+      }
       if (header) { cols = header; headerFound = true; inTable = true; last = null; continue; }
       const text = line.cells.map((c) => c.text).join(" ");
       // Without any header yet, fall back to lines that start with a date and end with numbers.
@@ -277,11 +315,18 @@ export function parseStatement(pages: TextItem[][], opts: ParseOptions = {}): St
         if (nums.length >= 2) { row.balance = readAmount(nums[nums.length - 1]!.text); row.amount = readAmount(nums[nums.length - 2]!.text); }
         else if (nums.length === 1) row.amount = readAmount(nums[0]!.text);
         row.desc = words.map((w) => w.text);
+        if (words.length) { row.dx0 = Math.min(...words.map((w) => w.x0)); row.dx1 = Math.max(...words.map((w) => w.x1)); }
       } else {
         for (const c of line.cells) {
           const col = columnFor(c, cols!, false);
-          const role = col?.role ?? "description";
+          let role = col?.role ?? "description";
           const amt = readAmount(c.text);
+          // A heading such as "Description" is often centred over text that is left-aligned and much wider, so
+          // words sitting between the columns on either side of it belong to the description.
+          if (!amt && !readDate(c.text) && !MARKER.test(c.text.trim()) && role !== "description" && within(c, cols!)) role = "description";
+          if (!amt && MARKER.test(c.text.trim()) && MONEY_ROLES.includes(role)) { row.mark = /^d/i.test(c.text.trim()) ? "dr" : "cr"; continue; }
+          const isDesc = role === "description" || (role !== "other" && !amt);
+          if (isDesc && !(role === "date" && readDate(c.text)) && !amt) { row.dx0 = Math.min(row.dx0 ?? Infinity, c.x0); row.dx1 = Math.max(row.dx1 ?? -Infinity, c.x1); }
           if (role === "date" && readDate(c.text)) row.dateText = c.text;
           else if (role === "debit" && amt) row.debit = amt;
           else if (role === "credit" && amt) row.credit = amt;
@@ -290,6 +335,7 @@ export function parseStatement(pages: TextItem[][], opts: ParseOptions = {}): St
           else if (role === "description" || (role !== "other" && !amt)) row.desc.push(c.text);
         }
       }
+      if (row.mark && row.amount) row.amount = { ...row.amount, mark: row.amount.mark ?? row.mark };
       for (const a of [row.debit, row.credit, row.amount, row.balance]) if (a) decimals = Math.max(decimals, a.decimals);
       const money = row.debit || row.credit || row.amount;
 
@@ -307,7 +353,7 @@ export function parseStatement(pages: TextItem[][], opts: ParseOptions = {}): St
         }
         rows.push(row);
         last = row;
-      } else if (last && row.desc.length && !money && !row.balance && line.y - last.y < Math.max(line.size, last.size) * 3.2) {
+      } else if (last && row.desc.length && !money && !row.balance && line.y - last.y < Math.max(line.size, last.size) * 3.2 && aligned(last, row)) {
         // A wrapped description line belongs to the transaction above it.
         last.desc.push(...row.desc);
         last.y = line.y;
@@ -384,6 +430,21 @@ export function parseStatement(pages: TextItem[][], opts: ParseOptions = {}): St
     mismatches,
     emptyPages,
   };
+}
+
+/** Whether a cell lies between the columns that flank the description column. */
+function within(c: Cell, cols: Column[]): boolean {
+  const d = cols.find((x) => x.role === "description");
+  if (!d) return false;
+  const left = Math.max(-Infinity, ...cols.filter((x) => x !== d && x.x1 <= d.x0 + 1).map((x) => x.x1));
+  const right = Math.min(Infinity, ...cols.filter((x) => x !== d && x.x0 >= d.x1 - 1).map((x) => x.x0));
+  return c.x0 >= left - 2 && c.x1 <= right + 2;
+}
+
+/** Whether a line sits under the description text of the row above (a wrapped line) instead of being a note or footer. */
+function aligned(a: RawRow, b: RawRow): boolean {
+  if (a.dx0 === undefined || b.dx0 === undefined) return true;
+  return Math.abs(a.dx0 - b.dx0) < 8 || Math.abs((a.dx1 ?? 0) - (b.dx1 ?? 0)) < 8;
 }
 
 const signed = (a: NonNullable<ReturnType<typeof readAmount>>) => (a.mark === "dr" ? -Math.abs(a.value) : a.value);

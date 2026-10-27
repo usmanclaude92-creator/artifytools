@@ -188,3 +188,30 @@ describe("fixed columns (manual selection)", () => {
     expect(out.transactions.length).toBeLessThanOrEqual(6);
   });
 });
+
+describe("card statement with two-line headings and a D/C letter", () => {
+  const s = parseStatement(items("statement-card.items.json"));
+
+  it("finds every row with its description", () => {
+    expect(s.transactions).toHaveLength(9);
+    expect(s.transactions[0]).toMatchObject({ date: "2026-04-20", description: "SERVICE FEE/MARKUP RETAIL" });
+    expect(s.transactions[2]!.description).toBe("BLUE ORCHARD STORE CITYVILLE PK");
+  });
+
+  it("uses the D and C letters, not the sign, for the direction", () => {
+    expect(s.transactions[0]).toMatchObject({ debit: 446.13, credit: null });
+    expect(s.transactions[1]).toMatchObject({ debit: null, credit: 7000 });
+    expect(s.totalDebit).toBe(30149.19);
+    expect(s.totalCredit).toBe(27200);
+  });
+
+  it("does not glue a footer note onto the last transaction", () => {
+    const last = s.transactions.filter((t) => t.page === 1).at(-1)!;
+    expect(last.description).not.toMatch(/MISSED/);
+  });
+
+  it("reads a D or C after the amount in the same cell", () => {
+    expect(readAmount("-7000.00 C")).toMatchObject({ value: -7000, mark: "cr" });
+    expect(readAmount("446.13 D")).toMatchObject({ value: 446.13, mark: "dr" });
+  });
+});

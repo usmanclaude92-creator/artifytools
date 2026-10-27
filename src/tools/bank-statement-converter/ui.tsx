@@ -161,6 +161,9 @@ export default function BankStatementConverter() {
     if (mode !== "auto" || !doc || !pages || ocrStarted.current === generation.current) return;
     const empty = pages.map((p, i) => (p.items.length ? -1 : i)).filter((i) => i >= 0);
     if (empty.length === 0) return;
+    // A statement that already has its transactions as text may end with a picture-only page of terms and
+    // conditions. OCR is for statements that are scans, not for those extra pages.
+    if (empty.length < pages.length && parseStatement(pages.map((p) => p.items)).transactions.length > 0) return;
     const id = generation.current;
     ocrStarted.current = id;
     let engine: OcrEngine | null = null;
@@ -304,7 +307,7 @@ export default function BankStatementConverter() {
                 </p>
               </div>
               {s.mismatches > 0 && <StatusMessage tone="warning">{t.mismatchHelp}</StatusMessage>}
-              {s.newestFirst && <StatusMessage tone="info">{t.newestFirst}</StatusMessage>}
+              {s.newestFirst && s.checked > 0 && <StatusMessage tone="info">{t.newestFirst}</StatusMessage>}
               {!s.headerFound && <StatusMessage tone="info">{t.noHeader}</StatusMessage>}
               {mode === "auto" && ocrUsed.length > 0 && <StatusMessage tone="info">{t.ocrUsed(ocrUsed)}</StatusMessage>}
               {mode === "auto" && !ocrBusy && s.emptyPages.length > 0 && <StatusMessage tone="info">{t.empty(s.emptyPages)} {ocrLink}</StatusMessage>}
