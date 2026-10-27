@@ -77,3 +77,22 @@ export async function renderPage(doc: PDFDocumentProxy, pageNumber: number, opts
   canvas.width = canvas.height = 0; // release memory early (Safari)
   return out;
 }
+
+/** Renders just a rectangle of a page (PDF points, from the top-left) to a PNG, at `dpi`. For reading part of a scan. */
+export async function renderRegion(doc: PDFDocumentProxy, pageNumber: number, rect: { x: number; y: number; w: number; h: number }, dpi: number): Promise<{ blob: Blob; pxPerPt: number }> {
+  const page = await doc.getPage(pageNumber);
+  const base = page.getViewport({ scale: 1 });
+  const scale = Math.min(scaleFor(base.width, base.height, dpi), 6);
+  const viewport = page.getViewport({ scale });
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.floor(rect.w * scale));
+  canvas.height = Math.max(1, Math.floor(rect.h * scale));
+  const ctx = canvas.getContext("2d", { alpha: false })!;
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  await page.render({ canvasContext: ctx, viewport, transform: [1, 0, 0, 1, -rect.x * scale, -rect.y * scale], background: "#ffffff" }).promise;
+  page.cleanup();
+  const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("encode"))), "image/png"));
+  canvas.width = canvas.height = 0;
+  return { blob, pxPerPt: scale };
+}

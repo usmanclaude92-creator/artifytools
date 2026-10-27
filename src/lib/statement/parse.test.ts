@@ -150,3 +150,41 @@ describe("parseStatement edge cases", () => {
     expect(s.mismatches).toBe(1);
   });
 });
+
+describe("fixed columns (manual selection)", () => {
+  it("reads a marked table with the user's columns", async () => {
+    const { detectColumns } = await import("./parse");
+    const pages = items("statement-en.items.json");
+    const auto = parseStatement(pages);
+    const cols = pages.map((p) => detectColumns(p));
+    expect(cols[0]).not.toBeNull();
+    const manual = parseStatement(pages, { columns: cols });
+    expect(manual.transactions.length).toBe(auto.transactions.length);
+    expect(manual.totalCredit).toBe(auto.totalCredit);
+    expect(manual.mismatches).toBe(0);
+  });
+
+  it("follows the roles the user chose", async () => {
+    const { detectColumns } = await import("./parse");
+    const pages = items("statement-en.items.json");
+    const auto = parseStatement(pages);
+    const swapped = pages.map((p) => detectColumns(p)!.map((c) => ({ ...c, role: c.role === "debit" ? ("credit" as const) : c.role === "credit" ? ("debit" as const) : c.role })));
+    const out = parseStatement(pages, { columns: swapped });
+    expect(out.totalDebit).toBe(auto.totalCredit);
+    expect(out.totalCredit).toBe(auto.totalDebit);
+  });
+
+  it("only reads what is inside the marked table", async () => {
+    const { detectColumns } = await import("./parse");
+    const page = items("statement-en.items.json")[0]!;
+    const cols = detectColumns(page)!;
+    // Keep only the lines of the first six transactions plus the header.
+    const lines = [...new Set(page.map((i) => Math.round(i.y)))].sort((a, b) => a - b);
+    const header = page.find((i) => /date/i.test(i.str))!;
+    const keepY = lines.filter((y) => y >= Math.round(header.y)).slice(0, 7);
+    const part = page.filter((i) => keepY.includes(Math.round(i.y)));
+    const out = parseStatement([part], { columns: [cols] });
+    expect(out.transactions.length).toBeGreaterThan(0);
+    expect(out.transactions.length).toBeLessThanOrEqual(6);
+  });
+});

@@ -14,6 +14,36 @@ async function open(page: Page, url: string) {
 }
 
 test.describe("Bank Statement Converter", () => {
+  test("Manual Selection: mark a table, detect its columns and convert only that", async ({ page }) => {
+    await open(page, "/tools/bank-statement-converter");
+    await page.locator('input[type="file"]').setInputFiles(fixture("statement-en.pdf"));
+    await expect(page.getByRole("region", { name: "Transactions" })).toContainText("All 19 balances match");
+    await page.getByRole("radio", { name: /Manual Selection/ }).check();
+    // Converting is separate: nothing is read from the marked tables until Convert.
+    await expect(page.getByRole("region", { name: "Transactions" })).toHaveCount(0);
+    const overlay = page.getByTestId("overlay-1");
+    await expect(page.getByRole("img", { name: "Page 1" })).toBeVisible();
+    await overlay.scrollIntoViewIfNeeded();
+    const box = (await overlay.boundingBox())!;
+    await page.mouse.move(box.x + box.width * 0.05, box.y + box.height * 0.1);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.95, box.y + box.height * 0.9, { steps: 8 });
+    await page.mouse.up();
+    await expect(page.getByText("Table 1 · page 1")).toBeVisible();
+    await page.getByRole("button", { name: "Detect columns" }).click();
+    await expect(page.getByLabel("Column 3")).toBeVisible();
+    await page.getByRole("button", { name: "Convert selected tables" }).click();
+    const result = page.getByRole("region", { name: "Transactions" });
+    await expect(result.getByRole("cell", { name: /CARREFOUR.*4421/ })).toBeVisible();
+    await expect(result).toContainText("Money in");
+    // Only page 1 was marked, so page 2's transactions are not included.
+    const manualCount = Number((await result.getByText(/^\d+ transactions$/).first().textContent())!.replace(/\D/g, ""));
+    expect(manualCount).toBeGreaterThan(0);
+    expect(manualCount).toBeLessThan(19);
+    const [xlsx] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download Excel" }).click()]);
+    expect(xlsx.suggestedFilename()).toBe("statement-en.xlsx");
+  });
+
   test("English two-page statement: totals, balance check and downloads", async ({ page }) => {
     await open(page, "/tools/bank-statement-converter");
     await page.locator('input[type="file"]').setInputFiles(fixture("statement-en.pdf"));
@@ -40,6 +70,15 @@ test.describe("Bank Statement Converter", () => {
     const [csv] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download CSV" }).click()]);
     const text = readFileSync((await csv.path())!, "utf8");
     expect(text.split("\r\n")[1]).toBe("2026-10-01,Salary October ACME TRADING LLC,,18500.00,21750.00");
+  });
+
+  test("Automatic Conversion reads a scanned statement with OCR", async ({ page }) => {
+    await open(page, "/tools/bank-statement-converter");
+    await page.locator('input[type="file"]').setInputFiles(fixture("statement-en-scan.pdf"));
+    const result = page.getByRole("region", { name: "Transactions" });
+    await expect(result).toContainText("read with OCR", { timeout: 120_000 });
+    await expect(result).toContainText("All 19 balances match");
+    await expect(result.getByRole("cell", { name: /CARREFOUR.*4421/ })).toBeVisible();
   });
 
   test("US statement: month-first dates, newest first", async ({ page }) => {
@@ -70,6 +109,7 @@ test.describe("Bank Statement Converter", () => {
     await expect(page.getByText("No transactions were found")).toBeVisible();
     await page.getByRole("button", { name: "Choose another file" }).click();
     await page.locator('input[type="file"]').setInputFiles(fixture("plain-3-pages.pdf"));
-    await expect(page.getByText("no selectable text")).toBeVisible();
+    // Blank pages go through OCR first, which takes a moment, and still find nothing.
+    await expect(page.getByText("no selectable text")).toBeVisible({ timeout: 60_000 });
   });
 });

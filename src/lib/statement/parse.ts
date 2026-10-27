@@ -54,7 +54,7 @@ interface Cell {
   text: string;
 }
 
-interface Column {
+export interface Column {
   role: Role;
   x0: number;
   x1: number;
@@ -219,6 +219,20 @@ interface RawRow {
 
 export interface ParseOptions {
   dateOrder?: DateOrder | "auto";
+  /**
+   * Fixed columns per page (used when the user marks tables by hand): `columns[i]` applies to `pages[i]`.
+   * A page with `null` is read the usual way. When this option is given, columns never carry over between pages.
+   */
+  columns?: (Column[] | null)[];
+}
+
+/** The column layout of the first header row found in `items`, if any (for pre-filling manual columns). */
+export function detectColumns(items: TextItem[]): Column[] | null {
+  for (const line of cellsOf(items)) {
+    const cols = headerColumns(line.cells);
+    if (cols) return cols;
+  }
+  return null;
 }
 
 export function parseStatement(pages: TextItem[][], opts: ParseOptions = {}): Statement {
@@ -234,14 +248,16 @@ export function parseStatement(pages: TextItem[][], opts: ParseOptions = {}): St
 
   pages.forEach((items, pi) => {
     if (!items.some((i) => i.str.trim())) { emptyPages.push(pi + 1); return; }
+    const fixed = opts.columns?.[pi] ?? null;
+    if (opts.columns) { cols = fixed; headerFound = headerFound || Boolean(fixed); }
     const lines = cellsOf(items);
-    let inTable = false;
+    let inTable = Boolean(fixed);
     let last: RawRow | null = null;
     for (const line of lines) {
       allLines++;
       if (line.cells.some((c) => /[؀-ۿ]/.test(c.text))) rtlLines++;
       for (const c of line.cells) for (const y of DIGITS(c.text).match(/\b(19|20)\d{2}\b/g) ?? []) years.push(+y);
-      const header = headerColumns(line.cells);
+      const header = fixed ? null : headerColumns(line.cells);
       if (header) { cols = header; headerFound = true; inTable = true; last = null; continue; }
       const text = line.cells.map((c) => c.text).join(" ");
       // Without any header yet, fall back to lines that start with a date and end with numbers.
