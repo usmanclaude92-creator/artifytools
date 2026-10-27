@@ -72,6 +72,51 @@ test.describe("Bank Statement Converter", () => {
     expect(text.split("\r\n")[1]).toBe("2026-10-01,Salary October ACME TRADING LLC,,18500.00,21750.00");
   });
 
+  test("Manual Selection: Add table marks the transactions table and its columns in one tap", async ({ page }) => {
+    await open(page, "/tools/bank-statement-converter");
+    await page.locator('input[type="file"]').setInputFiles(fixture("statement-en.pdf"));
+    await page.getByRole("radio", { name: /Manual Selection/ }).check();
+    await expect(page.getByRole("img", { name: "Page 1" })).toBeVisible();
+    await page.getByRole("button", { name: "Add table" }).first().click();
+    await expect(page.getByText("Table 1 · page 1")).toBeVisible();
+    // Date, Description, Debit, Credit, Balance were found from the headings.
+    await expect(page.getByLabel(/^Column \d$/)).toHaveCount(5);
+    await expect(page.getByLabel("Column 1")).toHaveValue("date");
+    await page.getByRole("button", { name: "Add table" }).nth(1).click();
+    await page.getByRole("button", { name: "Convert selected tables" }).click();
+    const result = page.getByRole("region", { name: "Transactions" });
+    await expect(result).toContainText("All 19 balances match");
+    await expect(result.getByRole("cell", { name: /CARREFOUR.*4421/ })).toBeVisible();
+  });
+
+  test("Manual Selection: the round handle moves a table", async ({ page }) => {
+    await open(page, "/tools/bank-statement-converter");
+    await page.locator('input[type="file"]').setInputFiles(fixture("statement-en.pdf"));
+    await page.getByRole("radio", { name: /Manual Selection/ }).check();
+    await expect(page.getByRole("img", { name: "Page 1" })).toBeVisible();
+    await page.getByRole("button", { name: "Add table" }).first().click();
+    const handle = page.getByRole("button", { name: "Move table" }).first();
+    await handle.scrollIntoViewIfNeeded();
+    const before = (await handle.boundingBox())!;
+    await page.mouse.move(before.x + before.width / 2, before.y + before.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(before.x + before.width / 2, before.y + before.height / 2 + 60, { steps: 6 });
+    await page.mouse.up();
+    const after = (await handle.boundingBox())!;
+    expect(after.y).toBeGreaterThan(before.y + 30);
+  });
+
+  test("Manual Selection: Add table works by tap on a phone @mobile", async ({ page }) => {
+    await open(page, "/tools/bank-statement-converter");
+    await page.locator('input[type="file"]').setInputFiles(fixture("statement-en.pdf"));
+    await page.getByRole("radio", { name: /Manual Selection/ }).check();
+    await expect(page.getByRole("img", { name: "Page 1" })).toBeVisible();
+    await page.getByRole("button", { name: "Add table" }).first().tap();
+    await expect(page.getByText("Table 1 · page 1")).toBeVisible();
+    await page.getByRole("button", { name: "Convert selected tables" }).tap();
+    await expect(page.getByRole("region", { name: "Transactions" })).toContainText("transactions");
+  });
+
   test("Manual Selection: corner dots resize a table", async ({ page }) => {
     await open(page, "/tools/bank-statement-converter");
     await page.locator('input[type="file"]').setInputFiles(fixture("statement-en.pdf"));

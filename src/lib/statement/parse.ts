@@ -256,13 +256,92 @@ export interface ParseOptions {
   columns?: (Column[] | null)[];
 }
 
-/** The column layout of the first header row found in `items`, if any (for pre-filling manual columns). */
-export function detectColumns(items: TextItem[]): Column[] | null {
-  for (const line of cellsOf(items)) {
-    const cols = headerColumns(line.cells);
-    if (cols) return cols;
+type CellLine = { y: number; size: number; cells: Cell[] };
+
+/** The heading row at line `i`, joined with the line above when the headings are split over two lines. */
+function headerAt(lines: CellLine[], i: number): { cols: Column[]; from: number } | null {
+  const line = lines[i]!;
+  const own = headerColumns(line.cells);
+  const up = lines[i - 1];
+  const textOnly = (cells: Cell[]) => cells.every((c) => !isAmount(c.text) && !readDate(c.text));
+  const joined = up && line.y - up.y < Math.max(up.size, line.size) * 2.4 && textOnly(up.cells) && textOnly(line.cells) ? headerColumns(mergeHeaderLines(up.cells, line.cells)) : null;
+  if (joined && (!own || joined.length > own.length)) return { cols: joined, from: i - 1 };
+  return own ? { cols: own, from: i } : null;
+}
+
+/** First heading row of a page, if any. */
+function findHeader(lines: CellLine[]): { cols: Column[]; from: number; at: number } | null {
+  for (let i = 0; i < lines.length; i++) {
+    const h = headerAt(lines, i);
+    if (h) return { ...h, at: i };
   }
   return null;
+}
+
+/** Rows of the table: lines with a date and an amount, stopping where a long gap says the table has ended. */
+function tableRows(lines: CellLine[], from: number): CellLine[] {
+  const isRow = (cells: Cell[]) => cells.some((c) => readDate(c.text)) && cells.some((c) => isAmount(c.text));
+  const rows: CellLine[] = [];
+  for (let i = from; i < lines.length; i++) {
+    const l = lines[i]!;
+    const prev = rows[rows.length - 1];
+    if (prev && l.y - prev.y > Math.max(prev.size * 4.5, 36)) break;
+    if (isRow(l.cells)) rows.push(l);
+  }
+  return rows;
+}
+
+/**
+ * Where the transactions table sits on a page (PDF points, from the top-left): from the heading row down to the
+ * last row of the table. Used to place a table box in one tap on a phone.
+ */
+export function suggestTable(items: TextItem[]): { x0: number; y0: number; x1: number; y1: number } | null {
+  const lines = cellsOf(items);
+  const header = findHeader(lines);
+  const rows = tableRows(lines, header ? header.at + 1 : 0);
+  if (rows.length === 0) return null;
+  const top = header ? lines[header.from]! : rows[0]!;
+  const used = [top, ...rows];
+  const x0 = Math.min(...used.flatMap((l) => l.cells.map((c) => c.x0)));
+  const x1 = Math.max(...used.flatMap((l) => l.cells.map((c) => c.x1)));
+  const last = rows[rows.length - 1]!;
+  const pad = 4;
+  return { x0: x0 - pad, x1: x1 + pad, y0: top.y - top.size * 1.4, y1: last.y + last.size * 0.7 };
+}
+
+/**
+ * Column lines for a table, from its headings. Each line goes in the widest empty space between the text of two
+ * neighbouring columns, so wide descriptions and left-aligned text stay in their own column.
+ * `yRange` limits which rows are looked at (the box the user drew); the headings may sit above it.
+ */
+export function detectSplits(items: TextItem[], yRange?: [number, number]): { splits: number[]; roles: Role[] } | null {
+  const lines = cellsOf(items);
+  const header = findHeader(lines);
+  if (!header || header.cols.length < 2) return null;
+  const cols = [...header.cols].sort((a, b) => a.x0 - b.x0);
+  const rows = tableRows(lines, header.at + 1).filter((l) => !yRange || (l.y >= yRange[0] && l.y <= yRange[1]));
+  const cover = rows.flatMap((l) => l.cells.map((c) => [c.x0, c.x1] as const));
+  const centre = (c: Column) => (c.x0 + c.x1) / 2;
+  const splits = cols.slice(0, -1).map((a, i) => {
+    const b = cols[i + 1]!;
+    const lo = Math.min(centre(a), a.x1), hi = Math.max(centre(b), b.x0);
+    // Widest gap, inside [lo, hi], that no row's text crosses.
+    const taken = cover.filter(([x0, x1]) => x1 > lo && x0 < hi).sort((p, q) => p[0] - q[0]);
+    let best: [number, number] | null = null;
+    let edge = lo;
+    for (const [x0, x1] of taken) {
+      if (x0 - edge > (best ? best[1] - best[0] : 0)) best = [edge, x0];
+      edge = Math.max(edge, x1);
+    }
+    if (hi - edge > (best ? best[1] - best[0] : 0)) best = [edge, hi];
+    return best && best[1] - best[0] > 1 ? (best[0] + best[1]) / 2 : (a.x1 + b.x0) / 2;
+  });
+  return { splits, roles: cols.map((c) => c.role) };
+}
+
+/** The column layout of the first header row found in `items`, if any (for pre-filling manual columns). */
+export function detectColumns(items: TextItem[]): Column[] | null {
+  return findHeader(cellsOf(items))?.cols ?? null;
 }
 
 export function parseStatement(pages: TextItem[][], opts: ParseOptions = {}): Statement {
@@ -446,6 +525,12 @@ export function parseStatement(pages: TextItem[][], opts: ParseOptions = {}): St
     emptyPages,
     fromSummary,
   };
+}
+
+/** The opening and closing balances from an account summary box anywhere in the pages, for checking a manual selection. */
+export function readSummaryBalances(pages: TextItem[][]): { opening: number | null; closing: number | null } | null {
+  const sum = readSummary(pages.map((items) => cellsOf(items)));
+  return sum ? { opening: sum.opening, closing: sum.closing } : null;
 }
 
 const SUMMARY_OPENING = /^[+\-=]?\s*(previous|opening|prior|last statement|balance (brought )?forward|balance b\/f)\b.*|^[+\-=]?\s*الرصيد (السابق|الافتتاحي)/i;

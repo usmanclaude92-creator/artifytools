@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { StatusMessage } from "@/components/ui/feedback";
 import { Icon } from "@/components/ui/icon";
@@ -8,7 +8,7 @@ import { createOcr, type OcrEngine } from "@/lib/ocr/ocr";
 import { renderPage, renderRegion, type RenderedDoc } from "@/lib/pdf/render";
 import type { TextItem } from "@/lib/pdf/text-layout";
 import { wordsToItems } from "@/lib/statement/ocr-items";
-import { detectColumns, type Column, type Role } from "@/lib/statement/parse";
+import { detectSplits, suggestTable, type Column, type Role } from "@/lib/statement/parse";
 
 export interface PageData {
   width: number;
@@ -17,7 +17,7 @@ export interface PageData {
 }
 
 export interface ManualStrings {
-  help: string; table: (n: number, page: number) => string; detect: string; addColumn: string; removeTable: string;
+  help: string; addTable: string; moveTable: string; table: (n: number, page: number) => string; detect: string; addColumn: string; removeTable: string;
   column: (n: number) => string; roles: Record<Role, string>; convert: string; converting: string; noTables: string; scanned: string; detectFailed: string; detected: string;
   ocrLoading: string; ocrReading: (d: number, n: number) => string; failed: string; page: (n: number) => string; removeLine: (n: number) => string; moveLine: (n: number) => string;
 }
@@ -60,6 +60,8 @@ export function ManualSelect({ doc, pages, t, onRead }: { doc: RenderedDoc; page
   const nextId = useRef(1);
   const start = useRef<{ x: number; y: number } | null>(null);
   const pending = useRef<{ cx: number; cy: number; timer: number } | null>(null);
+  const drawingActive = useRef(false);
+  const moving = useRef<{ id: number; px: number; py: number; box: Box } | null>(null);
   const engine = useRef<OcrEngine | null>(null);
   const run = useRef(0);
 
@@ -107,6 +109,8 @@ export function ManualSelect({ doc, pages, t, onRead }: { doc: RenderedDoc; page
     const p = point(e);
     const begin = () => {
       try { el.setPointerCapture(id); } catch { /* the pointer is already gone */ }
+      drawingActive.current = true;
+      try { navigator.vibrate?.(12); } catch { /* not supported */ }
       start.current = p;
       setDraft({ page, x0: p.x, y0: p.y, x1: p.x, y1: p.y });
     };
@@ -125,6 +129,7 @@ export function ManualSelect({ doc, pages, t, onRead }: { doc: RenderedDoc; page
   };
   const onUp = () => {
     clearPending();
+    drawingActive.current = false;
     const d = draft;
     start.current = null;
     setDraft(null);
@@ -133,13 +138,12 @@ export function ManualSelect({ doc, pages, t, onRead }: { doc: RenderedDoc; page
     onRead(null);
   };
 
-  // While a table is being drawn, the finger draws instead of scrolling the screen.
-  useEffect(() => {
-    if (!draft) return;
-    const block = (e: TouchEvent) => { if (e.cancelable) e.preventDefault(); };
-    window.addEventListener("touchmove", block, { passive: false });
-    return () => window.removeEventListener("touchmove", block);
-  }, [draft]);
+  // While a table is being drawn, the finger draws instead of scrolling the screen. The listener sits on the page
+  // overlay from the start (not added after a re-render), so the very first move of the drag is already caught.
+  const blockTouch = useRef((e: TouchEvent) => { if (drawingActive.current && e.cancelable) e.preventDefault(); });
+  const attachOverlay = useCallback((el: HTMLDivElement | null) => {
+    if (el) el.addEventListener("touchmove", blockTouch.current, { passive: false });
+  }, []);
   useEffect(() => clearPending, []);
 
   const resize = (b: Box, corner: string, e: React.PointerEvent<HTMLDivElement>) => {
@@ -153,6 +157,39 @@ export function ManualSelect({ doc, pages, t, onRead }: { doc: RenderedDoc; page
       if (corner.includes("n")) y0 = Math.min(py, y1 - MIN_SIZE); else y1 = Math.max(py, y0 + MIN_SIZE);
       return { ...x, x0, y0, x1, y1, splits: x.splits.map((sp) => clamp(sp, x0 + 0.01, x1 - 0.01)) };
     });
+  };
+
+  // One tap marks the transactions table: the page's own text says where it sits.
+  const addTable = (page: number) => {
+    const pg = pages[page - 1]!;
+    const r = pg.items.length ? suggestTable(pg.items) : null;
+    const box: Box = r
+      ? { id: nextId.current++, page, x0: clamp(r.x0 / pg.width), x1: clamp(r.x1 / pg.width), y0: clamp(r.y0 / pg.height), y1: clamp(r.y1 / pg.height), splits: [], roles: ["description"] }
+      : { id: nextId.current++, page, x0: 0.05, x1: 0.95, y0: 0.25, y1: 0.7, splits: [], roles: ["description"] };
+    const found = r ? detectSplits(pg.items, [r.y0, r.y1]) : null;
+    if (found) {
+      box.splits = found.splits.map((x) => clamp(x / pg.width, box.x0 + 0.01, box.x1 - 0.01));
+      box.roles = found.roles;
+    }
+    setBoxes((bs) => [...bs, box]);
+    setNote(null);
+    onRead(null);
+  };
+
+  const moveStart = (b: Box, e: React.PointerEvent<HTMLElement>) => {
+    e.stopPropagation();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    const r = e.currentTarget.closest<HTMLElement>("[data-testid^=overlay]")!.getBoundingClientRect();
+    moving.current = { id: b.id, px: (e.clientX - r.left) / r.width, py: (e.clientY - r.top) / r.height, box: b };
+  };
+  const moveBy = (e: React.PointerEvent<HTMLElement>) => {
+    const m = moving.current;
+    if (!m || !e.currentTarget.hasPointerCapture(e.pointerId)) return;
+    const r = e.currentTarget.closest<HTMLElement>("[data-testid^=overlay]")!.getBoundingClientRect();
+    const b = m.box;
+    const dx = clamp((e.clientX - r.left) / r.width - m.px, -b.x0, 1 - b.x1);
+    const dy = clamp((e.clientY - r.top) / r.height - m.py, -b.y0, 1 - b.y1);
+    patch(b.id, (x) => ({ ...x, x0: b.x0 + dx, x1: b.x1 + dx, y0: b.y0 + dy, y1: b.y1 + dy, splits: b.splits.map((sp) => sp + dx) }));
   };
 
   const patch = (id: number, f: (b: Box) => Box) => { setBoxes((bs) => bs.map((b) => (b.id === id ? f(b) : b))); onRead(null); };
@@ -185,15 +222,13 @@ export function ManualSelect({ doc, pages, t, onRead }: { doc: RenderedDoc; page
   };
 
   const detect = (b: Box) => {
-    const { items } = inside(b);
-    // The headings may sit above the box (when only the rows were marked), so fall back to the whole page.
-    const cols = detectColumns(items) ?? detectColumns(pages[b.page - 1]!.items);
-    if (!cols || cols.length < 2) { setNote(t.detectFailed); return; }
-    setNote(null);
     const pg = pages[b.page - 1]!;
-    const sorted = [...cols].sort((a, c) => a.x0 - c.x0);
-    const splits = sorted.slice(0, -1).map((c, i) => clamp((c.x1 + sorted[i + 1]!.x0) / 2 / pg.width, b.x0 + 0.01, b.x1 - 0.01));
-    patch(b.id, (x) => ({ ...x, splits, roles: sorted.map((c) => c.role) }));
+    const r = inside(b);
+    // The headings may sit above the box (when only the rows were marked); the rows inside it place the lines.
+    const found = detectSplits(pg.items, [r.y0, r.y1]);
+    if (!found) { setNote(t.detectFailed); return; }
+    setNote(null);
+    patch(b.id, (x) => ({ ...x, splits: found.splits.map((v) => clamp(v / pg.width, x.x0 + 0.01, x.x1 - 0.01)), roles: found.roles }));
   };
 
   async function ocrBox(b: Box, onStep: () => void): Promise<TextItem[]> {
@@ -257,7 +292,10 @@ export function ManualSelect({ doc, pages, t, onRead }: { doc: RenderedDoc; page
           const scanned = pages[p - 1]!.items.length === 0;
           return (
             <li key={p} className="flex flex-col gap-2">
-              <p className="flex items-center gap-2 text-sm font-semibold">{t.page(p)}{scanned && <span className="rounded-full bg-warning-soft px-2 py-0.5 text-xs font-medium text-warning">{t.scanned}</span>}</p>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="flex items-center gap-2 text-sm font-semibold">{t.page(p)}{scanned && <span className="rounded-full bg-warning-soft px-2 py-0.5 text-xs font-medium text-warning">{t.scanned}</span>}</p>
+                <Button variant="secondary" size="sm" onClick={() => addTable(p)}><Icon name="crop" size={15} /> {t.addTable}</Button>
+              </div>
               <div className="relative mx-auto w-full max-w-3xl overflow-hidden rounded-lg border border-line bg-surface-2" style={{ aspectRatio: `${pages[p - 1]!.width} / ${pages[p - 1]!.height}` }}>
                 {images[p - 1] ? (
                   // eslint-disable-next-line @next/next/no-img-element -- local object URL
@@ -271,11 +309,24 @@ export function ManualSelect({ doc, pages, t, onRead }: { doc: RenderedDoc; page
                   onPointerDown={(e) => onDown(p, e)}
                   onPointerMove={onMove}
                   onPointerUp={onUp}
-                  onPointerCancel={() => { clearPending(); start.current = null; setDraft(null); }}
+                  onPointerCancel={() => { clearPending(); drawingActive.current = false; start.current = null; setDraft(null); }}
+                  onContextMenu={(e) => e.preventDefault()}
+                  ref={attachOverlay}
                 >
                   {pageBoxes.map((b) => (
                     <div key={b.id} className="pointer-events-none absolute border-2 border-accent bg-accent/10" style={{ left: `${b.x0 * 100}%`, top: `${b.y0 * 100}%`, width: `${(b.x1 - b.x0) * 100}%`, height: `${(b.y1 - b.y0) * 100}%` }}>
                       <span className="absolute -top-px start-0 rounded-br bg-accent px-1.5 text-[0.7rem] font-semibold text-accent-fg">{boxes.indexOf(b) + 1}</span>
+                      <div
+                        role="button"
+                        aria-label={t.moveTable}
+                        tabIndex={0}
+                        className="pointer-events-auto absolute -top-4 end-1 grid size-9 -translate-y-1/2 cursor-move place-items-center rounded-full border-2 border-accent bg-surface text-accent-text shadow-sm [touch-action:none]"
+                        style={{ top: 0 }}
+                        onPointerDown={(e) => moveStart(b, e)}
+                        onPointerMove={moveBy}
+                      >
+                        <Icon name="arrow-up-down" size={16} />
+                      </div>
                       {(["nw", "ne", "sw", "se"] as const).map((corner) => (
                         <div
                           key={corner}
@@ -319,6 +370,9 @@ export function ManualSelect({ doc, pages, t, onRead }: { doc: RenderedDoc; page
                       ))}
                     </div>
                   ))}
+                  {draft && draft.page === p && draft.x1 - draft.x0 < MIN_SIZE && draft.y1 - draft.y0 < MIN_SIZE && (
+                    <span className="pointer-events-none absolute size-7 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full border-2 border-accent bg-accent/20" style={{ left: `${draft.x0 * 100}%`, top: `${draft.y0 * 100}%` }} />
+                  )}
                   {draft && draft.page === p && (
                     <div className="pointer-events-none absolute border-2 border-dashed border-accent bg-accent/10" style={{ left: `${draft.x0 * 100}%`, top: `${draft.y0 * 100}%`, width: `${(draft.x1 - draft.x0) * 100}%`, height: `${(draft.y1 - draft.y0) * 100}%` }} />
                   )}

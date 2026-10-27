@@ -215,3 +215,58 @@ describe("card statement with two-line headings and a D/C letter", () => {
     expect(readAmount("446.13 D")).toMatchObject({ value: 446.13, mark: "dr" });
   });
 });
+
+describe("suggestTable", () => {
+  it("finds the transactions table from its heading down to the last row", async () => {
+    const { suggestTable } = await import("./parse");
+    const page = items("statement-card.items.json")[0]!;
+    const r = suggestTable(page)!;
+    expect(r).not.toBeNull();
+    // The heading is at y≈210 and the last row at y≈313 in this layout; the account summary further down is left out.
+    expect(r.y0).toBeGreaterThan(190);
+    expect(r.y0).toBeLessThan(215);
+    expect(r.y1).toBeGreaterThan(312);
+    expect(r.y1).toBeLessThan(330);
+    expect(r.x0).toBeLessThan(10);
+    expect(r.x1).toBeGreaterThan(535);
+  });
+
+  it("works without a heading row, and gives up on pages with no transactions", async () => {
+    const { suggestTable } = await import("./parse");
+    expect(suggestTable([])).toBeNull();
+    expect(suggestTable(items("statement-en.items.json")[0]!)).not.toBeNull();
+  });
+});
+
+describe("detectSplits and the table boundary", () => {
+  it("stops the suggested table before the account summary below it", async () => {
+    const { suggestTable } = await import("./parse");
+    const page = items("statement-card.items.json")[0]!;
+    const r = suggestTable(page)!;
+    // The summary row ("1000.00 … 3949.19") sits at y≈726: far below the last transaction row.
+    expect(r.y1).toBeLessThan(340);
+  });
+
+  it("puts column lines in the empty spaces so left-aligned descriptions stay together", async () => {
+    const { detectSplits } = await import("./parse");
+    const page = items("statement-card.items.json")[0]!;
+    const found = detectSplits(page)!;
+    expect(found.roles).toEqual(["date", "other", "description", "amount"]);
+    // Description text runs from x≈168 to ≈336 here, so the lines must fall left of 168 and right of that.
+    expect(found.splits[1]!).toBeGreaterThan(125);
+    expect(found.splits[1]!).toBeLessThan(168);
+    expect(found.splits[2]!).toBeGreaterThan(336);
+    expect(found.splits[2]!).toBeLessThan(490);
+  });
+
+  it("reading with those columns gives the same rows as automatic reading", async () => {
+    const { detectSplits } = await import("./parse");
+    const page = items("statement-card.items.json")[0]!;
+    const found = detectSplits(page)!;
+    const edges = [0, ...found.splits, 600];
+    const columns = found.roles.map((role, i) => ({ role, x0: edges[i]!, x1: edges[i + 1]! }));
+    const manual = parseStatement([page], { columns: [columns] });
+    const auto = parseStatement([page]);
+    expect(manual.transactions.map((t) => [t.description, t.debit, t.credit])).toEqual(auto.transactions.map((t) => [t.description, t.debit, t.credit]));
+  });
+});

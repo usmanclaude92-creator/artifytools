@@ -22,7 +22,7 @@ import { wordsToItems } from "@/lib/statement/ocr-items";
 import type { TextItem } from "@/lib/pdf/text-layout";
 import { readPageText } from "@/lib/pdf/to-word";
 import { ManualSelect, type ManualInput, type ManualStrings, type PageData } from "./manual";
-import { parseStatement, readAmount, type DateOrder, type Role, type Statement } from "@/lib/statement/parse";
+import { parseStatement, readAmount, readSummaryBalances, type DateOrder, type Role, type Statement } from "@/lib/statement/parse";
 import { reconcile, withCalculatedBalances } from "@/lib/statement/reconcile";
 import { statementToCsv, statementToXlsx, type ExportLabels } from "@/lib/statement/export";
 import { fileRulesFor } from "@/lib/tools/file-spec";
@@ -40,8 +40,8 @@ const strings = {
     manual: "Manual Selection", manualHint: "Mark the tables on the pages yourself, then convert only those.",
     ocrLoading: "Preparing OCR…", ocrPage: (d: number, n: number) => `Reading scanned page ${d} of ${n} with OCR…`, ocrFailed: "OCR couldn't read the scanned pages. Try Manual Selection.", ocrUsed: (pages: number[]) => `Page${pages.length === 1 ? "" : "s"} ${pages.join(", ")} ${pages.length === 1 ? "was a scan and was" : "were scans and were"} read with OCR. Check the amounts against the PDF.`,
     manualStrings: {
-      help: "Mark a table by dragging on the page with a mouse, or on a touch screen by pressing and holding, then dragging (a quick swipe still scrolls). Drag the corner dots to resize it. Add column lines and choose what each column holds, then press Convert. Only what is inside your tables is converted.",
-      table: (n: number, p: number) => `Table ${n} · page ${p}`, detect: "Detect columns", addColumn: "Add column line", removeTable: "Remove table",
+      help: "Tap Add table on a page to mark its transactions table, then drag the corner dots to fit it and the round handle to move it. You can also draw a table yourself: drag with a mouse, or on a touch screen press and hold, then drag (a quick swipe still scrolls). Add column lines and choose what each column holds, then press Convert. Only what is inside your tables is converted.",
+      addTable: "Add table", moveTable: "Move table", table: (n: number, p: number) => `Table ${n} · page ${p}`, detect: "Detect columns", addColumn: "Add column line", removeTable: "Remove table",
       column: (n: number) => `Column ${n}`, roles: { date: "Date", description: "Description", debit: "Debit", credit: "Credit", amount: "Amount", balance: "Balance", other: "Ignore" } as Record<Role, string>,
       convert: "Convert selected tables", converting: "Converting…", noTables: "Mark at least one table first.", scanned: "Scanned page: read with OCR", detectFailed: "No column headings were found in this table. Add column lines by hand.", detected: "Columns detected.",
       ocrLoading: "Preparing OCR…", ocrReading: (d: number, n: number) => `Reading table ${d} of ${n} with OCR…`, failed: "Converting the tables failed. Try marking them again.", page: (n: number) => `Page ${n}`,
@@ -82,8 +82,8 @@ const strings = {
     manual: "تحديد يدوي", manualHint: "حدّد الجداول على الصفحات بنفسك ثم حوّلها وحدها.",
     ocrLoading: "جارٍ تجهيز OCR…", ocrPage: (d: number, n: number) => `جارٍ قراءة الصفحة الممسوحة ${d} من ${n} بتقنية OCR…`, ocrFailed: "تعذّرت قراءة الصفحات الممسوحة بتقنية OCR. جرّب التحديد اليدوي.", ocrUsed: (pages: number[]) => `${pages.length === 1 ? "الصفحة" : "الصفحات"} ${pages.join("، ")} ${pages.length === 1 ? "كانت ممسوحة وقُرئت" : "كانت ممسوحة وقُرئت"} بتقنية OCR. قارن المبالغ بملف PDF.`,
     manualStrings: {
-      help: "حدّد جدولًا بالسحب على الصفحة بالفأرة، أو على الشاشة اللمسية بالضغط مطولًا ثم السحب (والسحب السريع يمرّر الصفحة). اسحب النقاط في الزوايا لتغيير الحجم. أضف خطوط الأعمدة واختر محتوى كل عمود ثم اضغط تحويل. يُحوَّل فقط ما داخل جداولك.",
-      table: (n: number, p: number) => `الجدول ${n} · الصفحة ${p}`, detect: "اكتشاف الأعمدة", addColumn: "إضافة خط عمود", removeTable: "حذف الجدول",
+      help: "اضغط «إضافة جدول» على الصفحة لتحديد جدول عملياتها، ثم اسحب النقاط في الزوايا لضبط حجمه والمقبض الدائري لنقله. ويمكنك رسم الجدول بنفسك: بالسحب بالفأرة، أو على الشاشة اللمسية بالضغط مطولًا ثم السحب (والسحب السريع يمرّر الصفحة). أضف خطوط الأعمدة واختر محتوى كل عمود ثم اضغط تحويل. يُحوَّل فقط ما داخل جداولك.",
+      addTable: "إضافة جدول", moveTable: "نقل الجدول", table: (n: number, p: number) => `الجدول ${n} · الصفحة ${p}`, detect: "اكتشاف الأعمدة", addColumn: "إضافة خط عمود", removeTable: "حذف الجدول",
       column: (n: number) => `العمود ${n}`, roles: { date: "التاريخ", description: "البيان", debit: "مدين", credit: "دائن", amount: "المبلغ", balance: "الرصيد", other: "تجاهل" } as Record<Role, string>,
       convert: "تحويل الجداول المحددة", converting: "جارٍ التحويل…", noTables: "حدّد جدولًا واحدًا على الأقل أولًا.", scanned: "صفحة ممسوحة: تُقرأ بتقنية OCR", detectFailed: "لم نجد عناوين أعمدة في هذا الجدول. أضف خطوط الأعمدة يدويًا.", detected: "تم اكتشاف الأعمدة.",
       ocrLoading: "جارٍ تجهيز OCR…", ocrReading: (d: number, n: number) => `جارٍ قراءة الجدول ${d} من ${n} بتقنية OCR…`, failed: "فشل تحويل الجداول. حاول تحديدها مجددًا.", page: (n: number) => `الصفحة ${n}`,
@@ -213,7 +213,16 @@ export default function BankStatementConverter() {
 
   const autoPages = useMemo(() => (pages ? pages.map((p, i) => (p.items.length ? p.items : ocrItems[i] ?? [])) : null), [pages, ocrItems]);
   const autoStatement = useMemo(() => (autoPages ? parseStatement(autoPages, { dateOrder: order }) : null), [autoPages, order]);
-  const manualStatement = useMemo(() => (manual ? parseStatement(manual.pages, { dateOrder: order, columns: manual.columns }) : null), [manual, order]);
+  const manualStatement = useMemo(() => {
+    if (!manual) return null;
+    const out = parseStatement(manual.pages, { dateOrder: order, columns: manual.columns });
+    // The account summary is usually outside the marked tables; read it from the pages just to check the total.
+    if (pages && (out.opening === null || out.closing === null)) {
+      const sum = readSummaryBalances(pages.map((p) => p.items));
+      if (sum) return { ...out, opening: out.opening ?? sum.opening, closing: out.closing ?? sum.closing, fromSummary: true };
+    }
+    return out;
+  }, [manual, order, pages]);
   const baseStatement = mode === "auto" ? autoStatement : manualStatement;
   // Statements that print no running balance: calculate it from the opening balance and match the closing one.
   const typed = (v: string) => (v.trim() ? readAmount(v.trim())?.value ?? null : null);
