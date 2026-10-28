@@ -5,7 +5,7 @@ const mm = (px: number) => (px * 25.4) / 96;
 test.describe("Cheque Printer", () => {
   test("fills an Omani cheque and prints it at real millimetre positions", async ({ page }) => {
     await page.goto("/tools/cheque-printer", { waitUntil: "networkidle" });
-    await page.getByLabel("Country / bank layout").selectOption("om");
+    await page.getByLabel("Country", { exact: true }).selectOption("OM");
     await expect(page.getByText(/Starting point: positions vary/)).toBeVisible();
     await page.getByLabel("Pay to", { exact: true }).fill("Al Noor Trading LLC");
     await page.getByRole("textbox", { name: "Amount" }).fill("1250.500");
@@ -34,7 +34,7 @@ test.describe("Cheque Printer", () => {
 
   test("rejects too many decimals and handles batch rows", async ({ page }) => {
     await page.goto("/tools/cheque-printer", { waitUntil: "networkidle" });
-    await page.getByLabel("Country / bank layout").selectOption("us-business");
+    await page.getByLabel("Cheque size").selectOption("us-business");
     await page.getByRole("textbox", { name: "Amount" }).fill("10.555");
     await expect(page.getByText("Enter an amount with at most 2 decimal places.")).toBeVisible();
     await expect(page.getByRole("button", { name: "Print cheque" })).toBeDisabled();
@@ -53,7 +53,50 @@ test.describe("Cheque Printer", () => {
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await expect(page.getByText("Layout saved on this device.")).toBeVisible();
     await page.reload();
-    await expect(page.getByLabel("Country / bank layout").locator("option", { hasText: "My bank" })).toHaveCount(1);
+    await expect(page.getByLabel("Cheque size").locator("option", { hasText: "My bank" })).toHaveCount(1);
+  });
+
+  test("country, bank and size dropdowns narrow each other", async ({ page }) => {
+    await page.goto("/tools/cheque-printer", { waitUntil: "networkidle" });
+    await page.getByLabel("Country", { exact: true }).selectOption("PK");
+    const bank = page.getByLabel("Bank", { exact: true });
+    await expect(bank.locator("option")).toHaveText(["Standard / any bank", "UBL"]);
+    await bank.selectOption({ label: "UBL" });
+    const size = page.getByLabel("Cheque size");
+    await expect(size.locator("option")).toHaveText([/215\.9 × 71\.1 mm/, /241\.3 × 95\.3 mm/, "+ Add custom size"]);
+    await size.selectOption("pk-ubl-1");
+    await expect(page.getByRole("button", { name: "Print cheque" })).toBeVisible();
+    await page.getByLabel("Country", { exact: true }).selectOption("CA");
+    await expect(bank.locator("option")).toHaveCount(1);
+    await expect(size.locator("option").first()).toContainText("158.8 × 69.9 mm");
+  });
+
+  test("a custom size is saved on this device and only shared when ticked", async ({ page }) => {
+    const shared: unknown[] = [];
+    await page.route("**/api/cheque-size", async (route) => {
+      shared.push(route.request().postDataJSON());
+      await route.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true}' });
+    });
+    await page.goto("/tools/cheque-printer", { waitUntil: "networkidle" });
+    await page.getByLabel("Country", { exact: true }).selectOption("PK");
+    await page.getByLabel("Cheque size").selectOption("custom");
+    await page.getByLabel("Name for this size").fill("Branch cheque");
+    await page.getByLabel("Width (mm)", { exact: true }).fill("190");
+    await page.getByLabel("Height (mm)", { exact: true }).fill("85");
+    await page.getByRole("button", { name: "Save size" }).click();
+    await expect(page.getByText("Layout saved on this device.")).toBeVisible();
+    expect(shared).toHaveLength(0);
+    await page.reload({ waitUntil: "networkidle" });
+    await page.getByLabel("Country", { exact: true }).selectOption("PK");
+    await expect(page.getByLabel("Cheque size").locator("option", { hasText: "Branch cheque · 190 × 85 mm" })).toHaveCount(1);
+    // Ticking the box shares just the measurements.
+    await page.getByLabel("Cheque size").selectOption("custom");
+    await page.getByLabel("Name for this size").fill("Shared one");
+    await page.getByRole("checkbox", { name: /Share this size with Artify/ }).first().check();
+    await page.getByRole("button", { name: "Save size" }).click();
+    await expect(page.getByText(/shared with Artify/)).toBeVisible();
+    expect(shared).toHaveLength(1);
+    expect(shared[0]).toMatchObject({ name: "Shared one", country: "PK", width: 175, height: 80 });
   });
 
   test("Arabic page renders the tool", async ({ page }) => {

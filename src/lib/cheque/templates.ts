@@ -20,6 +20,8 @@ export interface ChequeLayout {
   /** English and Arabic display names. */
   name: { en: string; ar: string };
   country: string;
+  /** The bank this size belongs to; without one it is the country's standard size, offered under "any bank". */
+  bank?: { en: string; ar: string };
   width: number;
   height: number;
   fields: Record<FieldId, FieldBox>;
@@ -31,7 +33,7 @@ export interface ChequeLayout {
 }
 
 /** Field positions for a typical wide cheque, scaled to the given size. */
-function typical(width: number, height: number): Record<FieldId, FieldBox> {
+export function typical(width: number, height: number): Record<FieldId, FieldBox> {
   const sx = width / 203;
   const sy = height / 89;
   const box = (x: number, y: number, w: number, h: number): FieldBox => ({ x: +(x * sx).toFixed(1), y: +(y * sy).toFixed(1), w: +(w * sx).toFixed(1), h: +(h * sy).toFixed(1) });
@@ -82,7 +84,8 @@ export const LAYOUTS: ChequeLayout[] = [
   GCC("ae", "UAE · typical cheque", "الإمارات · شيك نموذجي", "AE", "AED"),
   GCC("sa", "Saudi Arabia · typical cheque", "السعودية · شيك نموذجي", "SA", "SAR"),
   GCC("kw", "Kuwait · typical cheque", "الكويت · شيك نموذجي", "KW", "KWD"),
-  GCC("bh", "Bahrain · typical cheque", "البحرين · شيك نموذجي", "BH", "BHD"),
+  // Bahrain's new-design cheque is one size for everyone: 7 × 3.5 in (TradeArabia, 2016).
+  { ...GCC("bh", "Bahrain · standard cheque (7 × 3.5 in)", "البحرين · الشيك القياسي (7 × 3.5 بوصة)", "BH", "BHD"), width: 177.8, height: 88.9, fields: typical(177.8, 88.9) },
   GCC("qa", "Qatar · typical cheque", "قطر · شيك نموذجي", "QA", "QAR"),
   { ...GCC("eg", "Egypt · typical cheque", "مصر · شيك نموذجي", "EG", "EGP") },
   { ...GCC("jo", "Jordan · typical cheque", "الأردن · شيك نموذجي", "JO", "JOD") },
@@ -99,6 +102,11 @@ export const LAYOUTS: ChequeLayout[] = [
     verified: { fields: "size-only", source: "CTS-2010 standard leaf size (202 × 92 mm)" },
   },
   { ...GCC("pk", "Pakistan · typical cheque", "باكستان · شيك نموذجي", "PK", "PKR"), wordsLanguage: "en" },
+  // SBP's 2014 standard allows 170–180 mm × 70–85 mm; this is a typical size inside that range.
+  { ...GCC("pk-sbp", "Pakistan · SBP standard range (typical)", "باكستان · نطاق معيار البنك المركزي (نموذجي)", "PK", "PKR"), width: 175, height: 80, fields: typical(175, 80), wordsLanguage: "en" },
+  // UBL's published cheque-book options (schedule of charges): 9.5 × 3.75 in and 8.5 × 2.8 in.
+  { ...GCC("pk-ubl-1", "UBL · wide cheque (9.5 × 3.75 in)", "UBL · شيك عريض (9.5 × 3.75 بوصة)", "PK", "PKR"), bank: { en: "UBL", ar: "UBL" }, width: 241.3, height: 95.3, fields: typical(241.3, 95.3), wordsLanguage: "en" },
+  { ...GCC("pk-ubl-2", "UBL · compact cheque (8.5 × 2.8 in)", "UBL · شيك صغير (8.5 × 2.8 بوصة)", "PK", "PKR"), bank: { en: "UBL", ar: "UBL" }, width: 215.9, height: 71.1, fields: typical(215.9, 71.1), wordsLanguage: "en" },
   { ...GCC("gb", "United Kingdom · typical cheque", "المملكة المتحدة · شيك نموذجي", "GB", "GBP"), width: 178, height: 85, fields: typical(178, 85), wordsLanguage: "en" },
   { id: "us-personal", name: { en: "United States · personal check (6 × 2¾ in)", ar: "الولايات المتحدة · شيك شخصي" }, country: "US", width: 152.4, height: 69.9, fields: typical(152.4, 69.9), dateFormat: "MM/DD/YYYY", currency: "USD", wordsLanguage: "en", verified: null },
   { id: "us-business", name: { en: "United States · business check (8½ × 3½ in)", ar: "الولايات المتحدة · شيك تجاري" }, country: "US", width: 215.9, height: 88.9, fields: typical(215.9, 88.9), dateFormat: "MM/DD/YYYY", currency: "USD", wordsLanguage: "en", verified: null },

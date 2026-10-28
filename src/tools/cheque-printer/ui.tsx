@@ -12,6 +12,8 @@ import { useLocale } from "@/components/i18n/locale-provider";
 import { downloadBlob } from "@/components/ui/actions";
 import { fitTwoLines, formatChequeDate, formatFigures, parseBatch } from "@/lib/cheque/format";
 import { loadSavedLayouts, storeSavedLayouts, isSavedLayout, type SavedLayout } from "@/lib/cheque/storage";
+import { CATALOG, countryName, GENERIC_BANK, locate, scaleFields, sizeLabel } from "@/lib/cheque/catalog";
+import { sharedSizeFrom } from "@/lib/cheque/share";
 import { FIELD_IDS, LAYOUTS, type DateFormat, type FieldId } from "@/lib/cheque/templates";
 import { amountInArabic, amountInEnglish, currencies, getCurrency, parseAmount } from "@/lib/words";
 import { AR_FONT, ChequeFace, LATIN_FONT, type ChequeValues, type FaceGeometry } from "./cheque-face";
@@ -22,7 +24,9 @@ const DATE_FORMATS: DateFormat[] = ["DD/MM/YYYY", "DD-MM-YYYY", "YYYY-MM-DD", "M
 
 const strings = {
   en: {
-    layout: "Cheque layout", layoutPick: "Country / bank layout", saved: "Saved layouts", verified: (src: string, part: string) => `Verified: ${part} (${src}). Other positions are a starting point.`,
+    layout: "Cheque layout", country: "Country", bank: "Bank", chequeSize: "Cheque size", customSize: "+ Add custom size", verifiedTag: "verified", typicalTag: "typical", saved: "Saved on this device", customTitle: "Custom cheque size",
+    customHelp: "Measure your cheque (width × height in mm), then name it and save it. It is kept in this browser, ready for next time.", customName: "Name for this size", customW: "Width (mm)", customH: "Height (mm)", customSave: "Save size",
+    share: "Share this size with Artify so it can be added for everyone", shareHint: "Only the name, country, size and field positions are sent. Never any cheque details.", sharedOk: "Saved on this device and shared with Artify. Thank you!", shareFailed: "Saved on this device, but sharing didn't work this time.", verified: (src: string, part: string) => `Verified: ${part} (${src}). Other positions are a starting point.`,
     estimated: "Starting point: positions vary between banks. Do a test print on plain paper and adjust before printing on a real cheque.",
     sizeOnly: "cheque size", amountBox: "amount box position",
     details: "Cheque details", tabs: { single: "One cheque", batch: "Several cheques" } as Record<Tab, string>,
@@ -45,7 +49,9 @@ const strings = {
     overflow: "The amount in words is too long for the two lines; widen the word lines or reduce the text size.",
   },
   ar: {
-    layout: "تخطيط الشيك", layoutPick: "تخطيط الدولة / البنك", saved: "التخطيطات المحفوظة", verified: (src: string, part: string) => `مُتحقَّق منه: ${part} (${src}). بقية المواضع نقطة بداية.`,
+    layout: "تخطيط الشيك", country: "الدولة", bank: "البنك", chequeSize: "مقاس الشيك", customSize: "+ إضافة مقاس مخصص", verifiedTag: "مُتحقَّق", typicalTag: "نموذجي", saved: "المحفوظة على هذا الجهاز", customTitle: "مقاس شيك مخصص",
+    customHelp: "قِس شيكك (العرض × الارتفاع بالملم)، ثم سمّه واحفظه. يبقى في هذا المتصفح جاهزًا للمرة القادمة.", customName: "اسم هذا المقاس", customW: "العرض (مم)", customH: "الارتفاع (مم)", customSave: "حفظ المقاس",
+    share: "شارك هذا المقاس مع Artify ليُضاف للجميع", shareHint: "يُرسل فقط الاسم والدولة والمقاس ومواضع الحقول، ولا يُرسل أي بيانات من الشيك.", sharedOk: "حُفظ على هذا الجهاز وتمت مشاركته مع Artify. شكرًا لك!", shareFailed: "حُفظ على هذا الجهاز، لكن تعذّرت المشاركة هذه المرة.", verified: (src: string, part: string) => `مُتحقَّق منه: ${part} (${src}). بقية المواضع نقطة بداية.`,
     estimated: "نقطة بداية: تختلف المواضع بين البنوك. اطبع صفحة تجربة على ورق عادي وعدّل قبل الطباعة على شيك حقيقي.",
     sizeOnly: "مقاس الشيك", amountBox: "موضع خانة المبلغ",
     details: "بيانات الشيك", tabs: { single: "شيك واحد", batch: "عدة شيكات" } as Record<Tab, string>,
@@ -93,7 +99,12 @@ function todayIso() {
 export default function ChequePrinter() {
   const locale = useLocale();
   const t = strings[locale];
-  const [source, setSource] = useState(locale === "ar" ? "om" : "us-business");
+  const start = locale === "ar" ? "om" : "us-business";
+  const [source, setSource] = useState(start);
+  const [country, setCountry] = useState(() => locate(start)!.country);
+  const [bank, setBank] = useState<string>(GENERIC_BANK.id);
+  const [share, setShare] = useState(false);
+  const [custom, setCustom] = useState({ name: "", width: 203, height: 89 });
   const [work, setWork] = useState<SavedLayout>(() => fromPreset(locale === "ar" ? "om" : "us-business"));
   const [saved, setSaved] = useState<SavedLayout[]>([]);
   const [tab, setTab] = useState<Tab>("single");
@@ -120,6 +131,10 @@ export default function ChequePrinter() {
   const currency = getCurrency(work.currency) ?? currencies[0]!;
   const decimals = currency.minor === 1000 ? 3 : currency.minor === 100 ? 2 : 0;
   const preset = LAYOUTS.find((l) => l.id === source);
+  const countries = useMemo(() => CATALOG.map((c) => ({ code: c.code, name: countryName(c.code, locale) })).sort((a, b) => a.name.localeCompare(b.name, locale)), [locale]);
+  const banks = CATALOG.find((c) => c.code === country)?.banks ?? [];
+  const sizes = banks.find((b) => b.id === bank)?.layouts ?? [];
+  const savedHere = saved.filter((l) => l.country === country);
 
   const buildValues = useCallback(
     (payeeText: string, amountText: string, iso: string): ChequeValues | null => {
@@ -180,26 +195,65 @@ export default function ChequePrinter() {
   function pick(id: string) {
     setSource(id);
     setNotice(null);
+    if (id === "custom") {
+      const base = { ...work, saved: true as const };
+      setWork({ ...base, country, id: "custom", name: { en: "Custom", ar: "مخصص" }, verified: null });
+      setCustom((c) => ({ ...c, width: work.width, height: work.height }));
+      return;
+    }
     if (id.startsWith("saved:")) {
       const s = saved.find((l) => `saved:${l.id}` === id);
       if (s) setWork(structuredClone(s));
-    } else setWork(fromPreset(id));
+    } else {
+      const at = locate(id);
+      if (at) { setCountry(at.country); setBank(at.bank); }
+      setWork(fromPreset(id));
+    }
+  }
+  function pickCountry(code: string) {
+    setCountry(code);
+    const first = CATALOG.find((c) => c.code === code)?.banks[0];
+    setBank(first?.id ?? GENERIC_BANK.id);
+    if (first?.layouts[0]) pick(first.layouts[0].id);
+  }
+  function pickBank(id: string) {
+    setBank(id);
+    const first = banks.find((b) => b.id === id)?.layouts[0];
+    if (first) pick(first.id);
+  }
+  function resizeCustom(width: number, height: number) {
+    if (!(width > 0 && height > 0)) return;
+    setCustom((c) => ({ ...c, width, height }));
+    setWork((w) => ({ ...w, width, height, fields: scaleFields(w.fields, { width: w.width, height: w.height }, { width, height }) }));
   }
 
   const setField = (f: FieldId, key: "x" | "y" | "w", v: number) =>
     Number.isFinite(v) && setWork((w) => ({ ...w, fields: { ...w.fields, [f]: { ...w.fields[f], [key]: v } } }));
 
   function saveLayout() {
-    const name = saveName.trim();
+    const name = (source === "custom" ? custom.name : saveName).trim();
     if (!name) return;
-    const id = `${Date.now()}`;
-    const entry: SavedLayout = { ...structuredClone(work), id, name: { en: name, ar: name } };
+    const id = crypto.randomUUID();
+    const entry: SavedLayout = { ...structuredClone(work), id, country, name: { en: name, ar: name } };
     const next = [...saved, entry];
     if (storeSavedLayouts(next)) {
       setSaved(next);
       setSource(`saved:${id}`);
       setSaveName("");
+      setCustom((c) => ({ ...c, name: "" }));
       setNotice({ tone: "success", text: t.savedOk });
+      if (share) void shareSize(entry, name);
+    }
+  }
+
+  // Only when the visitor ticked the box: the measurements go to the owner as a GitHub issue. Never a scan or cheque details.
+  async function shareSize(entry: SavedLayout, name: string) {
+    const bankName = banks.find((b) => b.id === bank)?.name.en ?? "";
+    try {
+      const res = await fetch("/api/cheque-size", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(sharedSizeFrom(entry, name, bank === GENERIC_BANK.id ? "" : bankName)) });
+      setNotice(res.ok ? { tone: "success", text: t.sharedOk } : { tone: "error", text: t.shareFailed });
+    } catch {
+      setNotice({ tone: "error", text: t.shareFailed });
     }
   }
 
@@ -234,20 +288,35 @@ export default function ChequePrinter() {
     <div className="flex flex-col gap-5">
       <Panel title={t.layout}>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label={t.layoutPick}>
-            {(p) => (
-              <Select {...p} value={source} onChange={(e) => pick(e.target.value)}>
-                {saved.length > 0 && (
-                  <optgroup label={t.saved}>
-                    {saved.map((l) => <option key={l.id} value={`saved:${l.id}`}>{l.name.en}</option>)}
-                  </optgroup>
-                )}
-                <optgroup label={t.layoutPick}>
-                  {LAYOUTS.map((l) => <option key={l.id} value={l.id}>{l.name[locale]}</option>)}
-                </optgroup>
-              </Select>
-            )}
-          </Field>
+          <div className="grid gap-4 sm:col-span-2 sm:grid-cols-3">
+            <Field label={t.country}>
+              {(p) => (
+                <Select {...p} value={country} onChange={(e) => pickCountry(e.target.value)}>
+                  {countries.map((c) => <option key={c.code} value={c.code}>{c.name}</option>)}
+                </Select>
+              )}
+            </Field>
+            <Field label={t.bank}>
+              {(p) => (
+                <Select {...p} value={bank} onChange={(e) => pickBank(e.target.value)}>
+                  {banks.map((b) => <option key={b.id} value={b.id}>{b.name[locale]}</option>)}
+                </Select>
+              )}
+            </Field>
+            <Field label={t.chequeSize}>
+              {(p) => (
+                <Select {...p} value={source} onChange={(e) => pick(e.target.value)}>
+                  {sizes.map((l) => <option key={l.id} value={l.id}>{sizeLabel(l)} · {l.verified ? t.verifiedTag : t.typicalTag}{sizes.filter((x) => sizeLabel(x) === sizeLabel(l)).length > 1 ? ` · ${l.name[locale]}` : ""}</option>)}
+                  {savedHere.length > 0 && (
+                    <optgroup label={t.saved}>
+                      {savedHere.map((l) => <option key={l.id} value={`saved:${l.id}`}>{l.name.en} · {sizeLabel(l)}</option>)}
+                    </optgroup>
+                  )}
+                  <option value="custom">{t.customSize}</option>
+                </Select>
+              )}
+            </Field>
+          </div>
           <Field label={t.paper}>
             {(p) => (
               <Select {...p} value={paper} onChange={(e) => setPaper(e.target.value as Paper)}>
@@ -256,6 +325,21 @@ export default function ChequePrinter() {
             )}
           </Field>
         </div>
+        {notice && <StatusMessage tone={notice.tone}>{notice.text}</StatusMessage>}
+        {source === "custom" && (
+          <div className="flex flex-col gap-3 rounded-lg border border-line p-4">
+            <p className="font-semibold">{t.customTitle}</p>
+            <p className="text-sm text-muted">{t.customHelp}</p>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <Field label={t.customName}>{(p) => <TextInput {...p} value={custom.name} onChange={(e) => setCustom((c) => ({ ...c, name: e.target.value }))} />}</Field>
+              <Field label={t.customW}>{(p) => <TextInput {...p} type="number" step={0.5} min={60} max={320} dir="ltr" value={custom.width} onChange={(e) => resizeCustom(Number(e.target.value), custom.height)} />}</Field>
+              <Field label={t.customH}>{(p) => <TextInput {...p} type="number" step={0.5} min={30} max={320} dir="ltr" value={custom.height} onChange={(e) => resizeCustom(custom.width, Number(e.target.value))} />}</Field>
+            </div>
+            <Checkbox label={t.share} checked={share} onChange={(e) => setShare(e.target.checked)} />
+            <p className="text-xs text-muted">{t.shareHint}</p>
+            <div><Button onClick={saveLayout} disabled={!custom.name.trim() || custom.width < 60 || custom.height < 30}>{t.customSave}</Button></div>
+          </div>
+        )}
         {preset?.verified ? (
           <StatusMessage tone="info">{t.verified(preset.verified.source, preset.verified.fields === "size-only" ? t.sizeOnly : t.amountBox)}</StatusMessage>
         ) : (
@@ -424,6 +508,7 @@ export default function ChequePrinter() {
             <Field label={t.saveAs} className="min-w-48 flex-1">
               {(p) => <TextInput {...p} value={saveName} onChange={(e) => setSaveName(e.target.value)} placeholder={t.saveName} />}
             </Field>
+            <Checkbox label={t.share} checked={share} onChange={(e) => setShare(e.target.checked)} />
             <Button onClick={saveLayout} disabled={!saveName.trim()}>{t.save}</Button>
             {source.startsWith("saved:") && <Button variant="ghost" onClick={deleteLayout}>{t.del}</Button>}
             <Button variant="secondary" onClick={() => downloadBlob(new Blob([JSON.stringify(work, null, 2)], { type: "application/json" }), "cheque-layout.json")}>{t.exportL}</Button>
@@ -432,7 +517,6 @@ export default function ChequePrinter() {
               <input type="file" accept="application/json,.json" className="sr-only" onChange={(e) => { void importLayout(e.target.files?.[0]); e.target.value = ""; }} />
             </label>
           </div>
-          {notice && <StatusMessage tone={notice.tone}>{notice.text}</StatusMessage>}
         </div>
       </details>
 
