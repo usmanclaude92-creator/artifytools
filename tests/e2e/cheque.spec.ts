@@ -99,6 +99,57 @@ test.describe("Cheque Printer", () => {
     expect(shared[0]).toMatchObject({ name: "Shared one", country: "PK", width: 175, height: 80 });
   });
 
+  test("measures a cheque from an A4 scan and reads its labels with OCR", async ({ page }) => {
+    await page.goto("/tools/cheque-printer", { waitUntil: "networkidle" });
+    await page.getByLabel("Cheque size").selectOption("custom");
+    await page.getByRole("button", { name: "Detect from an A4 scan" }).click();
+    await expect(page.getByText("Print it at 100%", { exact: false })).toBeVisible();
+    // An A4 page at 150 dpi with a 203 × 89 mm cheque copied onto it.
+    const png = await page.evaluate(() => {
+      const mm = 1240 / 210;
+      const c = document.createElement("canvas");
+      c.width = 1240; c.height = 1754;
+      const g = c.getContext("2d")!;
+      g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);
+      const x = 4 * mm, y = 40 * mm, w = 203 * mm, h = 89 * mm;
+      g.strokeStyle = "#000"; g.lineWidth = 3; g.strokeRect(x, y, w, h);
+      g.fillStyle = "#000"; g.font = "34px Arial";
+      g.fillText("Date", x + 150 * mm, y + 12 * mm);
+      g.fillText("Pay", x + 10 * mm, y + 30 * mm);
+      g.fillText("Rupees", x + 10 * mm, y + 50 * mm);
+      g.fillText("Rs.", x + 152 * mm, y + 62 * mm);
+      g.strokeRect(x + 165 * mm, y + 54 * mm, 34 * mm, 12 * mm);
+      return c.toDataURL("image/png").split(",")[1]!;
+    });
+    await page.locator('[data-testid="a4-scan"] input[type="file"]').setInputFiles({ name: "cheque-a4.png", mimeType: "image/png", buffer: Buffer.from(png, "base64") });
+    const size = page.getByTestId("scan-size");
+    await expect(size).toContainText("Measured size:");
+    const [w, h] = (await size.innerText()).match(/(\d+(?:\.\d+)?) × (\d+(?:\.\d+)?)/)!.slice(1).map(Number);
+    expect(Math.abs(w! - 203)).toBeLessThan(3);
+    expect(Math.abs(h! - 89)).toBeLessThan(3);
+    await page.getByRole("button", { name: "Detect fields" }).click();
+    await expect(page.getByRole("button", { name: "Use this size" })).toBeVisible({ timeout: 90_000 });
+    await expect(page.getByText(/of 6 fields were found from printed labels/)).toBeVisible();
+    await page.getByRole("button", { name: "Use this size" }).click();
+    const width = Number(await page.getByLabel("Width (mm)", { exact: true }).inputValue());
+    expect(Math.abs(width - 203)).toBeLessThan(3);
+    await expect(page.getByTestId("a4-scan")).toHaveCount(0);
+  });
+
+  test("an image that isn't a whole A4 sheet is refused with advice", async ({ page }) => {
+    await page.goto("/tools/cheque-printer", { waitUntil: "networkidle" });
+    await page.getByLabel("Cheque size").selectOption("custom");
+    await page.getByRole("button", { name: "Detect from an A4 scan" }).click();
+    const png = await page.evaluate(() => {
+      const c = document.createElement("canvas");
+      c.width = 900; c.height = 900;
+      c.getContext("2d")!.fillRect(0, 0, 900, 900);
+      return c.toDataURL("image/png").split(",")[1]!;
+    });
+    await page.locator('[data-testid="a4-scan"] input[type="file"]').setInputFiles({ name: "square.png", mimeType: "image/png", buffer: Buffer.from(png, "base64") });
+    await expect(page.getByText(/doesn't look like a whole A4 sheet/)).toBeVisible();
+  });
+
   test("Arabic page renders the tool", async ({ page }) => {
     await page.goto("/ar/tools/cheque-printer", { waitUntil: "networkidle" });
     await expect(page.getByRole("heading", { level: 1 })).toContainText("طباعة الشيكات");

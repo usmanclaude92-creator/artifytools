@@ -16,6 +16,7 @@ import { CATALOG, countryName, GENERIC_BANK, locate, scaleFields, sizeLabel } fr
 import { sharedSizeFrom } from "@/lib/cheque/share";
 import { FIELD_IDS, LAYOUTS, type DateFormat, type FieldId } from "@/lib/cheque/templates";
 import { amountInArabic, amountInEnglish, currencies, getCurrency, parseAmount } from "@/lib/words";
+import { A4Scan, type ScanResult } from "./a4-scan";
 import { AR_FONT, ChequeFace, LATIN_FONT, type ChequeValues, type FaceGeometry } from "./cheque-face";
 
 type Tab = "single" | "batch";
@@ -24,7 +25,7 @@ const DATE_FORMATS: DateFormat[] = ["DD/MM/YYYY", "DD-MM-YYYY", "YYYY-MM-DD", "M
 
 const strings = {
   en: {
-    layout: "Cheque layout", country: "Country", bank: "Bank", chequeSize: "Cheque size", customSize: "+ Add custom size", verifiedTag: "verified", typicalTag: "typical", saved: "Saved on this device", customTitle: "Custom cheque size",
+    layout: "Cheque layout", country: "Country", bank: "Bank", chequeSize: "Cheque size", customSize: "+ Add custom size", scanOpen: "Detect from an A4 scan", verifiedTag: "verified", typicalTag: "typical", saved: "Saved on this device", customTitle: "Custom cheque size",
     customHelp: "Measure your cheque (width × height in mm), then name it and save it. It is kept in this browser, ready for next time.", customName: "Name for this size", customW: "Width (mm)", customH: "Height (mm)", customSave: "Save size",
     share: "Share this size with Artify so it can be added for everyone", shareHint: "Only the name, country, size and field positions are sent. Never any cheque details.", sharedOk: "Saved on this device and shared with Artify. Thank you!", shareFailed: "Saved on this device, but sharing didn't work this time.", verified: (src: string, part: string) => `Verified: ${part} (${src}). Other positions are a starting point.`,
     estimated: "Starting point: positions vary between banks. Do a test print on plain paper and adjust before printing on a real cheque.",
@@ -49,7 +50,7 @@ const strings = {
     overflow: "The amount in words is too long for the two lines; widen the word lines or reduce the text size.",
   },
   ar: {
-    layout: "تخطيط الشيك", country: "الدولة", bank: "البنك", chequeSize: "مقاس الشيك", customSize: "+ إضافة مقاس مخصص", verifiedTag: "مُتحقَّق", typicalTag: "نموذجي", saved: "المحفوظة على هذا الجهاز", customTitle: "مقاس شيك مخصص",
+    layout: "تخطيط الشيك", country: "الدولة", bank: "البنك", chequeSize: "مقاس الشيك", customSize: "+ إضافة مقاس مخصص", scanOpen: "الاكتشاف من مسح A4", verifiedTag: "مُتحقَّق", typicalTag: "نموذجي", saved: "المحفوظة على هذا الجهاز", customTitle: "مقاس شيك مخصص",
     customHelp: "قِس شيكك (العرض × الارتفاع بالملم)، ثم سمّه واحفظه. يبقى في هذا المتصفح جاهزًا للمرة القادمة.", customName: "اسم هذا المقاس", customW: "العرض (مم)", customH: "الارتفاع (مم)", customSave: "حفظ المقاس",
     share: "شارك هذا المقاس مع Artify ليُضاف للجميع", shareHint: "يُرسل فقط الاسم والدولة والمقاس ومواضع الحقول، ولا يُرسل أي بيانات من الشيك.", sharedOk: "حُفظ على هذا الجهاز وتمت مشاركته مع Artify. شكرًا لك!", shareFailed: "حُفظ على هذا الجهاز، لكن تعذّرت المشاركة هذه المرة.", verified: (src: string, part: string) => `مُتحقَّق منه: ${part} (${src}). بقية المواضع نقطة بداية.`,
     estimated: "نقطة بداية: تختلف المواضع بين البنوك. اطبع صفحة تجربة على ورق عادي وعدّل قبل الطباعة على شيك حقيقي.",
@@ -104,6 +105,7 @@ export default function ChequePrinter() {
   const [country, setCountry] = useState(() => locate(start)!.country);
   const [bank, setBank] = useState<string>(GENERIC_BANK.id);
   const [share, setShare] = useState(false);
+  const [scanning, setScanning] = useState(false);
   const [custom, setCustom] = useState({ name: "", width: 203, height: 89 });
   const [work, setWork] = useState<SavedLayout>(() => fromPreset(locale === "ar" ? "om" : "us-business"));
   const [saved, setSaved] = useState<SavedLayout[]>([]);
@@ -221,6 +223,12 @@ export default function ChequePrinter() {
     const first = banks.find((b) => b.id === id)?.layouts[0];
     if (first) pick(first.id);
   }
+  function applyScan(r: ScanResult) {
+    setWork((w) => ({ ...w, width: r.width, height: r.height, fields: r.fields }));
+    setCustom((c) => ({ ...c, width: r.width, height: r.height }));
+    setScanning(false);
+    setNotice(null);
+  }
   function resizeCustom(width: number, height: number) {
     if (!(width > 0 && height > 0)) return;
     setCustom((c) => ({ ...c, width, height }));
@@ -335,6 +343,7 @@ export default function ChequePrinter() {
               <Field label={t.customW}>{(p) => <TextInput {...p} type="number" step={0.5} min={60} max={320} dir="ltr" value={custom.width} onChange={(e) => resizeCustom(Number(e.target.value), custom.height)} />}</Field>
               <Field label={t.customH}>{(p) => <TextInput {...p} type="number" step={0.5} min={30} max={320} dir="ltr" value={custom.height} onChange={(e) => resizeCustom(custom.width, Number(e.target.value))} />}</Field>
             </div>
+            {scanning ? <A4Scan onApply={applyScan} onClose={() => setScanning(false)} /> : <div><Button variant="secondary" onClick={() => setScanning(true)}><Icon name="crop" size={17} /> {t.scanOpen}</Button></div>}
             <Checkbox label={t.share} checked={share} onChange={(e) => setShare(e.target.checked)} />
             <p className="text-xs text-muted">{t.shareHint}</p>
             <div><Button onClick={saveLayout} disabled={!custom.name.trim() || custom.width < 60 || custom.height < 30}>{t.customSave}</Button></div>
