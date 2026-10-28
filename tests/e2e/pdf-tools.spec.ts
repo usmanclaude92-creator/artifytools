@@ -32,6 +32,48 @@ test.describe("Rotate PDF", () => {
   });
 });
 
+test.describe("Crop PDF", () => {
+  test("crops all pages, then one page only", async ({ page }) => {
+    await open(page, "/tools/crop-pdf");
+    await page.locator('input[type="file"]').setInputFiles(fixture("plain-3-pages.pdf"));
+    await expect(page.getByRole("img", { name: "Page 1" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Save cropped PDF" })).toBeDisabled();
+    const area = page.getByTestId("crop-area");
+    const handle = page.locator('[data-handle="se"]');
+    await area.scrollIntoViewIfNeeded();
+    const a = (await area.boundingBox())!;
+    const h = (await handle.boundingBox())!;
+    await page.mouse.move(h.x + h.width / 2, h.y + h.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2, { steps: 6 });
+    await page.mouse.up();
+    await page.getByRole("button", { name: "Save cropped PDF" }).click();
+    const [d1] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download" }).click()]);
+    expect(d1.suggestedFilename()).toBe("plain-3-pages-cropped.pdf");
+    const all = (await PDFDocument.load(await bytesOf(d1))).getPages().map((p) => p.getCropBox());
+    for (const b of all) {
+      expect(b.width).toBeGreaterThan(50);
+      expect(b.width).toBeLessThan(200);
+    }
+    // One page only: page 2 is cropped, the others keep their size.
+    await page.getByRole("radio", { name: "This page only" }).check();
+    await page.getByRole("button", { name: "Next page" }).click();
+    await expect(page.getByText("Page 2 of 3")).toBeVisible();
+    await area.scrollIntoViewIfNeeded();
+    const h2 = (await handle.boundingBox())!;
+    const a2 = (await area.boundingBox())!;
+    await page.mouse.move(h2.x + h2.width / 2, h2.y + h2.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(a2.x + a2.width / 2, a2.y + a2.height / 2, { steps: 6 });
+    await page.mouse.up();
+    await page.getByRole("button", { name: "Save cropped PDF" }).click();
+    const [d2] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download" }).click()]);
+    const widths = (await PDFDocument.load(await bytesOf(d2))).getPages().map((p) => Math.round(p.getCropBox().width));
+    expect(widths[1]).toBeLessThan(widths[0]!);
+    expect(widths[0]).toBe(widths[2]);
+  });
+});
+
 test.describe("Organize PDF", () => {
   test("reorders, deletes and rotates pages", async ({ page }) => {
     await open(page, "/tools/organize-pdf");

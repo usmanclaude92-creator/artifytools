@@ -41,6 +41,30 @@ export async function rotatePages(bytes: Uint8Array, deltas: number[]): Promise<
   return finish(doc);
 }
 
+/** A crop as fractions (0–1) of the page as displayed, measured from its top-left. */
+export interface CropRect { x0: number; y0: number; x1: number; y1: number }
+
+/** Crops pages to the given rectangles (null leaves a page alone). Lossless: the page area shrinks, content is kept. */
+export async function cropPages(bytes: Uint8Array, rects: (CropRect | null)[]): Promise<Uint8Array> {
+  const doc = await open(bytes);
+  doc.getPages().forEach((p, i) => {
+    const r = rects[i];
+    if (!r) return;
+    const box = p.getCropBox();
+    const rot = p.getRotation().angle;
+    const { w, h } = visualSize(box.width, box.height, rot);
+    const a = toUserSpace(r.x0 * w, (1 - r.y0) * h, box.width, box.height, rot);
+    const b = toUserSpace(r.x1 * w, (1 - r.y1) * h, box.width, box.height, rot);
+    const round = (v: number) => Math.round(v * 100) / 100;
+    const x = round(box.x + Math.min(a.x, b.x)), y = round(box.y + Math.min(a.y, b.y));
+    const cw = round(Math.abs(a.x - b.x)), ch = round(Math.abs(a.y - b.y));
+    if (cw < 1 || ch < 1) return;
+    p.setCropBox(x, y, cw, ch);
+    p.setMediaBox(x, y, cw, ch);
+  });
+  return finish(doc);
+}
+
 export interface NumberOptions {
   anchor: Anchor;
   format: NumberFormat;

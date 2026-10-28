@@ -54,6 +54,7 @@ const components: Record<string, ComponentType> = {
   "excel-to-pdf": load(() => import("@/tools/excel-to-pdf/ui")),
   "pdf-to-excel": load(() => import("@/tools/pdf-to-excel/ui")),
   "rotate-pdf": load(() => import("@/tools/rotate-pdf/ui")),
+  "crop-pdf": load(() => import("@/tools/crop-pdf/ui")),
   "organize-pdf": load(() => import("@/tools/organize-pdf/ui")),
   "add-page-numbers": load(() => import("@/tools/add-page-numbers/ui")),
   "watermark-pdf": load(() => import("@/tools/watermark-pdf/ui")),

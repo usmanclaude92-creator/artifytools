@@ -10,11 +10,12 @@ import { SiteAnalytics } from "@/components/layout/site-analytics";
 import { ToastProvider } from "@/components/ui/toast";
 import { themeInitScript } from "@/components/ui/theme";
 import { siteConfig } from "@/lib/config";
-import { getPopularTools, getPublishedCategories, toDirectoryItem } from "@/lib/tools/registry";
+import { getPopularTools, getPublishedCategories, getToolsByCategory, toDirectoryItem } from "@/lib/tools/registry";
 import { LocaleProvider } from "@/components/i18n/locale-provider";
 import { dirOf, isLocale, locales } from "@/lib/i18n";
 import { getMessages } from "@/lib/messages";
-import { localizeCategory } from "@/lib/tools/localize";
+import { primaryNav } from "@/components/layout/nav-links";
+import { localizeCategory, localizeTool } from "@/lib/tools/localize";
 import "../globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
@@ -66,6 +67,13 @@ export default async function RootLayout({ children, params }: { children: React
   if (!isLocale(lang)) notFound();
   if (lang === "ar") ARABIC_PRELOAD.forEach((href) => preload(href, { as: "font", type: "font/woff2", crossOrigin: "" }));
   const categories = getPublishedCategories().map((c) => ({ name: localizeCategory(c, lang).name, slug: c.slug }));
+  const menus: Record<string, { name: string; href: string }[]> = {};
+  for (const item of primaryNav) {
+    if (!item.menu) continue;
+    menus[item.href] = item.menu === "categories"
+      ? getPublishedCategories().map((c) => ({ name: localizeCategory(c, lang).name, href: `/categories/${c.slug}` }))
+      : item.menu.flatMap((id) => getToolsByCategory(id)).map((t) => ({ name: localizeTool(t, lang).name, href: `/tools/${t.slug}` }));
+  }
   const suggestions = getPopularTools(6).map((t) => toDirectoryItem(t, lang));
 
   return (
@@ -83,7 +91,7 @@ export default async function RootLayout({ children, params }: { children: React
             {getMessages(lang).common.skipToContent}
           </a>
           <AnnouncementBar />
-          <Header categories={categories} suggestions={suggestions} />
+          <Header categories={categories} suggestions={suggestions} menus={menus} />
           <main id="main" tabIndex={-1} className="flex-1 outline-none">
             {children}
           </main>

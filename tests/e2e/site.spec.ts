@@ -105,6 +105,23 @@ test.describe("navigation and theme", () => {
     await expect(nav.getByRole("link", { name: /All Tools/ })).not.toHaveAttribute("aria-current", "page");
   });
 
+  test("menu items drop down to the tools of their category", async ({ page }) => {
+    await page.goto("/");
+    const nav = page.getByRole("navigation", { name: "Primary" });
+    await expect(nav.getByRole("link", { name: "Crop PDF" })).toHaveCount(0);
+    await nav.getByRole("button", { name: "Show PDF Editor menu" }).click();
+    await expect(nav.getByRole("link", { name: "Crop PDF" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "PDF to Word" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "Remove Background" })).toHaveCount(0);
+    await page.keyboard.press("Escape");
+    await expect(nav.getByRole("link", { name: "Crop PDF" })).toHaveCount(0);
+    await nav.getByRole("button", { name: "Show Images menu" }).click();
+    await expect(nav.getByRole("link", { name: "Remove Background" })).toBeVisible();
+    await nav.getByRole("link", { name: "Remove Background" }).click();
+    await expect(page).toHaveURL(/\/tools\/remove-background$/);
+    await expect(nav.getByRole("link", { name: "Remove Background" })).toHaveCount(0);
+  });
+
   test("theme toggle switches and persists", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: "Switch to dark theme" }).click();
@@ -229,7 +246,7 @@ test.describe("directory", () => {
   test("filters by category, combines with search, syncs the URL, and clears", async ({ page }) => {
     await page.goto("/tools");
     const count = page.getByRole("status").filter({ hasText: /tools?(\s|$)/ }).first();
-    await expect(count).toContainText("45 tools");
+    await expect(count).toContainText("46 tools");
     await page.getByRole("button", { name: /^Business & Finance/ }).click();
     await expect(page).toHaveURL(/category=business-finance/);
     await expect(count).toContainText("5 tools");
@@ -238,7 +255,7 @@ test.describe("directory", () => {
     await expect(count).toContainText("1 tool");
     await expect(page.getByRole("button", { name: /Category: Business & Finance/ })).toBeVisible();
     await page.getByRole("button", { name: "Clear all" }).click();
-    await expect(count).toContainText("45 tools");
+    await expect(count).toContainText("46 tools");
     await expect(page.getByLabel("Search all tools")).toHaveValue("");
   });
 
