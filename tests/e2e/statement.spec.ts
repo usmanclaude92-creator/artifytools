@@ -29,8 +29,8 @@ test.describe("Bank Statement Converter", () => {
     await page.mouse.down();
     await page.mouse.move(box.x + box.width * 0.95, box.y + box.height * 0.9, { steps: 8 });
     await page.mouse.up();
-    await expect(page.getByText("Table 1 · page 1")).toBeVisible();
-    await page.getByRole("button", { name: "Detect columns" }).click();
+    await expect(page.getByRole("button", { name: "Select table 1" })).toBeVisible();
+    await page.getByRole("button", { name: "Auto-fit table" }).click();
     await expect(page.getByLabel("Column 3")).toBeVisible();
     await page.getByRole("button", { name: "Convert selected tables" }).click();
     const result = page.getByRole("region", { name: "Transactions" });
@@ -77,16 +77,46 @@ test.describe("Bank Statement Converter", () => {
     await page.locator('input[type="file"]').setInputFiles(fixture("statement-en.pdf"));
     await page.getByRole("radio", { name: /Manual Selection/ }).check();
     await expect(page.getByRole("img", { name: "Page 1" })).toBeVisible();
-    await page.getByRole("button", { name: "Add table" }).first().click();
-    await expect(page.getByText("Table 1 · page 1")).toBeVisible();
+    await page.getByRole("button", { name: "Add table" }).click();
+    await expect(page.getByRole("button", { name: "Select table 1" })).toBeVisible();
     // Date, Description, Debit, Credit, Balance were found from the headings.
-    await expect(page.getByLabel(/^Column \d$/)).toHaveCount(5);
-    await expect(page.getByLabel("Column 1")).toHaveValue("date");
-    await page.getByRole("button", { name: "Add table" }).nth(1).click();
+    await expect(page.getByLabel(/^Column \d$/)).toHaveCount(10);
+    await expect(page.getByLabel("Column 1").first()).toHaveValue("date");
+    // A second tap only adds tables on pages that have none yet.
+    await page.getByRole("button", { name: "Add table" }).click();
+    await expect(page.getByRole("button", { name: /^Select table \d$/ })).toHaveCount(2);
     await page.getByRole("button", { name: "Convert selected tables" }).click();
     const result = page.getByRole("region", { name: "Transactions" });
     await expect(result).toContainText("All 19 balances match");
     await expect(result.getByRole("cell", { name: /CARREFOUR.*4421/ })).toBeVisible();
+  });
+
+  test("Manual Selection: the toolbar adds and removes column and row lines, and deletes the table", async ({ page }) => {
+    await open(page, "/tools/bank-statement-converter");
+    await page.locator('input[type="file"]').setInputFiles(fixture("statement-en.pdf"));
+    await page.getByRole("radio", { name: /Manual Selection/ }).check();
+    await expect(page.getByRole("img", { name: "Page 1" })).toBeVisible();
+    await page.getByRole("button", { name: "Add table" }).click();
+    await expect(page.getByRole("button", { name: /^Select table \d$/ })).toHaveCount(2);
+    const toolbar = page.getByRole("toolbar").first();
+    await toolbar.scrollIntoViewIfNeeded();
+    await expect(page.getByRole("slider", { name: /^Move column line/ }).first()).toBeVisible();
+    const columns = await page.getByRole("slider", { name: /^Move column line/ }).count();
+    await toolbar.getByRole("button", { name: "Add column line" }).click();
+    await expect(page.getByLabel(/^Column \d$/)).toHaveCount(11);
+    await toolbar.getByRole("button", { name: "Remove a column line" }).click();
+    await page.getByRole("slider", { name: /^Move column line/ }).first().dispatchEvent("pointerdown", { button: 0, pointerId: 1, isPrimary: true });
+    await expect(page.getByLabel(/^Column \d$/)).toHaveCount(10);
+    expect(columns).toBeGreaterThan(1);
+    // Row lines: the first press puts a line between every text line.
+    await expect(page.getByRole("slider", { name: /^Move row line/ })).toHaveCount(0);
+    await toolbar.getByRole("button", { name: "Add row line" }).click();
+    await expect(page.getByRole("slider", { name: /^Move row line/ }).first()).toBeVisible();
+    await page.getByRole("button", { name: "Convert selected tables" }).click();
+    const result = page.getByRole("region", { name: "Transactions" });
+    await expect(result).toContainText("All 19 balances match");
+    await toolbar.getByRole("button", { name: "Delete table" }).click();
+    await expect(page.getByRole("button", { name: /^Select table \d$/ })).toHaveCount(1);
   });
 
   test("Manual Selection: the round handle moves a table", async ({ page }) => {
@@ -94,7 +124,7 @@ test.describe("Bank Statement Converter", () => {
     await page.locator('input[type="file"]').setInputFiles(fixture("statement-en.pdf"));
     await page.getByRole("radio", { name: /Manual Selection/ }).check();
     await expect(page.getByRole("img", { name: "Page 1" })).toBeVisible();
-    await page.getByRole("button", { name: "Add table" }).first().click();
+    await page.getByRole("button", { name: "Add table" }).click();
     const handle = page.getByRole("button", { name: "Move table" }).first();
     await handle.scrollIntoViewIfNeeded();
     const before = (await handle.boundingBox())!;
@@ -111,8 +141,8 @@ test.describe("Bank Statement Converter", () => {
     await page.locator('input[type="file"]').setInputFiles(fixture("statement-en.pdf"));
     await page.getByRole("radio", { name: /Manual Selection/ }).check();
     await expect(page.getByRole("img", { name: "Page 1" })).toBeVisible();
-    await page.getByRole("button", { name: "Add table" }).first().tap();
-    await expect(page.getByText("Table 1 · page 1")).toBeVisible();
+    await page.getByRole("button", { name: "Add table" }).tap();
+    await expect(page.getByRole("button", { name: "Select table 1" })).toBeVisible();
     await page.getByRole("button", { name: "Convert selected tables" }).tap();
     await expect(page.getByRole("region", { name: "Transactions" })).toContainText("transactions");
   });
@@ -156,7 +186,7 @@ test.describe("Bank Statement Converter", () => {
     await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: pt(sx, sy) });
     for (let i = 1; i <= 4; i++) await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: pt(sx, sy + i * 30) });
     await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
-    await expect(page.getByText(/Table 1 · page 1/)).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Select table 1" })).toHaveCount(0);
     // Resting the finger first, then dragging, does.
     const box2 = (await overlay.boundingBox())!;
     const y0 = box2.y + box2.height * 0.2, y1 = box2.y + box2.height * 0.6;
@@ -164,7 +194,7 @@ test.describe("Bank Statement Converter", () => {
     await page.waitForTimeout(450);
     for (let i = 1; i <= 10; i++) await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: pt(sx + ((ex - sx) * i) / 10, y0 + ((y1 - y0) * i) / 10) });
     await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
-    await expect(page.getByText("Table 1 · page 1")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Select table 1" })).toBeVisible();
   });
 
   test("Automatic Conversion reads a scanned statement with OCR", async ({ page }) => {

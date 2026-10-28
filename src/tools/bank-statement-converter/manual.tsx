@@ -9,6 +9,7 @@ import { renderPage, renderRegion, type RenderedDoc } from "@/lib/pdf/render";
 import type { TextItem } from "@/lib/pdf/text-layout";
 import { wordsToItems } from "@/lib/statement/ocr-items";
 import { detectSplits, suggestTable, type Column, type Role } from "@/lib/statement/parse";
+import { autoRowLines, mergeRows } from "@/lib/statement/rows";
 
 export interface PageData {
   width: number;
@@ -17,7 +18,7 @@ export interface PageData {
 }
 
 export interface ManualStrings {
-  help: string; addTable: string; moveTable: string; table: (n: number, page: number) => string; detect: string; addColumn: string; removeTable: string;
+  help: string; addTable: string; moveTable: string; autoFit: string; addColumn: string; removeColumn: string; addRow: string; removeRow: string; removeTable: string; pickLine: string; nothingFound: string; selectTable: (n: number) => string; moveRow: (n: number) => string;
   column: (n: number) => string; roles: Record<Role, string>; convert: string; converting: string; noTables: string; scanned: string; detectFailed: string; detected: string;
   ocrLoading: string; ocrReading: (d: number, n: number) => string; failed: string; page: (n: number) => string; removeLine: (n: number) => string; moveLine: (n: number) => string;
 }
@@ -30,6 +31,8 @@ interface Box {
   /** Column lines as fractions of the page width, sorted, inside the box. */
   splits: number[];
   roles: Role[];
+  /** Row lines as fractions of the page height, sorted, inside the box. Empty = rows are found automatically. */
+  rows: number[];
 }
 
 const PREVIEW_DPI = 80;
@@ -54,6 +57,8 @@ export function ManualSelect({ doc, pages, t, onRead }: { doc: RenderedDoc; page
   const [boxes, setBoxes] = useState<Box[]>([]);
   const [draft, setDraft] = useState<{ page: number; x0: number; y0: number; x1: number; y1: number } | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [selected, setSelected] = useState<number | null>(null);
+  const [pick, setPick] = useState<"col" | "row" | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const urls = useRef<string[]>([]);
@@ -134,7 +139,9 @@ export function ManualSelect({ doc, pages, t, onRead }: { doc: RenderedDoc; page
     start.current = null;
     setDraft(null);
     if (!d || d.x1 - d.x0 < MIN_SIZE || d.y1 - d.y0 < MIN_SIZE) return;
-    setBoxes((bs) => [...bs, { id: nextId.current++, page: d.page, x0: d.x0, y0: d.y0, x1: d.x1, y1: d.y1, splits: [], roles: ["description"] }]);
+    const id = nextId.current++;
+    setBoxes((bs) => [...bs, { id, page: d.page, x0: d.x0, y0: d.y0, x1: d.x1, y1: d.y1, splits: [], roles: ["description"], rows: [] }]);
+    setSelected(id);
     onRead(null);
   };
 
@@ -155,23 +162,33 @@ export function ManualSelect({ doc, pages, t, onRead }: { doc: RenderedDoc; page
       let { x0, y0, x1, y1 } = x;
       if (corner.includes("w")) x0 = Math.min(px, x1 - MIN_SIZE); else x1 = Math.max(px, x0 + MIN_SIZE);
       if (corner.includes("n")) y0 = Math.min(py, y1 - MIN_SIZE); else y1 = Math.max(py, y0 + MIN_SIZE);
-      return { ...x, x0, y0, x1, y1, splits: x.splits.map((sp) => clamp(sp, x0 + 0.01, x1 - 0.01)) };
+      return { ...x, x0, y0, x1, y1, splits: x.splits.map((sp) => clamp(sp, x0 + 0.01, x1 - 0.01)), rows: x.rows.map((r) => clamp(r, y0 + 0.005, y1 - 0.005)) };
     });
   };
 
-  // One tap marks the transactions table: the page's own text says where it sits.
-  const addTable = (page: number) => {
-    const pg = pages[page - 1]!;
-    const r = pg.items.length ? suggestTable(pg.items) : null;
-    const box: Box = r
-      ? { id: nextId.current++, page, x0: clamp(r.x0 / pg.width), x1: clamp(r.x1 / pg.width), y0: clamp(r.y0 / pg.height), y1: clamp(r.y1 / pg.height), splits: [], roles: ["description"] }
-      : { id: nextId.current++, page, x0: 0.05, x1: 0.95, y0: 0.25, y1: 0.7, splits: [], roles: ["description"] };
-    const found = r ? detectSplits(pg.items, [r.y0, r.y1]) : null;
-    if (found) {
-      box.splits = found.splits.map((x) => clamp(x / pg.width, box.x0 + 0.01, box.x1 - 0.01));
-      box.roles = found.roles;
+  // One tap marks the transactions table on every page that has none yet: the page's own text says where it sits.
+  const addAll = () => {
+    const added: Box[] = [];
+    const anyText = pages.some((x) => x.items.length > 0);
+    for (let page = 1; page <= shown; page++) {
+      if (boxes.some((x) => x.page === page)) continue;
+      const pg = pages[page - 1]!;
+      const r = pg.items.length ? suggestTable(pg.items) : null;
+      if (pg.items.length > 0 && !r) continue; // a page of text with no transactions (terms, notes)
+      if (pg.items.length === 0 && anyText) continue; // a picture-only page in a document that has real text
+      const box: Box = r
+        ? { id: nextId.current++, page, x0: clamp(r.x0 / pg.width), x1: clamp(r.x1 / pg.width), y0: clamp(r.y0 / pg.height), y1: clamp(r.y1 / pg.height), splits: [], roles: ["description"], rows: [] }
+        : { id: nextId.current++, page, x0: 0.05, x1: 0.95, y0: 0.25, y1: 0.7, splits: [], roles: ["description"], rows: [] };
+      const found = r ? detectSplits(pg.items, [r.y0, r.y1]) : null;
+      if (found) {
+        box.splits = found.splits.map((x) => clamp(x / pg.width, box.x0 + 0.01, box.x1 - 0.01));
+        box.roles = found.roles;
+      }
+      added.push(box);
     }
-    setBoxes((bs) => [...bs, box]);
+    if (added.length === 0) { setNote(t.nothingFound); return; }
+    setBoxes((bs) => [...bs, ...added]);
+    setSelected(added[0]!.id);
     setNote(null);
     onRead(null);
   };
@@ -189,11 +206,11 @@ export function ManualSelect({ doc, pages, t, onRead }: { doc: RenderedDoc; page
     const b = m.box;
     const dx = clamp((e.clientX - r.left) / r.width - m.px, -b.x0, 1 - b.x1);
     const dy = clamp((e.clientY - r.top) / r.height - m.py, -b.y0, 1 - b.y1);
-    patch(b.id, (x) => ({ ...x, x0: b.x0 + dx, x1: b.x1 + dx, y0: b.y0 + dy, y1: b.y1 + dy, splits: b.splits.map((sp) => sp + dx) }));
+    patch(b.id, (x) => ({ ...x, x0: b.x0 + dx, x1: b.x1 + dx, y0: b.y0 + dy, y1: b.y1 + dy, splits: b.splits.map((sp) => sp + dx), rows: b.rows.map((r) => r + dy) }));
   };
 
   const patch = (id: number, f: (b: Box) => Box) => { setBoxes((bs) => bs.map((b) => (b.id === id ? f(b) : b))); onRead(null); };
-  const removeBox = (id: number) => { setBoxes((bs) => bs.filter((b) => b.id !== id)); onRead(null); };
+  const removeBox = (id: number) => { setBoxes((bs) => bs.filter((b) => b.id !== id)); setSelected(null); setPick(null); onRead(null); };
 
   const addSplit = (b: Box) => {
     // Split the widest column in half.
@@ -208,11 +225,32 @@ export function ManualSelect({ doc, pages, t, onRead }: { doc: RenderedDoc; page
     roles.splice(at + 1, 0, "other");
     patch(b.id, (x) => ({ ...x, splits, roles }));
   };
-  const removeSplit = (b: Box, i: number) => patch(b.id, (x) => ({ ...x, splits: x.splits.filter((_, k) => k !== i), roles: x.roles.filter((_, k) => k !== i + 1) }));
+  const removeSplit = (b: Box, i: number) => { patch(b.id, (x) => ({ ...x, splits: x.splits.filter((_, k) => k !== i), roles: x.roles.filter((_, k) => k !== i + 1) })); setPick(null); };
   const moveSplit = (b: Box, i: number, v: number) => {
     const lo = (i === 0 ? b.x0 : b.splits[i - 1]!) + 0.01;
     const hi = (i === b.splits.length - 1 ? b.x1 : b.splits[i + 1]!) - 0.01;
     patch(b.id, (x) => ({ ...x, splits: x.splits.map((s, k) => (k === i ? clamp(v, lo, hi) : s)) }));
+  };
+
+  const addRow = (b: Box) => {
+    const pg = pages[b.page - 1]!;
+    if (b.rows.length === 0) {
+      // First press: one line between every text line, which the user then trims or moves.
+      const auto = autoRowLines(pg.items, b.y0 * pg.height, b.y1 * pg.height).map((v) => v / pg.height);
+      patch(b.id, (x) => ({ ...x, rows: auto.length > 0 ? auto : [(x.y0 + x.y1) / 2] }));
+      return;
+    }
+    const edges = [b.y0, ...b.rows, b.y1];
+    let at = 0;
+    for (let i = 0; i < edges.length - 1; i++) if (edges[i + 1]! - edges[i]! > edges[at + 1]! - edges[at]!) at = i;
+    const mid = (edges[at]! + edges[at + 1]!) / 2;
+    patch(b.id, (x) => ({ ...x, rows: [...x.rows, mid].sort((p, q) => p - q) }));
+  };
+  const removeRow = (b: Box, i: number) => { patch(b.id, (x) => ({ ...x, rows: x.rows.filter((_, k) => k !== i) })); setPick(null); };
+  const moveRow = (b: Box, i: number, v: number) => {
+    const lo = (i === 0 ? b.y0 : b.rows[i - 1]!) + 0.003;
+    const hi = (i === b.rows.length - 1 ? b.y1 : b.rows[i + 1]!) - 0.003;
+    patch(b.id, (x) => ({ ...x, rows: x.rows.map((r, k) => (k === i ? clamp(v, lo, hi) : r)) }));
   };
 
   const inside = (b: Box) => {
@@ -221,14 +259,17 @@ export function ManualSelect({ doc, pages, t, onRead }: { doc: RenderedDoc; page
     return { x0, x1, y0, y1, items: pg.items.filter((it) => { const cx = it.x + it.width / 2, cy = it.y - it.size * 0.3; return cx >= x0 && cx <= x1 && cy >= y0 && cy <= y1; }) };
   };
 
-  const detect = (b: Box) => {
+  // Re-reads the page text: refits the table area, then the column lines and their headings.
+  const autoFit = (b: Box) => {
     const pg = pages[b.page - 1]!;
-    const r = inside(b);
-    // The headings may sit above the box (when only the rows were marked); the rows inside it place the lines.
-    const found = detectSplits(pg.items, [r.y0, r.y1]);
-    if (!found) { setNote(t.detectFailed); return; }
-    setNote(null);
-    patch(b.id, (x) => ({ ...x, splits: found.splits.map((v) => clamp(v / pg.width, x.x0 + 0.01, x.x1 - 0.01)), roles: found.roles }));
+    const area = pg.items.length ? suggestTable(pg.items) : null;
+    const found = area ? detectSplits(pg.items, [area.y0, area.y1]) : null;
+    if (!area) { setNote(t.detectFailed); return; }
+    setNote(found ? null : t.detectFailed);
+    patch(b.id, (x) => {
+      const nx0 = clamp(area.x0 / pg.width), nx1 = clamp(area.x1 / pg.width), ny0 = clamp(area.y0 / pg.height), ny1 = clamp(area.y1 / pg.height);
+      return { ...x, x0: nx0, x1: nx1, y0: ny0, y1: ny1, rows: [], ...(found ? { splits: found.splits.map((v) => clamp(v / pg.width, nx0 + 0.01, nx1 - 0.01)), roles: found.roles } : {}) };
+    });
   };
 
   async function ocrBox(b: Box, onStep: () => void): Promise<TextItem[]> {
@@ -262,8 +303,8 @@ export function ManualSelect({ doc, pages, t, onRead }: { doc: RenderedDoc; page
           items = await ocrBox(b, () => { done++; });
           if (run.current !== id) return;
         }
-        virtual.push(items);
         const edges = [r.x0, ...b.splits.map((s) => s * pg.width), r.x1];
+        virtual.push(b.rows.length > 0 ? mergeRows(items, b.rows.map((v) => v * pg.height), edges.slice(1, -1)) : items);
         const custom = b.splits.length > 0 || b.roles.some((x) => x !== "description");
         columns.push(custom ? b.roles.map((role, i) => ({ role, x0: edges[i]!, x1: edges[i + 1]! })) : null);
       }
@@ -279,6 +320,7 @@ export function ManualSelect({ doc, pages, t, onRead }: { doc: RenderedDoc; page
     <div className="flex flex-col gap-4">
       <p className="text-sm text-muted">{t.help}</p>
       <div className="flex flex-wrap items-center gap-2">
+        <Button variant="secondary" size="md" onClick={addAll} disabled={busy !== null}><Icon name="crop" size={18} /> {t.addTable}</Button>
         <Button size="md" onClick={convert} disabled={busy !== null || boxes.length === 0}>
           <Icon name={busy ? "loader" : "wand"} size={18} className={busy ? "animate-spin" : undefined} /> {busy ?? t.convert}
         </Button>
@@ -294,7 +336,6 @@ export function ManualSelect({ doc, pages, t, onRead }: { doc: RenderedDoc; page
             <li key={p} className="flex flex-col gap-2">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="flex items-center gap-2 text-sm font-semibold">{t.page(p)}{scanned && <span className="rounded-full bg-warning-soft px-2 py-0.5 text-xs font-medium text-warning">{t.scanned}</span>}</p>
-                <Button variant="secondary" size="sm" onClick={() => addTable(p)}><Icon name="crop" size={15} /> {t.addTable}</Button>
               </div>
               <div className="relative mx-auto w-full max-w-3xl overflow-hidden rounded-lg border border-line bg-surface-2" style={{ aspectRatio: `${pages[p - 1]!.width} / ${pages[p - 1]!.height}` }}>
                 {images[p - 1] ? (
@@ -315,7 +356,62 @@ export function ManualSelect({ doc, pages, t, onRead }: { doc: RenderedDoc; page
                 >
                   {pageBoxes.map((b) => (
                     <div key={b.id} className="pointer-events-none absolute border-2 border-accent bg-accent/10" style={{ left: `${b.x0 * 100}%`, top: `${b.y0 * 100}%`, width: `${(b.x1 - b.x0) * 100}%`, height: `${(b.y1 - b.y0) * 100}%` }}>
-                      <span className="absolute -top-px start-0 rounded-br bg-accent px-1.5 text-[0.7rem] font-semibold text-accent-fg">{boxes.indexOf(b) + 1}</span>
+                      <button
+                        type="button"
+                        aria-label={t.selectTable(boxes.indexOf(b) + 1)}
+                        aria-pressed={b.id === selected}
+                        onClick={() => { setSelected(b.id); setPick(null); }}
+                        className="pointer-events-auto absolute -top-px start-0 grid size-6 place-items-center rounded-br bg-accent text-[0.75rem] font-semibold text-accent-fg"
+                      >{boxes.indexOf(b) + 1}</button>
+                      <div className="pointer-events-none absolute inset-x-0 bottom-full flex" style={{ height: 0 }}>
+                        {b.roles.map((role, i) => {
+                          const edges = [b.x0, ...b.splits, b.x1];
+                          return (
+                            <div key={i} className="pointer-events-auto absolute bottom-0 px-px" style={{ left: `${((edges[i]! - b.x0) / (b.x1 - b.x0)) * 100}%`, width: `${((edges[i + 1]! - edges[i]!) / (b.x1 - b.x0)) * 100}%` }}>
+                              <select
+                                aria-label={t.column(i + 1)}
+                                value={role}
+                                onFocus={() => setSelected(b.id)}
+                                onChange={(e) => patch(b.id, (x) => ({ ...x, roles: x.roles.map((r, k) => (k === i ? (e.target.value as Role) : r)) }))}
+                                className="block !h-6 !min-h-0 w-full min-w-0 truncate rounded-sm border border-accent bg-surface !px-0.5 !py-0 !text-[11px] font-medium leading-none text-accent-text"
+                              >
+                                {ROLE_ORDER.map((r) => <option key={r} value={r}>{t.roles[r]}</option>)}
+                              </select>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {b.id === selected && (
+                        <div
+                          role="toolbar"
+                          aria-label={t.selectTable(boxes.indexOf(b) + 1)}
+                          className="pointer-events-auto absolute start-8 z-10 flex gap-1 rounded-lg border border-accent bg-surface p-1 shadow-md"
+                          style={b.y0 > 0.09 ? { bottom: "100%", marginBottom: 30 } : { top: "100%", marginTop: 6 }}
+                        >
+                          {([
+                            ["col-add", "columns", t.addColumn, () => addSplit(b), false],
+                            ["col-del", "minus", t.removeColumn, () => setPick(pick === "col" ? null : "col"), pick === "col"],
+                            ["row-add", "rows", t.addRow, () => addRow(b), false],
+                            ["row-del", "minus", t.removeRow, () => setPick(pick === "row" ? null : "row"), pick === "row"],
+                            ["fit", "wand", t.autoFit, () => autoFit(b), false],
+                            ["del", "trash", t.removeTable, () => removeBox(b.id), false],
+                          ] as const).map(([k, icon, label, fn, on]) => (
+                            <button
+                              key={k}
+                              type="button"
+                              aria-label={label}
+                              title={label}
+                              aria-pressed={k === "col-del" || k === "row-del" ? on : undefined}
+                              disabled={(k === "fit" && pages[b.page - 1]!.items.length === 0) || (k === "col-del" && b.splits.length === 0) || (k === "row-del" && b.rows.length === 0)}
+                              onClick={fn}
+                              className={`grid size-9 place-items-center rounded-md hover:bg-surface-2 disabled:opacity-40 ${k === "del" ? "text-danger" : "text-accent-text"} ${on ? "bg-accent text-accent-fg hover:bg-accent" : ""}`}
+                            >
+                              <span className="relative"><Icon name={icon} size={18} />{k.endsWith("add") && <Icon name="plus" size={9} className="absolute -end-1 -top-1" />}{k.endsWith("del") && <Icon name="minus" size={9} className="absolute -end-1 -top-1" />}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {pick && b.id === selected && <span className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-full bg-accent px-2 py-0.5 text-center text-[0.7rem] text-accent-fg">{t.pickLine}</span>}
                       <div
                         role="button"
                         aria-label={t.moveTable}
@@ -353,6 +449,8 @@ export function ManualSelect({ doc, pages, t, onRead }: { doc: RenderedDoc; page
                           style={{ left: `${((s - b.x0) / (b.x1 - b.x0)) * 100}%` }}
                           onPointerDown={(e) => {
                             e.stopPropagation();
+                            if (pick === "col" && b.id === selected) { removeSplit(b, k); return; }
+                            setSelected(b.id);
                             e.currentTarget.setPointerCapture(e.pointerId);
                           }}
                           onPointerMove={(e) => {
@@ -365,7 +463,38 @@ export function ManualSelect({ doc, pages, t, onRead }: { doc: RenderedDoc; page
                             if (e.key === "ArrowRight") moveSplit(b, k, s + 0.005);
                           }}
                         >
-                          <span className="absolute inset-y-0 start-1/2 w-0.5 -translate-x-1/2 bg-accent" />
+                          <span className={`absolute inset-y-0 start-1/2 w-0.5 -translate-x-1/2 ${pick === "col" && b.id === selected ? "bg-danger" : "bg-accent"}`} />
+                        </div>
+                      ))}
+                      {b.rows.map((v, k) => (
+                        <div
+                          key={`r${k}`}
+                          role="slider"
+                          aria-label={t.moveRow(k + 1)}
+                          aria-orientation="vertical"
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-valuenow={Math.round(v * 100)}
+                          tabIndex={0}
+                          className="pointer-events-auto absolute inset-x-0 -mt-2 h-4 cursor-row-resize [touch-action:none]"
+                          style={{ top: `${((v - b.y0) / (b.y1 - b.y0)) * 100}%` }}
+                          onPointerDown={(e) => {
+                            e.stopPropagation();
+                            if (pick === "row" && b.id === selected) { removeRow(b, k); return; }
+                            setSelected(b.id);
+                            e.currentTarget.setPointerCapture(e.pointerId);
+                          }}
+                          onPointerMove={(e) => {
+                            if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
+                            const r = e.currentTarget.closest<HTMLElement>("[data-testid^=overlay]")!.getBoundingClientRect();
+                            moveRow(b, k, (e.clientY - r.top) / r.height);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "ArrowUp") moveRow(b, k, v - 0.003);
+                            if (e.key === "ArrowDown") moveRow(b, k, v + 0.003);
+                          }}
+                        >
+                          <span className={`absolute inset-x-0 top-1/2 h-px -translate-y-1/2 border-t border-dashed ${pick === "row" && b.id === selected ? "border-danger" : "border-accent"}`} />
                         </div>
                       ))}
                     </div>
@@ -379,37 +508,6 @@ export function ManualSelect({ doc, pages, t, onRead }: { doc: RenderedDoc; page
                 </div>
               </div>
 
-              {pageBoxes.map((b) => (
-                <div key={b.id} className="flex flex-col gap-2 rounded-lg border border-line p-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-sm font-semibold">{t.table(boxes.indexOf(b) + 1, p)}</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      <Button variant="secondary" size="sm" onClick={() => detect(b)} disabled={scanned}>{t.detect}</Button>
-                      <Button variant="secondary" size="sm" onClick={() => addSplit(b)}>{t.addColumn}</Button>
-                      <Button variant="ghost" size="sm" className="text-danger" onClick={() => removeBox(b.id)}><Icon name="trash" size={15} /> {t.removeTable}</Button>
-                    </div>
-                  </div>
-                  <ul className="flex flex-wrap gap-2">
-                    {b.roles.map((role, i) => (
-                      <li key={i} className="flex items-center gap-1">
-                        <label className="sr-only" htmlFor={`role-${b.id}-${i}`}>{t.column(i + 1)}</label>
-                        <select
-                          id={`role-${b.id}-${i}`}
-                          aria-label={t.column(i + 1)}
-                          value={role}
-                          onChange={(e) => patch(b.id, (x) => ({ ...x, roles: x.roles.map((r, k) => (k === i ? (e.target.value as Role) : r)) }))}
-                          className="field-control !min-h-9 !w-auto !py-1 text-sm"
-                        >
-                          {ROLE_ORDER.map((r) => <option key={r} value={r}>{t.roles[r]}</option>)}
-                        </select>
-                        {i < b.splits.length && (
-                          <button type="button" aria-label={t.removeLine(i + 1)} onClick={() => removeSplit(b, i)} className="grid size-7 place-items-center rounded-md text-muted hover:bg-surface-2 hover:text-danger"><Icon name="x" size={14} /></button>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
             </li>
           );
         })}
