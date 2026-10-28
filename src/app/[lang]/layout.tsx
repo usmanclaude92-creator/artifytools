@@ -70,9 +70,7 @@ export default async function RootLayout({ children, params }: { children: React
   const menus: Record<string, { name: string; href: string }[]> = {};
   for (const item of primaryNav) {
     if (!item.menu) continue;
-    menus[item.href] = item.menu === "categories"
-      ? getPublishedCategories().map((c) => ({ name: localizeCategory(c, lang).name, href: `/categories/${c.slug}` }))
-      : item.menu.flatMap((id) => getToolsByCategory(id)).map((t) => ({ name: localizeTool(t, lang).name, href: `/tools/${t.slug}` }));
+    menus[item.href] = item.menu.flatMap((id) => getToolsByCategory(id)).map((t) => ({ name: localizeTool(t, lang).name, href: `/tools/${t.slug}` }));
   }
   const suggestions = getPopularTools(6).map((t) => toDirectoryItem(t, lang));
 

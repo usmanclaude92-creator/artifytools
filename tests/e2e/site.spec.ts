@@ -90,18 +90,19 @@ test.describe("navigation and theme", () => {
   test("header links navigate and show current page", async ({ page }) => {
     await page.goto("/");
     const nav = page.getByRole("navigation", { name: "Primary" });
-    // The menu reads: PDF Editor, Document Translator, Bank Statements, Cheque Printer, Images, All Tools.
-    await expect(nav.getByRole("link")).toHaveText(["PDF Editor", "Document Translator", "Bank Statements", "Cheque Printer", "Images", "All Tools"]);
+    // The menu reads: PDF Editor, Image Editor, Translator, Bank Statements, Cheque Printer, All Tools.
+    await expect(nav.getByRole("link")).toHaveText(["PDF Editor", "Image Editor", "Translator", "Bank Statements", "Cheque Printer", "All Tools"]);
     await expect(nav.getByRole("link", { name: "Edit PDF" })).toHaveCount(0);
     await nav.getByRole("link", { name: "PDF Editor" }).click();
     await expect(page).toHaveURL(/\/categories\/pdf-converter$/);
     await expect(nav.getByRole("link", { name: /PDF Editor/ })).toHaveAttribute("aria-current", "page");
-    await nav.getByRole("link", { name: "Document Translator" }).click();
+    await nav.getByRole("link", { name: "Translator" }).click();
     await expect(page).toHaveURL(/\/tools\/document-translator$/);
-    await expect(nav.getByRole("link", { name: /Document Translator/ })).toHaveAttribute("aria-current", "page");
+    await expect(nav.getByRole("link", { name: /Translator/ })).toHaveAttribute("aria-current", "page");
     await nav.getByRole("link", { name: "Cheque Printer" }).click();
     await expect(page).toHaveURL(/\/tools\/cheque-printer$/);
     await expect(nav.getByRole("link", { name: /Cheque Printer/ })).toHaveAttribute("aria-current", "page");
+    await expect(nav.getByRole("button", { name: /All Tools/ })).toHaveCount(0);
     await expect(nav.getByRole("link", { name: /All Tools/ })).not.toHaveAttribute("aria-current", "page");
   });
 
@@ -115,7 +116,7 @@ test.describe("navigation and theme", () => {
     await expect(nav.getByRole("link", { name: "Remove Background" })).toHaveCount(0);
     await page.keyboard.press("Escape");
     await expect(nav.getByRole("link", { name: "Crop PDF" })).toHaveCount(0);
-    await nav.getByRole("button", { name: "Show Images menu" }).click();
+    await nav.getByRole("button", { name: "Show Image Editor menu" }).click();
     await expect(nav.getByRole("link", { name: "Remove Background" })).toBeVisible();
     await nav.getByRole("link", { name: "Remove Background" }).click();
     await expect(page).toHaveURL(/\/tools\/remove-background$/);

@@ -4,13 +4,13 @@ import type { CategoryId } from "@/lib/tools/types";
 type NavKey = keyof Messages["nav"];
 
 /** Header menu: the core sections first, then the full directory. */
-export const primaryNav: readonly { href: string; key: NavKey; /** Tools of these categories drop down under the item; "categories" lists the categories themselves. */ menu?: readonly CategoryId[] | "categories" }[] = [
+export const primaryNav: readonly { href: string; key: NavKey; /** Tools of these categories drop down under the item. */ menu?: readonly CategoryId[] }[] = [
   { href: "/categories/pdf-converter", key: "pdfEditor", menu: ["pdf", "pdf-edit"] },
-  { href: "/tools/document-translator", key: "documentTranslator" },
+  { href: "/categories/images", key: "imageEditor", menu: ["images"] },
+  { href: "/tools/document-translator", key: "translator" },
   { href: "/tools/bank-statement-converter", key: "bankStatements" },
   { href: "/tools/cheque-printer", key: "chequePrinter" },
-  { href: "/categories/images", key: "images", menu: ["images"] },
-  { href: "/tools", key: "tools", menu: "categories" },
+  { href: "/tools", key: "tools" },
 ];
 
 export const footerGroups: readonly { title: "explore" | "company" | "legal"; links: readonly { href: string; key: NavKey }[] }[] = [
