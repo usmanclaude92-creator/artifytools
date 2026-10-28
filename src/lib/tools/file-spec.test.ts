@@ -61,7 +61,7 @@ describe("registered file tools", () => {
       expect(f.maxFileBytes, t.id).toBeLessThanOrEqual(500_000_000);
       expect(f.maxFiles, t.id).toBeGreaterThanOrEqual(1);
       if (f.maxTotalBytes !== undefined) expect(f.maxTotalBytes, t.id).toBeGreaterThanOrEqual(f.maxFileBytes);
-      expect(["images", "pdf", "pdf-edit", "business", "productivity", "ai"], t.id).toContain(t.category);
+      expect(["images", "pdf", "pdf-edit", "business", "productivity", "ai", "text"], t.id).toContain(t.category);
     }
   });
 });

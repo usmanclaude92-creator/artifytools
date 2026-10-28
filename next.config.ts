@@ -15,6 +15,11 @@ const nextConfig: NextConfig = {
     return [
       { source: "/categories/pdfs-documents", destination: "/categories/pdf-converter", permanent: true },
       { source: "/ar/categories/pdfs-documents", destination: "/ar/categories/pdf-converter", permanent: true },
+      // "Translate PDF" and "Text Translator" became one tool, "Document Translator".
+      { source: "/tools/translate-pdf", destination: "/tools/document-translator", permanent: true },
+      { source: "/tools/text-translator", destination: "/tools/document-translator", permanent: true },
+      { source: "/ar/tools/translate-pdf", destination: "/ar/tools/document-translator", permanent: true },
+      { source: "/ar/tools/text-translator", destination: "/ar/tools/document-translator", permanent: true },
     ];
   },
   async headers() {

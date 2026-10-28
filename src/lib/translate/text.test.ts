@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { detectScript, detectSource, toPieces, translateParagraphs } from "./text";
+import { toPieces, translateParagraphs } from "./text";
 
 describe("translate pieces", () => {
   it("splits a paragraph into sentences in English and Arabic", () => {
@@ -15,20 +15,6 @@ describe("translate pieces", () => {
     expect(pieces.length).toBeGreaterThan(1);
     expect(pieces.every((p) => p.length <= 350)).toBe(true);
     expect(pieces.join(" ")).toBe(long);
-  });
-});
-
-describe("language detection", () => {
-  it("detects the script", () => {
-    expect(detectScript("مرحبا بالعالم")).toBe("arabic");
-    expect(detectScript("Hello world")).toBe("latin");
-    expect(detectScript("12345 !?")).toBe("other");
-    expect(detectScript("مرحبا hello hi")).toBe("latin");
-  });
-  it("picks the language to translate from", () => {
-    expect(detectSource("مرحبا", "en")).toBe("ar");
-    expect(detectSource("Good morning", "ar")).toBe("en");
-    expect(detectSource("123", "ar")).toBe("ar");
   });
 });
 

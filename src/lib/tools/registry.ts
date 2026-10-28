@@ -33,7 +33,6 @@ import { meta as pdfToJpg } from "@/tools/pdf-to-jpg/meta";
 import { meta as cropImage } from "@/tools/crop-image/meta";
 import { meta as wordToPdf } from "@/tools/word-to-pdf/meta";
 import { meta as imageToText } from "@/tools/image-to-text/meta";
-import { meta as translatePdf } from "@/tools/translate-pdf/meta";
 import { meta as removeBackground } from "@/tools/remove-background/meta";
 import { meta as excelToPdf } from "@/tools/excel-to-pdf/meta";
 import { meta as pdfToExcel } from "@/tools/pdf-to-excel/meta";
@@ -51,7 +50,7 @@ import { meta as bankStatementConverter } from "@/tools/bank-statement-converter
 import { meta as signPdf } from "@/tools/sign-pdf/meta";
 import { meta as editPdf } from "@/tools/edit-pdf/meta";
 import { meta as imageConverter } from "@/tools/image-converter/meta";
-import { meta as textTranslator } from "@/tools/text-translator/meta";
+import { meta as documentTranslator } from "@/tools/document-translator/meta";
 
 /**
  * Single source of truth for every tool. Directory cards, categories, search,
@@ -93,8 +92,7 @@ export const tools: readonly ToolDefinition[] = [
   pdfToWord,
   wordToPdf,
   imageToText,
-  translatePdf,
-  textTranslator,
+  documentTranslator,
   removeBackground,
   excelToPdf,
   pdfToExcel,

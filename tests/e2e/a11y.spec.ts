@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 
 const pages = [
   "/", "/tools", "/categories", "/categories/developer-tools", "/ai-tools", "/for-professionals", "/about", "/contact", "/help", "/privacy", "/terms", "/cookies", "/changelog",
-  ...["word-counter", "case-converter", "text-cleaner", "remove-duplicate-lines", "percentage-calculator", "vat-calculator", "discount-calculator", "json-formatter", "url-encoder-decoder", "base64-encoder-decoder", "uuid-generator", "password-generator", "qr-code-generator", "date-difference", "color-converter", "ai-text-summarizer", "text-translator", "end-of-service-calculator", "hijri-date-converter"].map((s) => `/tools/${s}`),
+  ...["word-counter", "case-converter", "text-cleaner", "remove-duplicate-lines", "percentage-calculator", "vat-calculator", "discount-calculator", "json-formatter", "url-encoder-decoder", "base64-encoder-decoder", "uuid-generator", "password-generator", "qr-code-generator", "date-difference", "color-converter", "ai-text-summarizer", "document-translator", "end-of-service-calculator", "hijri-date-converter"].map((s) => `/tools/${s}`),
 ];
 
 for (const theme of ["light", "dark"] as const) {

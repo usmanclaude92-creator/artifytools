@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { joinLines, splitLines } from "./logic";
+import { joinLines, splitLines } from "./lines";
 
-describe("text translator lines", () => {
+describe("pasted text lines", () => {
   it("keeps blank lines and line order", () => {
     const parts = splitLines("Hello\r\n\r\n  World  \n");
     expect(parts.segments).toEqual(["Hello", "World"]);

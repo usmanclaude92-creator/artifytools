@@ -90,9 +90,15 @@ test.describe("navigation and theme", () => {
   test("header links navigate and show current page", async ({ page }) => {
     await page.goto("/");
     const nav = page.getByRole("navigation", { name: "Primary" });
-    await nav.getByRole("link", { name: "PDF Converter" }).click();
+    // The menu reads: PDF Editor, Document Translator, Bank Statements, Cheque Printer, Images, All Tools.
+    await expect(nav.getByRole("link")).toHaveText(["PDF Editor", "Document Translator", "Bank Statements", "Cheque Printer", "Images", "All Tools"]);
+    await expect(nav.getByRole("link", { name: "Edit PDF" })).toHaveCount(0);
+    await nav.getByRole("link", { name: "PDF Editor" }).click();
     await expect(page).toHaveURL(/\/categories\/pdf-converter$/);
-    await expect(nav.getByRole("link", { name: /PDF Converter/ })).toHaveAttribute("aria-current", "page");
+    await expect(nav.getByRole("link", { name: /PDF Editor/ })).toHaveAttribute("aria-current", "page");
+    await nav.getByRole("link", { name: "Document Translator" }).click();
+    await expect(page).toHaveURL(/\/tools\/document-translator$/);
+    await expect(nav.getByRole("link", { name: /Document Translator/ })).toHaveAttribute("aria-current", "page");
     await nav.getByRole("link", { name: "Cheque Printer" }).click();
     await expect(page).toHaveURL(/\/tools\/cheque-printer$/);
     await expect(nav.getByRole("link", { name: /Cheque Printer/ })).toHaveAttribute("aria-current", "page");
@@ -223,7 +229,7 @@ test.describe("directory", () => {
   test("filters by category, combines with search, syncs the URL, and clears", async ({ page }) => {
     await page.goto("/tools");
     const count = page.getByRole("status").filter({ hasText: /tools?(\s|$)/ }).first();
-    await expect(count).toContainText("46 tools");
+    await expect(count).toContainText("45 tools");
     await page.getByRole("button", { name: /^Business & Finance/ }).click();
     await expect(page).toHaveURL(/category=business-finance/);
     await expect(count).toContainText("5 tools");
@@ -232,7 +238,7 @@ test.describe("directory", () => {
     await expect(count).toContainText("1 tool");
     await expect(page.getByRole("button", { name: /Category: Business & Finance/ })).toBeVisible();
     await page.getByRole("button", { name: "Clear all" }).click();
-    await expect(count).toContainText("46 tools");
+    await expect(count).toContainText("45 tools");
     await expect(page.getByLabel("Search all tools")).toHaveValue("");
   });
 
@@ -252,7 +258,7 @@ test.describe("directory", () => {
     await page.getByLabel("Processing").selectOption("");
     await page.getByLabel("Works with").selectOption("pdf");
     await expect(page).toHaveURL(/kind=pdf/);
-    await expect(page.locator("article h2")).toHaveText(["PDF to Word", "Compress PDF", "Merge PDF", "PDF to JPG", "Sign PDF", "Edit PDF", "Bank Statement Converter", "PDF to Excel", "Split PDF", "Translate PDF", "Rotate PDF", "Add Page Numbers to PDF"]);
+    await expect(page.locator("article h2")).toHaveText(["PDF to Word", "Compress PDF", "Merge PDF", "PDF to JPG", "Sign PDF", "Edit PDF", "Bank Statement Converter", "PDF to Excel", "Split PDF", "Document Translator", "Rotate PDF", "Add Page Numbers to PDF"]);
     await page.getByLabel("Works with").selectOption("images");
     await expect(page.locator("article h2")).toHaveText(["JPG to PDF", "Remove Background", "Compress Image", "Image Converter", "Resize Image", "Crop Image"]);
   });

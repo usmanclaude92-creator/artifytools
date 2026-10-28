@@ -1,0 +1,52 @@
+import type { ToolDefinition } from "@/lib/tools/types";
+
+export const meta: ToolDefinition = {
+  id: "document-translator",
+  slug: "document-translator",
+  name: "Document Translator",
+  description: "Translate pasted text or a document into 20+ languages privately in your browser: PDF, Word, PowerPoint, Excel, HTML, CSV, subtitles and more.",
+  intro: [
+    "Paste text or upload a document and translate it between more than 20 languages, including Arabic, English, French, Spanish, German, Chinese, Hindi, Russian and Turkish. Word, PowerPoint, Excel, HTML, CSV, Markdown and subtitle files come back in the same format with their layout kept; PDF, OpenDocument and RTF files come back as an editable Word file.",
+    "The translation runs on your own device. The first time you use a language pair, your browser downloads its translation model (about 80 to 120 MB) and keeps it, so nothing you translate is sent anywhere. Languages without a direct model are translated through English. Machine translation can contain mistakes, so have important documents checked.",
+  ],
+  category: "text",
+  icon: "globe",
+  tags: ["translate", "translator", "document", "pdf", "word", "arabic", "english", "offline"],
+  keywords: ["document translator", "translate document", "translate pdf", "translate word document", "translate text", "arabic to english", "english to arabic", "translate docx", "translate powerpoint", "translate excel", "online translator", "pdf translator"],
+  status: "active",
+  processingMode: "browser-local",
+  privacyNote: "Your text and files are read and translated by code and a model running in this tab. Nothing is uploaded, stored, or logged. Only the translation models are downloaded, once each, from Hugging Face, and cached by your browser.",
+  seoTitle: "Document Translator: PDF, Word, 20+ Languages | Artify Tools",
+  seoDescription: "Translate text or documents (PDF, Word, PowerPoint, Excel, HTML, CSV, subtitles) between 20+ languages, privately in your browser. Nothing is uploaded.",
+  lastUpdated: "2026-10-28",
+  howTo: [
+    "Choose Paste text, or Upload a document and drop your file.",
+    "Pick the languages. The source language is detected for you and can be changed.",
+    "Press Translate. The first time for a language pair, wait for its model to download; it is kept for next time.",
+    "Copy the translation, or download it: Word, PowerPoint, Excel, HTML and similar files come back in the same format.",
+  ],
+  examples: [
+    { label: "Paste text", input: "Your appointment is confirmed for Sunday at 10:00. · English to Arabic", output: "تم تأكيد موعدك يوم الأحد في تمام الساعة 10:00." },
+    { label: "Word document", input: "contract.docx · French to English", output: "contract-en.docx with the same headings, tables and formatting" },
+    { label: "Presentation", input: "pitch.pptx · English to Spanish", output: "pitch-es.pptx with every slide translated" },
+  ],
+  faqs: [
+    { question: "Which documents can I translate?", answer: "PDF (with selectable text), Word (.docx), PowerPoint (.pptx), Excel (.xlsx), OpenDocument (.odt, .odp, .ods), RTF, HTML, CSV and TSV, Markdown, plain text and subtitles (.srt, .vtt). Old .doc, .xls and .ppt files must first be saved in the newer format." },
+    { question: "Is the layout kept?", answer: "For Word, PowerPoint, Excel, HTML, CSV, Markdown, text and subtitle files, yes: only the words are replaced, so formatting, tables and pictures stay. PDF, OpenDocument and RTF files are returned as an editable Word file with headings and paragraphs in order, because a translated page can no longer fit the old layout." },
+    { question: "Which languages are supported?", answer: "English, Arabic, Chinese, Czech, Danish, Dutch, Finnish, French, German, Hindi, Hungarian, Indonesian, Italian, Polish, Romanian, Russian, Spanish, Swedish, Thai, Turkish, Ukrainian and Vietnamese, and Japanese and Korean as source languages. Between two languages that are not English, the text is translated through English." },
+    { question: "Why does the first translation take longer?", answer: "Your browser downloads the translation model for that language pair (about 80 to 120 MB, twice when it goes through English) the first time, then keeps it. After that it starts straight away, even offline." },
+    { question: "Is my text or document uploaded?", answer: "No. Files are read and translated inside your browser tab, so they never leave your device. Only the translation models are downloaded, from Hugging Face." },
+    { question: "How long can a document be?", answer: "Up to about 30,000 characters of text, roughly 12 pages, per run. Translation happens on your device sentence by sentence, so long documents take a while. Split longer ones first." },
+    { question: "Can I translate a scanned PDF or an image?", answer: "A scan has no text to translate. Use Image to Text (OCR) to extract the text first, then paste it here." },
+    { question: "How accurate is it?", answer: "These compact models run on your device, so they are good for understanding and everyday sentences, but weaker than large online services on idioms, names, numbers and legal wording. Have important documents checked by a qualified translator." },
+  ],
+  files: {
+    inputFormats: ["PDF", "DOCX", "PPTX", "XLSX", "ODT", "ODP", "ODS", "RTF", "HTML", "CSV", "TSV", "TXT", "MD", "SRT", "VTT"],
+    accept: [".pdf", ".docx", ".pptx", ".xlsx", ".odt", ".odp", ".ods", ".rtf", ".html", ".htm", ".csv", ".tsv", ".txt", ".md", ".markdown", ".log", ".srt", ".vtt", ".doc", ".xls", ".ppt"],
+    outputFormats: ["DOCX", "PPTX", "XLSX", "HTML", "CSV", "TXT"],
+    maxFileBytes: 60_000_000,
+    maxFiles: 1,
+  },
+  popularRank: 2.2,
+  related: ["pdf-to-word", "image-to-text", "word-counter"],
+};

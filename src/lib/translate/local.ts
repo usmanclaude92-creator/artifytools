@@ -1,32 +1,11 @@
 /**
  * Translation in the browser: Helsinki-NLP Opus-MT models (Apache-2.0) run with Transformers.js on
  * WebAssembly. The text never leaves the device; only the model is downloaded (once, then cached).
- * Each direction is its own model, so every language pair is listed here explicitly.
+ * Each direction is its own model; the list and pinned revisions are in models.ts.
  */
-
-export type LocalLanguage = "ar" | "en";
-export type LocalPair = "ar-en" | "en-ar";
-
-interface PairInfo {
-  source: LocalLanguage;
-  target: LocalLanguage;
-  model: string;
-  /** Pinned to an exact revision so the files can never change under us. */
-  revision: string;
-  /** Approximate download (8-bit weights, tokenizer and config), for the "first use" notice. */
-  bytes: number;
-}
-
-export const LOCAL_PAIRS: Record<LocalPair, PairInfo> = {
-  "ar-en": { source: "ar", target: "en", model: "Xenova/opus-mt-ar-en", revision: "09c7556866400dcc53562ba8d7035119e7d9a2c1", bytes: 118_000_000 },
-  "en-ar": { source: "en", target: "ar", model: "Xenova/opus-mt-en-ar", revision: "034a684356c19021a187cda4d7f823298b913921", bytes: 118_000_000 },
-};
+import { MODELS } from "./models";
 
 export const TRANSFORMERS_VERSION = "4.3.1";
-
-export function pairFor(source: LocalLanguage): LocalPair {
-  return source === "ar" ? "ar-en" : "en-ar";
-}
 
 export type Stage = { kind: "download"; loaded: number; total: number } | { kind: "starting" };
 
@@ -41,8 +20,15 @@ interface ProgressEvent {
   total?: number;
 }
 
-export async function createLocalTranslator(pair: LocalPair, onStage: (s: Stage) => void): Promise<LocalTranslator> {
-  const info = LOCAL_PAIRS[pair];
+/** A hook for tests: when set, it supplies the translator for a model instead of downloading one. */
+type TestHook = (model: string) => LocalTranslator | Promise<LocalTranslator>;
+
+export async function createLocalTranslator(model: string, onStage: (s: Stage) => void, doneBytes = 0, allBytes = 0): Promise<LocalTranslator> {
+  const hook = (globalThis as { __ARTIFY_TRANSLATE__?: TestHook }).__ARTIFY_TRANSLATE__;
+  if (hook) return hook(model);
+
+  const info = MODELS[model];
+  if (!info) throw new Error(`No translation model for ${model}`);
   const { env, pipeline } = await import("@huggingface/transformers");
   env.allowLocalModels = false;
   const base = `/vendor/transformers-${TRANSFORMERS_VERSION}/`;
@@ -52,26 +38,40 @@ export async function createLocalTranslator(pair: LocalPair, onStage: (s: Stage)
     wasm.numThreads = 1;
   }
 
-  // Several files download at once; add them up for one progress bar.
+  // Several files download at once; add them up for one progress bar (across every model of a route).
   const files = new Map<string, { loaded: number; total: number }>();
   const progress_callback = (e: ProgressEvent) => {
     if (e.status !== "progress" || !e.file || !e.total) return;
     files.set(e.file, { loaded: e.loaded ?? 0, total: e.total });
     let loaded = 0;
-    let total = 0;
-    for (const f of files.values()) {
-      loaded += f.loaded;
-      total += f.total;
-    }
-    onStage({ kind: "download", loaded, total: Math.max(total, info.bytes) });
+    for (const f of files.values()) loaded += f.loaded;
+    onStage({ kind: "download", loaded: doneBytes + Math.min(loaded, info.bytes), total: Math.max(allBytes, doneBytes + info.bytes) });
   };
 
-  const run = await pipeline("translation", info.model, { revision: info.revision, dtype: "q8", device: "wasm", progress_callback });
+  const run = await pipeline("translation", `Xenova/opus-mt-${model}`, { revision: info.revision, dtype: "q8", device: "wasm", progress_callback });
   onStage({ kind: "starting" });
   return {
     async translate(text) {
       const out = (await run(text, { max_new_tokens: 400 })) as { translation_text: string }[];
       return out[0]?.translation_text ?? "";
+    },
+  };
+}
+
+/** A translator for a route of models: each piece of text goes through them one after another. */
+export async function createRoute(route: string[], onStage: (s: Stage) => void, engine: (model: string, doneBytes: number, allBytes: number) => Promise<LocalTranslator> = (m, d, a) => createLocalTranslator(m, onStage, d, a)): Promise<LocalTranslator> {
+  const all = route.reduce((n, m) => n + (MODELS[m]?.bytes ?? 0), 0);
+  const steps: LocalTranslator[] = [];
+  let done = 0;
+  for (const model of route) {
+    steps.push(await engine(model, done, all));
+    done += MODELS[model]?.bytes ?? 0;
+  }
+  return {
+    async translate(text) {
+      let out = text;
+      for (const step of steps) out = await step.translate(out);
+      return out;
     },
   };
 }

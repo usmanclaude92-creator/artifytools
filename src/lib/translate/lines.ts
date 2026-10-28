@@ -1,6 +1,6 @@
-/** Pure helpers for the text translator: line handling (unit-tested). */
+/** Line handling for pasted text (unit-tested). */
 /** Translation runs on the device, so the limit keeps a single run to a sensible time. */
-export const MAX_TEXT_CHARS = 10_000;
+export const MAX_TEXT_CHARS = 30_000;
 
 export interface Lines {
   /** The original lines, so blank lines and spacing can be put back after translating. */
