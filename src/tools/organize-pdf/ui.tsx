@@ -40,7 +40,7 @@ const strings = {
     kept: (k: number, n: number) => `${k} of ${n} pages kept`, reset: "Reset",
     zoom: "Thumbnail size", zoomOut: "Smaller thumbnails", zoomIn: "Larger thumbnails",
     preview: (n: number) => `Preview page ${n}`, previewTitle: (n: number, pos: number, total: number) => `Page ${n} · position ${pos} of ${total}`, close: "Close preview", prev: "Previous page", next: "Next page",
-    drag: (n: number) => `Drag page ${n} to reorder`, earlier: (n: number) => `Move page ${n} earlier`, later: (n: number) => `Move page ${n} later`, left: (n: number) => `Rotate page ${n} left`, right: (n: number) => `Rotate page ${n} right`,
+    earlier: (n: number) => `Move page ${n} earlier`, later: (n: number) => `Move page ${n} later`, left: (n: number) => `Rotate page ${n} left`, right: (n: number) => `Rotate page ${n} right`,
     remove: (n: number) => `Delete page ${n}`, page: (n: number) => `Page ${n}`,
     save: "Save organized PDF", saving: "Saving…", nothing: "Reorder, delete or rotate a page first.", empty: "Every page is deleted. Press Reset to bring them back.",
     many: (n: number) => `Only ${n} pages can be organized at once, so some pages weren't added. Split a long PDF first.`,
@@ -55,7 +55,7 @@ const strings = {
     kept: (k: number, n: number) => `${k} من ${n} صفحة محتفظ بها`, reset: "إعادة ضبط",
     zoom: "حجم المصغّرات", zoomOut: "مصغّرات أصغر", zoomIn: "مصغّرات أكبر",
     preview: (n: number) => `معاينة الصفحة ${n}`, previewTitle: (n: number, pos: number, total: number) => `الصفحة ${n} · الموضع ${pos} من ${total}`, close: "إغلاق المعاينة", prev: "الصفحة السابقة", next: "الصفحة التالية",
-    drag: (n: number) => `اسحب الصفحة ${n} لإعادة ترتيبها`, earlier: (n: number) => `تقديم الصفحة ${n}`, later: (n: number) => `تأخير الصفحة ${n}`, left: (n: number) => `تدوير الصفحة ${n} لليسار`, right: (n: number) => `تدوير الصفحة ${n} لليمين`,
+    earlier: (n: number) => `تقديم الصفحة ${n}`, later: (n: number) => `تأخير الصفحة ${n}`, left: (n: number) => `تدوير الصفحة ${n} لليسار`, right: (n: number) => `تدوير الصفحة ${n} لليمين`,
     remove: (n: number) => `حذف الصفحة ${n}`, page: (n: number) => `الصفحة ${n}`,
     save: "حفظ الملف بعد التنظيم", saving: "جارٍ الحفظ…", nothing: "رتّب صفحة أو احذفها أو دوّرها أولًا.", empty: "حُذفت كل الصفحات. اضغط «إعادة ضبط» لاسترجاعها.",
     many: (n: number) => `يمكن تنظيم ${n} صفحة فقط في المرة الواحدة، لذلك لم تُضف بعض الصفحات. قسّم الملف الطويل أولًا.`,
@@ -353,12 +353,6 @@ export default function OrganizePdf() {
   };
 
   // The handle picks a page up straight away, for touch and pen users who want it instantly.
-  const grab = (i: number, e: React.PointerEvent) => {
-    if (e.button !== 0) return;
-    e.preventDefault();
-    startDrag(i, e.clientX, e.clientY);
-  };
-
   useEffect(() => {
     if (dragFrom === null) return;
     const from = dragFrom;
@@ -543,14 +537,6 @@ export default function OrganizePdf() {
                 >
                   <PageImage src={thumbs[key(it)]} size={sizes[key(it)]} turn={it.turn} alt={labelOf(it)} />
                 </div>
-                <button
-                  type="button"
-                  aria-label={t.drag(it.source)}
-                  onPointerDown={(e) => grab(i, e)}
-                  className="absolute start-3 top-3 z-10 grid size-8 cursor-grab touch-none place-items-center rounded-md bg-surface/90 text-muted shadow-sm hover:text-fg active:cursor-grabbing"
-                >
-                  <Icon name="arrow-up-down" size={15} className="rotate-90" />
-                </button>
                 <span className="text-center text-xs text-muted">{multi ? t.shortPage(it.source, docIndex(it.doc) + 1) : t.page(it.source)}</span>
                 <div className="flex w-full flex-wrap items-center justify-center gap-0.5">
                   <Button variant="ghost" size="sm" className="!px-1.5" aria-label={t.earlier(it.source)} disabled={i === 0} onClick={() => move(i, i - 1)}><Icon name="chevron-up" size={16} className="-rotate-90 rtl:rotate-90" /></Button>

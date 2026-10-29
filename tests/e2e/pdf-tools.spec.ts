@@ -268,22 +268,6 @@ test.describe("Organize PDF dragging", () => {
     await expect.poll(() => order(page)).toEqual(["Page 3", "Page 1", "Page 2"]);
   });
 
-  test("drags a page by its handle with touch @mobile", async ({ page }) => {
-    await open(page, "/tools/organize-pdf");
-    await page.locator('input[type="file"]').setInputFiles(fixture("plain-3-pages.pdf"));
-    await expect(page.getByRole("img", { name: "Page 3" })).toBeVisible();
-    await reveal(page);
-    const handle = (await page.getByRole("button", { name: "Drag page 3 to reorder" }).boundingBox())!;
-    const target = (await page.locator("li[data-page-index]").nth(0).boundingBox())!;
-    const cdp = await page.context().newCDPSession(page);
-    const pt = (x: number, y: number) => [{ x, y, id: 1 }];
-    const sx = handle.x + handle.width / 2, sy = handle.y + handle.height / 2;
-    const ex = target.x + target.width / 2, ey = target.y + target.height / 2;
-    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: pt(sx, sy) });
-    for (let i = 1; i <= 10; i++) await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: pt(sx + ((ex - sx) * i) / 10, sy + ((ey - sy) * i) / 10) });
-    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
-    await expect.poll(() => order(page)).toEqual(["Page 3", "Page 1", "Page 2"]);
-  });
 });
 
 test.describe("Add Page Numbers", () => {
