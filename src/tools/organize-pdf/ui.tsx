@@ -78,14 +78,16 @@ function readZoom(): number {
 }
 
 /**
- * A page image that fills its frame exactly. The frame takes the page's own proportions
- * (swapped when the page is turned sideways), so there is no padding around the picture.
+ * A page image that fills its frame exactly. The frame takes the page's own (upright) proportions and keeps them
+ * when the page is turned, so turning never resizes the card; a sideways page is scaled down to fit inside it.
  */
 function PageImage({ src, size, turn, alt, maxHeight }: { src?: string; size?: Size; turn: number; alt: string; maxHeight?: string }) {
   const sideways = turn % 180 !== 0;
   const w = size?.w ?? 3;
   const h = size?.h ?? 4;
-  const aspect = Math.min(2.5, Math.max(0.4, sideways ? h / w : w / h));
+  const aspect = Math.min(2.5, Math.max(0.4, w / h));
+  // Turned a quarter, the picture's sides swap: scale it so its turned shape fits the same frame.
+  const fit = sideways ? `${aspect * Math.min(1, 1 / (aspect * aspect)) * 100}%` : "100%";
   const style: React.CSSProperties = { aspectRatio: String(aspect) };
   if (maxHeight) style.width = `min(100%, calc(${maxHeight} * ${aspect}))`;
   return (
@@ -98,9 +100,9 @@ function PageImage({ src, size, turn, alt, maxHeight }: { src?: string; size?: S
           draggable={false}
           className="absolute inset-0 m-auto select-none transition-transform duration-200"
           style={{
-            // Unturned: fill the frame. Turned a quarter: the picture is sized to the frame's swapped sides so the turned result still fills it.
-            width: sideways ? `${100 / aspect}%` : "100%",
-            height: sideways ? `${100 * aspect}%` : "100%",
+            // Unturned: fill the frame. Turned a quarter: fit inside the unchanged frame.
+            width: fit,
+            height: fit,
             transform: `rotate(${turn}deg)`,
           }}
         />

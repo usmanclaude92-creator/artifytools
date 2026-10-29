@@ -75,6 +75,24 @@ test.describe("Crop PDF", () => {
 });
 
 test.describe("Organize PDF", () => {
+  test("turning a page keeps its card the same size", async ({ page }) => {
+    await open(page, "/tools/organize-pdf");
+    await page.locator('input[type="file"]').setInputFiles(fixture("plain-3-pages.pdf"));
+    await expect(page.getByRole("img", { name: "Page 1" })).toBeVisible();
+    const card = page.locator("li[data-page-index='0']");
+    const before = (await card.boundingBox())!;
+    await page.getByRole("button", { name: "Rotate page 1 right" }).click();
+    await page.waitForTimeout(400);
+    const after = (await card.boundingBox())!;
+    expect(Math.abs(after.height - before.height)).toBeLessThan(1);
+    expect(Math.abs(after.width - before.width)).toBeLessThan(1);
+    // The turned picture stays inside the frame.
+    const frame = (await page.getByRole("img", { name: "Page 1" }).locator("xpath=..").boundingBox())!;
+    const img = (await page.getByRole("img", { name: "Page 1" }).boundingBox())!;
+    expect(img.width).toBeLessThanOrEqual(frame.width + 1);
+    expect(img.height).toBeLessThanOrEqual(frame.height + 1);
+  });
+
   test("reorders, deletes and rotates pages", async ({ page }) => {
     await open(page, "/tools/organize-pdf");
     await page.locator('input[type="file"]').setInputFiles(fixture("plain-3-pages.pdf"));
