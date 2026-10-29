@@ -33,12 +33,13 @@ function useConsent(): Choice | "unknown" {
 }
 export function setConsent(choice: "granted" | "denied") {
   try { localStorage.setItem(KEY, choice); } catch { /* storage blocked: the choice lasts until the page closes */ }
+  window.gtag?.("consent", "update", { analytics_storage: choice });
   window.dispatchEvent(new Event(EVENT));
 }
 
 const strings = {
-  en: { text: "May we use Google Analytics to count visits? It sets cookies and sends anonymous usage data to Google. Nothing you type into a tool is included.", accept: "Accept", decline: "Decline", more: "Cookie policy", label: "Analytics choice" },
-  ar: { text: "هل نستخدم Google Analytics لإحصاء الزيارات؟ يضع ملفات تعريف ارتباط ويرسل بيانات استخدام مجهولة إلى Google. لا يُرسل أي شيء تكتبه داخل الأدوات.", accept: "موافق", decline: "رفض", more: "سياسة ملفات تعريف الارتباط", label: "خيار التحليلات" },
+  en: { text: "We count visits with Google Analytics. Until you accept it sets no cookies and sends only anonymous, cookieless pings. Accepting lets it use cookies to count returning visitors. Nothing you type into a tool is included.", accept: "Accept", decline: "Decline", more: "Cookie policy", label: "Analytics choice" },
+  ar: { text: "نحصي الزيارات عبر Google Analytics. قبل موافقتك لا يضع ملفات تعريف ارتباط ولا يرسل سوى إشارات مجهولة دون ملفات. وبموافقتك يستخدم الملفات لإحصاء الزوار العائدين. لا يُرسل أي شيء تكتبه داخل الأدوات.", accept: "موافق", decline: "رفض", more: "سياسة ملفات تعريف الارتباط", label: "خيار التحليلات" },
 };
 
 declare global {
@@ -54,14 +55,16 @@ function PageViews() {
   return null;
 }
 
-/** Asks first; Google's script is only loaded once the visitor accepts. */
+/**
+ * Google Consent Mode: the tag always loads, but with storage denied it sets no cookies and sends only cookieless
+ * pings. Accepting turns analytics cookies on. The choice is remembered and applied before the first page view.
+ */
 export function GoogleAnalytics() {
   const consent = useConsent();
   const t = strings[useLocale()];
   const locale = useLocale();
-  if (!live || consent === "unknown") return null;
-  if (consent === null) {
-    return (
+  if (!live) return null;
+  const banner = consent === null && (
       <div role="region" aria-label={t.label} className="fixed inset-x-3 bottom-3 z-toast mx-auto flex max-w-3xl flex-col gap-3 rounded-xl border border-line bg-surface p-4 shadow-overlay sm:flex-row sm:items-center">
         <p className="flex-1 text-sm">{t.text} <a className="underline" href={locale === "ar" ? "/ar/cookies" : "/cookies"}>{t.more}</a></p>
         <div className="flex gap-2">
@@ -69,13 +72,12 @@ export function GoogleAnalytics() {
           <Button size="sm" onClick={() => setConsent("granted")}>{t.accept}</Button>
         </div>
       </div>
-    );
-  }
-  if (consent !== "granted") return null;
+  );
   return (
     <>
+      {banner}
       <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
-      <Script id="ga-init" strategy="afterInteractive">{`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}window.gtag=gtag;gtag('js',new Date());gtag('config','${GA_ID}',{send_page_view:false,allow_google_signals:false,allow_ad_personalization_signals:false});`}</Script>
+      <Script id="ga-init" strategy="afterInteractive">{`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}window.gtag=gtag;var c=null;try{c=localStorage.getItem('${KEY}')}catch(e){}gtag('consent','default',{analytics_storage:c==='granted'?'granted':'denied',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied'});gtag('js',new Date());gtag('config','${GA_ID}',{send_page_view:false,allow_google_signals:false,allow_ad_personalization_signals:false});`}</Script>
       <PageViews />
     </>
   );

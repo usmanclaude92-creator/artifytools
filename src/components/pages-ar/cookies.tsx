@@ -14,8 +14,8 @@ export function CookiesAr() {
       <div className="container-page py-10">
         <div className="prose-artify">
           <h2 className="!mt-0">لا ملفات تعريف ارتباط إلا بموافقتك</h2>
-          <p>لا يضع Artify Tools ملفات تعريف ارتباط قبل موافقتك. نحصي زيارات الصفحات باستخدام Vercel Web Analytics الذي يعمل دون ملفات تعريف الارتباط، وإذا وافقت فباستخدام Google Analytics الذي يضع ملفات تعريف ارتباط. لا نحمّل إعلانات ولا نصوص تتبع عبر المواقع؛ راجع <Link href="/privacy">سياسة الخصوصية</Link> لمعرفة ما يُسجَّل.</p>
-          <AnalyticsChoice labels={{ unset: "لم تختر بعد. Google Analytics متوقف.", on: "Google Analytics يعمل.", off: "Google Analytics متوقف.", accept: "موافق", decline: "رفض" }} />
+          <p>لا يضع Artify Tools ملفات تعريف ارتباط قبل موافقتك. نحصي زيارات الصفحات باستخدام Vercel Web Analytics الذي يعمل دون ملفات تعريف الارتباط، وباستخدام Google Analytics. يبدأ Google Analytics بوضع مقيّد دون ملفات تعريف ارتباط ودون معرّفات، ولا يرسل سوى إشارات مجهولة (عنوان الصفحة دون معاملات الاستعلام ونوع المتصفح والجهاز والموقع التقريبي). وإذا وافقت فإنه يضع ملفات تعريف ارتباط أيضاً. لا نحمّل إعلانات ولا نصوص تتبع عبر المواقع؛ راجع <Link href="/privacy">سياسة الخصوصية</Link> لمعرفة ما يُسجَّل.</p>
+          <AnalyticsChoice labels={{ unset: "لم تختر بعد. Google Analytics في الوضع دون ملفات.", on: "ملفات التحليلات تعمل.", off: "ملفات التحليلات متوقفة (الوضع دون ملفات).", accept: "موافق", decline: "رفض" }} />
 
           <h2>ملفات Google Analytics</h2>
           <ul>
