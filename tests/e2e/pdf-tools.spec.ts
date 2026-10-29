@@ -74,6 +74,44 @@ test.describe("Crop PDF", () => {
   });
 });
 
+test.describe("Crop PDF turning and straightening", () => {
+  test("turns pages with the box following, straightens, and matches all pages", async ({ page }) => {
+    await open(page, "/tools/crop-pdf");
+    await page.locator('input[type="file"]').setInputFiles(fixture("plain-3-pages.pdf"));
+    await expect(page.getByRole("img", { name: "Page 1" })).toBeVisible();
+    const area = page.getByTestId("crop-area");
+    await area.scrollIntoViewIfNeeded();
+    const before = (await area.boundingBox())!;
+    await page.getByRole("button", { name: "Turn page right" }).click();
+    await page.waitForTimeout(300);
+    await area.scrollIntoViewIfNeeded();
+    const after = (await area.boundingBox())!;
+    // The frame takes the turned page's shape: portrait becomes landscape.
+    expect(Math.abs(after.width / after.height - before.height / before.width)).toBeLessThan(0.02);
+    // Turning alone is enough to save.
+    await page.getByRole("button", { name: "Save cropped PDF" }).click();
+    const [d1] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download" }).click()]);
+    expect((await PDFDocument.load(await bytesOf(d1))).getPages().map((p) => p.getRotation().angle)).toEqual([90, 90, 90]);
+    // Straighten: the page is re-placed on a new page the size of the turned view.
+    await page.getByLabel("Straighten", { exact: true }).fill("3");
+    await expect(page.getByText("+3.0°")).toBeVisible();
+    await page.getByRole("button", { name: "Save cropped PDF" }).click();
+    const [d2] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download" }).click()]);
+    const doc2 = await PDFDocument.load(await bytesOf(d2));
+    expect(doc2.getPageCount()).toBe(3);
+    expect(doc2.getPages().map((p) => p.getRotation().angle)).toEqual([0, 0, 0]);
+    const turnedSize = (await PDFDocument.load(await bytesOf(d1))).getPages()[0]!;
+    // Turned a quarter, the view's width and height swap.
+    expect(doc2.getPages()[0]!.getWidth()).toBeCloseTo(turnedSize.getHeight(), 0);
+    expect(doc2.getPages()[0]!.getHeight()).toBeCloseTo(turnedSize.getWidth(), 0);
+    // Only this page: set a box on page 1 and copy it everywhere.
+    await page.getByRole("radio", { name: "This page only" }).check();
+    await page.getByRole("button", { name: "Match all pages" }).click();
+    await page.getByRole("button", { name: "Next page" }).click();
+    await expect(page.getByText("Page 2 of 3")).toBeVisible();
+  });
+});
+
 test.describe("Organize PDF", () => {
   test("turning a page keeps its card the same size", async ({ page }) => {
     await open(page, "/tools/organize-pdf");

@@ -44,9 +44,43 @@ export async function rotatePages(bytes: Uint8Array, deltas: number[]): Promise<
 /** A crop as fractions (0–1) of the page as displayed, measured from its top-left. */
 export interface CropRect { x0: number; y0: number; x1: number; y1: number }
 
-/** Crops pages to the given rectangles (null leaves a page alone). Lossless: the page area shrinks, content is kept. */
-export async function cropPages(bytes: Uint8Array, rects: (CropRect | null)[]): Promise<Uint8Array> {
+/** How a page is turned and straightened before it is cropped: `turn` in quarter turns (degrees, clockwise), `tilt` in degrees (clockwise). */
+export interface PageAdjust { turn: number; tilt: number }
+
+/**
+ * Turns, straightens and crops pages (null leaves a page alone). Lossless: a turn only changes the page's rotation;
+ * a tilt re-places the page's content, rotated, on a new page of the same size; a crop shrinks the visible area.
+ */
+export async function cropPages(bytes: Uint8Array, rects: (CropRect | null)[], adjust: (PageAdjust | null)[] = []): Promise<Uint8Array> {
+  const { degrees } = await lib();
   const doc = await open(bytes);
+  const count = doc.getPageCount();
+  for (let i = 0; i < count; i++) {
+    const a = adjust[i];
+    if (!a || (!(a.turn % 360) && !a.tilt)) continue;
+    const old = doc.getPage(i);
+    const base = (((old.getRotation().angle + a.turn) % 360) + 360) % 360;
+    if (!a.tilt) { old.setRotation(degrees(base)); continue; }
+    // Straighten: draw the page's content, rotated about its centre, on a new page the size of the turned view.
+    const box = old.getCropBox();
+    // A page with no content can't be embedded; it becomes a blank page of the right size.
+    const blank = old.node.Contents() === undefined;
+    const embedded = blank ? null : await doc.embedPage(old, { left: box.x, bottom: box.y, right: box.x + box.width, top: box.y + box.height });
+    const { w: W, h: H } = visualSize(box.width, box.height, base);
+    const phi = (-(base + a.tilt) * Math.PI) / 180;
+    const cx = box.width / 2, cy = box.height / 2;
+    const page = doc.insertPage(i, [W, H]);
+    if (embedded) {
+      page.drawPage(embedded, {
+        x: W / 2 - (cx * Math.cos(phi) - cy * Math.sin(phi)),
+        y: H / 2 - (cx * Math.sin(phi) + cy * Math.cos(phi)),
+        width: box.width,
+        height: box.height,
+        rotate: degrees((phi * 180) / Math.PI),
+      });
+    }
+    doc.removePage(i + 1);
+  }
   doc.getPages().forEach((p, i) => {
     const r = rects[i];
     if (!r) return;

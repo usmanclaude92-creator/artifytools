@@ -10,7 +10,7 @@ import { Icon } from "@/components/ui/icon";
 import { useLocale } from "@/components/i18n/locale-provider";
 import { arCount } from "@/lib/messages";
 import { baseName, safeFileName } from "@/lib/files/names";
-import { cropPages, type CropRect } from "@/lib/pdf/edit";
+import { cropPages, type CropRect, type PageAdjust } from "@/lib/pdf/edit";
 import { inspectPdf, PdfError, type PdfErrorCode } from "@/lib/pdf/pdf";
 import { openPdf, renderPage, type RenderedDoc } from "@/lib/pdf/render";
 import { fileRulesFor } from "@/lib/tools/file-spec";
@@ -21,12 +21,18 @@ const MIN = 0.03;
 const FULL: CropRect = { x0: 0, y0: 0, x1: 1, y1: 1 };
 const clamp = (v: number, lo = 0, hi = 1) => Math.min(hi, Math.max(lo, v));
 const isFull = (r: CropRect) => r.x0 <= 0 && r.y0 <= 0 && r.x1 >= 1 && r.y1 >= 1;
+const TILT_MAX = 10;
+const NONE: PageAdjust = { turn: 0, tilt: 0 };
+/** Where a crop box lands when the page it sits on is turned a quarter, so the same part of the page stays selected. */
+const turnRect = (r: CropRect, dir: 1 | -1): CropRect =>
+  dir === 1 ? { x0: 1 - r.y1, y0: r.x0, x1: 1 - r.y0, y1: r.x1 } : { x0: r.y0, y0: 1 - r.x1, x1: r.y1, y1: 1 - r.x0 };
 
 const strings = {
   en: {
     choose: "Choose a PDF", types: "PDF", pages: (n: number) => `${n} page${n === 1 ? "" : "s"}`, reading: "Reading your PDF…",
     cropTitle: "Crop area", hint: "Drag the corner dots or edges to set what stays. Drag inside the box to move it, or draw a new box on the page.",
     scope: "Apply to", all: "All pages", one: "This page only", reset: "Reset", box: "Crop box", handle: (n: string) => `Crop handle ${n}`,
+    turnLeft: "Turn page left", turnRight: "Turn page right", straighten: "Straighten", straightenHint: "Tilts the page a few degrees so crooked scans line up with the grid. Drag the slider, then place the box.", degrees: (v: number) => `${v > 0 ? "+" : ""}${v.toFixed(1)}°`, straightenReset: "Reset tilt", matchAll: "Match all pages", matchAllHint: "Copies this box to every page.", turned: (n: number) => `${n} page${n === 1 ? "" : "s"} will be turned or straightened.`,
     page: (n: number) => `Page ${n}`, of: (n: number, total: number) => `Page ${n} of ${total}`, prev: "Previous page", next: "Next page",
     save: "Save cropped PDF", saving: "Saving…", nothing: "Set a crop box first.", cropped: (n: number) => `${n} page${n === 1 ? "" : "s"} will be cropped.`,
     errors: { encrypted: "This PDF is password-protected. Unlock it first, then choose it again.", invalid: "This file couldn't be read as a PDF. It may be damaged." } as Record<PdfErrorCode, string>,
@@ -36,6 +42,7 @@ const strings = {
     choose: "اختر ملف PDF", types: "PDF", pages: (n: number) => arCount(n, "صفحة واحدة", "صفحتان", "صفحات", "صفحة"), reading: "جارٍ قراءة ملف PDF…",
     cropTitle: "منطقة القص", hint: "اسحب النقاط في الزوايا أو الحواف لتحديد ما يبقى. اسحب داخل المربع لتحريكه، أو ارسم مربعًا جديدًا على الصفحة.",
     scope: "التطبيق على", all: "كل الصفحات", one: "هذه الصفحة فقط", reset: "إعادة ضبط", box: "مربع القص", handle: (n: string) => `مقبض القص ${n}`,
+    turnLeft: "تدوير الصفحة لليسار", turnRight: "تدوير الصفحة لليمين", straighten: "تعديل الميل", straightenHint: "يُميل الصفحة بضع درجات لتصطف المسوحات المائلة مع الشبكة. حرّك الشريط ثم ضع المربع.", degrees: (v: number) => `${v > 0 ? "+" : ""}${v.toFixed(1)}°`, straightenReset: "إلغاء الميل", matchAll: "مطابقة كل الصفحات", matchAllHint: "ينسخ هذا المربع إلى كل الصفحات.", turned: (n: number) => `سيتم تدوير أو تعديل ميل ${arCount(n, "صفحة واحدة", "صفحتين", "صفحات", "صفحة")}.`,
     page: (n: number) => `الصفحة ${n}`, of: (n: number, total: number) => `الصفحة ${n} من ${total}`, prev: "الصفحة السابقة", next: "الصفحة التالية",
     save: "حفظ الملف بعد القص", saving: "جارٍ الحفظ…", nothing: "حدد مربع القص أولًا.", cropped: (n: number) => `سيتم قص ${arCount(n, "صفحة واحدة", "صفحتين", "صفحات", "صفحة")}.`,
     errors: { encrypted: "هذا الملف محمي بكلمة مرور. فك حمايته أولًا ثم اختره مجددًا.", invalid: "تعذّرت قراءة هذا الملف كملف PDF، وقد يكون تالفًا." } as Record<PdfErrorCode, string>,
@@ -58,6 +65,9 @@ export default function CropPdf() {
   const [scope, setScope] = useState<"all" | "one">("all");
   const [allBox, setAllBox] = useState<CropRect>(FULL);
   const [boxes, setBoxes] = useState<Record<number, CropRect>>({});
+  const [allAdjust, setAllAdjust] = useState<PageAdjust>(NONE);
+  const [adjusts, setAdjusts] = useState<Record<number, PageAdjust>>({});
+  const [gridOn, setGridOn] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ key: string; blob: Blob } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -67,6 +77,13 @@ export default function CropPdf() {
 
   const box = scope === "all" ? allBox : boxes[page] ?? FULL;
   const setBox = (b: CropRect) => (scope === "all" ? setAllBox(b) : setBoxes((x) => ({ ...x, [page]: b })));
+  const adj = scope === "all" ? allAdjust : adjusts[page] ?? NONE;
+  const setAdj = (a: PageAdjust) => (scope === "all" ? setAllAdjust(a) : setAdjusts((x) => ({ ...x, [page]: a })));
+  const turn = (dir: 1 | -1) => {
+    setAdj({ ...adj, turn: (adj.turn + dir * 90 + 360) % 360 });
+    setBox(turnRect(box, dir)); // the box rides along with the content
+  };
+  const matchAll = () => { setBoxes(Object.fromEntries(Array.from({ length: count }, (_, i) => [i + 1, box]))); };
 
   useEffect(() => () => { void doc.current?.destroy(); }, []);
 
@@ -105,6 +122,8 @@ export default function CropPdf() {
     setPage(1);
     setAllBox(FULL);
     setBoxes({});
+    setAllAdjust(NONE);
+    setAdjusts({});
     try {
       const b = new Uint8Array(await f.arrayBuffer());
       const info = await inspectPdf(b);
@@ -176,7 +195,12 @@ export default function CropPdf() {
     return r && !isFull(r) ? r : null;
   });
   const cropCount = rects.filter(Boolean).length;
-  const key = `${file?.name}|${file?.size}|${JSON.stringify(rects)}`;
+  const adjustList: (PageAdjust | null)[] = Array.from({ length: count }, (_, i) => {
+    const a = scope === "all" ? allAdjust : adjusts[i + 1];
+    return a && (a.turn || a.tilt) ? a : null;
+  });
+  const adjustCount = adjustList.filter(Boolean).length;
+  const key = `${file?.name}|${file?.size}|${JSON.stringify(rects)}|${JSON.stringify(adjustList)}`;
   const current = result && result.key === key ? result : null;
 
   async function save() {
@@ -184,7 +208,7 @@ export default function CropPdf() {
     setBusy(true);
     setError(null);
     try {
-      const out = await cropPages(bytes, rects);
+      const out = await cropPages(bytes, rects, adjustList);
       setResult({ key, blob: new Blob([out.buffer as ArrayBuffer], { type: "application/pdf" }) });
     } catch {
       setError(t.failed);
@@ -195,6 +219,8 @@ export default function CropPdf() {
 
   const name = file ? `${safeFileName(baseName(file.name), "document")}-cropped.pdf` : "cropped.pdf";
   const pct = (v: number) => `${v * 100}%`;
+  const sideways = adj.turn % 180 !== 0;
+  const frameAspect = sideways ? 1 / ratio : ratio;
   return (
     <div className="flex flex-col gap-5">
       <Panel title={t.choose}>
@@ -205,7 +231,7 @@ export default function CropPdf() {
       {bytes && (
         <Panel
           title={t.cropTitle}
-          actions={<Button variant="ghost" size="sm" disabled={cropCount === 0 && isFull(box)} onClick={() => { setAllBox(FULL); setBoxes({}); }}>{t.reset}</Button>}
+          actions={<Button variant="ghost" size="sm" disabled={cropCount === 0 && adjustCount === 0 && isFull(box)} onClick={() => { setAllBox(FULL); setBoxes({}); setAllAdjust(NONE); setAdjusts({}); }}>{t.reset}</Button>}
         >
           <p className="text-sm text-muted">{t.hint}</p>
           <fieldset className="flex flex-wrap items-center gap-x-5 gap-y-2">
@@ -223,14 +249,54 @@ export default function CropPdf() {
             <span className="min-w-28 text-center text-sm font-medium">{t.of(page, count)}</span>
             <Button variant="secondary" size="sm" aria-label={t.next} disabled={page >= count} onClick={() => setPage(page + 1)}><Icon name="chevron-right" size={16} /></Button>
           </div>
+          <div className="mx-auto flex w-full max-w-2xl flex-wrap items-center justify-center gap-x-4 gap-y-3">
+            <div className="flex gap-1.5">
+              <Button variant="secondary" size="sm" aria-label={t.turnLeft} title={t.turnLeft} onClick={() => turn(-1)}><Icon name="rotate-ccw" size={17} /></Button>
+              <Button variant="secondary" size="sm" aria-label={t.turnRight} title={t.turnRight} onClick={() => turn(1)}><Icon name="rotate-cw" size={17} /></Button>
+            </div>
+            <div className="flex min-w-0 flex-1 basis-64 items-center gap-2">
+              <label htmlFor="crop-tilt" className="text-sm font-medium">{t.straighten}</label>
+              <input
+                id="crop-tilt"
+                type="range"
+                min={-TILT_MAX}
+                max={TILT_MAX}
+                step={0.1}
+                value={adj.tilt}
+                aria-valuetext={t.degrees(adj.tilt)}
+                title={t.straightenHint}
+                onChange={(e) => setAdj({ ...adj, tilt: Number(e.target.value) })}
+                onPointerDown={() => setGridOn(true)}
+                onPointerUp={() => setGridOn(false)}
+                onFocus={() => setGridOn(true)}
+                onBlur={() => setGridOn(false)}
+                className="min-w-0 flex-1 accent-[var(--accent)]"
+              />
+              <span className="w-14 text-end text-sm tabular-nums text-muted" dir="ltr">{t.degrees(adj.tilt)}</span>
+              <Button variant="ghost" size="sm" disabled={adj.tilt === 0} onClick={() => setAdj({ ...adj, tilt: 0 })}>{t.straightenReset}</Button>
+            </div>
+            {scope === "one" && <Button variant="secondary" size="sm" title={t.matchAllHint} onClick={matchAll}>{t.matchAll}</Button>}
+          </div>
           <div className="mx-auto w-full max-w-2xl">
-            <div data-crop-area data-testid="crop-area" className="relative mx-auto w-full select-none overflow-hidden rounded-lg border border-line bg-surface-2" style={{ aspectRatio: String(ratio), maxHeight: "75vh" }}>
+            <div data-crop-area data-testid="crop-area" className="relative mx-auto w-full select-none overflow-hidden rounded-lg border border-line bg-surface-2" style={{ aspectRatio: String(frameAspect), width: `min(100%, calc(75vh * ${frameAspect}))` }}>
               {image ? (
                 // eslint-disable-next-line @next/next/no-img-element -- local object URL
-                <img src={image} alt={t.page(page)} draggable={false} className="absolute inset-0 size-full" />
+                <img
+                  src={image}
+                  alt={t.page(page)}
+                  draggable={false}
+                  className="absolute inset-0 m-auto select-none"
+                  style={{
+                    // A page turned a quarter has its sides swapped; size the picture so the turned page fills the frame.
+                    width: sideways ? `${100 / frameAspect}%` : "100%",
+                    height: sideways ? `${100 * frameAspect}%` : "100%",
+                    transform: `rotate(${adj.turn + adj.tilt}deg)`,
+                  }}
+                />
               ) : (
                 <span className="absolute inset-0 grid place-items-center"><Icon name="loader" size={22} className="animate-spin text-muted" /></span>
               )}
+              {(gridOn || adj.tilt !== 0) && <div className="pointer-events-none absolute inset-0 opacity-50" style={{ backgroundImage: "linear-gradient(to right, var(--accent) 1px, transparent 1px), linear-gradient(to bottom, var(--accent) 1px, transparent 1px)", backgroundSize: "10% 10%" }} />}
               <div className="absolute inset-0 cursor-crosshair [touch-action:none]" onPointerDown={(e) => begin("draw", e)} onPointerMove={update} onPointerUp={end} onPointerCancel={end} />
               {/* The cropped-away area is dimmed with four bands around the box. */}
               <div className="pointer-events-none absolute inset-x-0 top-0 bg-black/45" style={{ height: pct(box.y0) }} />
@@ -277,11 +343,11 @@ export default function CropPdf() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-3 border-t border-line pt-4">
-            <Button size="lg" onClick={save} disabled={cropCount === 0 || busy}>
+            <Button size="lg" onClick={save} disabled={(cropCount === 0 && adjustCount === 0) || busy}>
               <Icon name={busy ? "loader" : "crop"} size={18} className={busy ? "animate-spin" : undefined} /> {busy ? t.saving : t.save}
             </Button>
             {current && <DownloadButton filename={name} getBlob={() => current.blob} variant="primary" size="md" />}
-            {cropCount === 0 ? <span className="text-sm text-muted">{t.nothing}</span> : <span className="text-sm text-muted">{t.cropped(cropCount)}</span>}
+            {cropCount === 0 && adjustCount === 0 ? <span className="text-sm text-muted">{t.nothing}</span> : <span className="text-sm text-muted">{[cropCount > 0 ? t.cropped(cropCount) : "", adjustCount > 0 ? t.turned(adjustCount) : ""].filter(Boolean).join(" ")}</span>}
           </div>
         </Panel>
       )}
