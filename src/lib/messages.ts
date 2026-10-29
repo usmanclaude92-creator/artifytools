@@ -152,7 +152,7 @@ const en = {
     privacyTitle: "Your work deserves thoughtful protection.",
     privacyText: "We care about your privacy. Here’s how we handle your data.",
     privacyItems: (local: number, total: number) => [
-      { title: "Privacy first", text: "No account is needed to use any tool, no ads, no cookies, and visit counts are anonymous." },
+      { title: "Privacy first", text: "No account is needed to use any tool, no ads, and visit counts are anonymous. Analytics cookies are only set if you accept." },
       { title: "Local processing, where supported", text: `${local} of our ${total} tools process your input entirely in your browser.` },
       { title: "Transparent data handling", text: "Each tool page states whether data stays on your device, goes to an Artify server, or is shared with an external provider." },
       { title: "No unnecessary storage", text: "We don’t store the text, files, or values you enter into the tools." },
@@ -491,7 +491,7 @@ const ar: Messages = {
     privacyTitle: "عملك يستحق حماية مدروسة.",
     privacyText: "نهتم بخصوصيتك. إليك كيف نتعامل مع بياناتك.",
     privacyItems: (local: number, total: number) => [
-      { title: "الخصوصية أولًا", text: "لا تحتاج إلى حساب لاستخدام أي أداة، ولا إعلانات ولا ملفات تعريف ارتباط، وإحصاءات الزيارات مجهولة الهوية." },
+      { title: "الخصوصية أولًا", text: "لا تحتاج إلى حساب لاستخدام أي أداة، ولا إعلانات، وإحصاءات الزيارات مجهولة الهوية. لا تُضبط ملفات تحليلات إلا بموافقتك." },
       { title: "معالجة محلية حيثما أمكن", text: `${local} من أصل ${total} أداة تعالج مدخلاتك بالكامل داخل متصفحك.` },
       { title: "وضوح في التعامل مع البيانات", text: "توضّح كل صفحة أداة هل تبقى بياناتك على جهازك، أم تذهب إلى خادم Artify، أم تُشارَك مع مزوّد خارجي." },
       { title: "لا تخزين بلا داعٍ", text: "لا نخزّن النصوص أو الملفات أو القيم التي تدخلها في الأدوات." },

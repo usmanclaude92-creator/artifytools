@@ -6,6 +6,7 @@ import { preload } from "react-dom";
 import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { GoogleAnalytics } from "@/components/layout/google-analytics";
 import { SiteAnalytics } from "@/components/layout/site-analytics";
 import { ToastProvider } from "@/components/ui/toast";
 import { themeInitScript } from "@/components/ui/theme";
@@ -97,6 +98,7 @@ export default async function RootLayout({ children, params }: { children: React
         </ToastProvider>
         </LocaleProvider>
         <SiteAnalytics />
+        <GoogleAnalytics />
       </body>
     </html>
   );

@@ -32,7 +32,7 @@ export default async function PrivacyPage() {
             <li>You don’t need an account, and we don’t ask for personal information to use the tools.</li>
             <li>Most tools process what you enter <strong>inside your browser</strong>. That input is not sent to us.</li>
             <li>The exceptions are listed below. They are labelled on the tool’s page before you use them.</li>
-            <li>We don’t use advertising or set cookies. We count page visits with cookieless, anonymous analytics; nothing you type into a tool is included.</li>
+            <li>We don’t use advertising. We count page visits with cookieless analytics, and with Google Analytics (cookies) only if you accept; nothing you type into a tool is included.</li>
           </ul>
 
           <h2>How each tool processes your data</h2>
@@ -64,12 +64,12 @@ export default async function PrivacyPage() {
 
           <h2>Visit statistics</h2>
           <p>
-            To understand which tools are useful, we use Vercel Web Analytics, which counts page visits without cookies. It records the page path (with any query string removed), the referring site, the country, and the browser, device and operating-system type. It does not use cookies or fingerprinting, does not track you across websites, and never receives the text, files, or values you enter into a tool. Visitors are counted using a hash that resets every day, so individual visits can’t be linked over time.
+            To understand which tools are useful, we use Vercel Web Analytics, which counts page visits without cookies. It records the page path (with any query string removed), the referring site, the country, and the browser, device and operating-system type. It does not use cookies or fingerprinting, does not track you across websites, and never receives the text, files, or values you enter into a tool. Visitors are counted using a hash that resets every day, so individual visits can’t be linked over time. If you accept analytics cookies, Google Analytics also receives the page address (without its query string) and standard browser and device details; you can withdraw at any time on the Cookies page.
           </p>
 
           <h2>Cookies and local storage</h2>
           <p>
-            Artify sets no cookies. If you switch themes, your choice is saved in your browser’s local storage under the key <code>artify-theme</code>. See the <Link href="/cookies">Cookies</Link> page.
+            Artify sets no cookies unless you accept Google Analytics, which sets <code>_ga</code> cookies and sends the page address (without its query string), your browser and device type, and approximate location to Google. We switch off its advertising features, and you can decline or withdraw at any time on the <Link href="/cookies">Cookies</Link> page. If you switch themes, your choice is saved in your browser’s local storage under the key <code>artify-theme</code>. See the <Link href="/cookies">Cookies</Link> page.
           </p>
 
           <h2>Your choices and rights</h2>

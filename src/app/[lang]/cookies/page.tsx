@@ -3,6 +3,7 @@ import Link from "@/components/ui/locale-link";
 import { PageHeader } from "@/components/layout/page-header";
 import { pageMetadata } from "@/lib/seo/metadata";
 import { getLocale } from "@/lib/locale-server";
+import { AnalyticsChoice } from "@/components/layout/google-analytics";
 import { CookiesAr, cookiesMetaAr } from "@/components/pages-ar/cookies";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -10,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
   if (locale === "ar") return pageMetadata({ ...cookiesMetaAr, path: "/cookies", locale });
   return pageMetadata({
   title: "Cookie Policy",
-  description: "Artify Tools sets no cookies. This page explains the one preference saved in your browser's local storage.",
+  description: "What Artify Tools stores in your browser: a theme preference, and Google Analytics cookies only if you accept.",
   path: "/cookies",
   });
 }
@@ -19,11 +20,18 @@ export default async function CookiesPage() {
   if ((await getLocale()) === "ar") return <CookiesAr />;
   return (
     <>
-      <PageHeader title="Cookie Policy" description="Last updated 22 October 2026." breadcrumbs={[{ name: "Home", href: "/" }, { name: "Cookies" }]} />
+      <PageHeader title="Cookie Policy" description="Last updated 29 October 2026." breadcrumbs={[{ name: "Home", href: "/" }, { name: "Cookies" }]} />
       <div className="container-page py-10">
         <div className="prose-artify">
-          <h2 className="!mt-0">We don’t set cookies</h2>
-          <p>Artify Tools does not set cookies and does not load advertising or cross-site tracking scripts. We count page visits with Vercel Web Analytics, which works without cookies; see the <Link href="/privacy">Privacy Policy</Link> for what it records.</p>
+          <h2 className="!mt-0">Cookies only if you accept</h2>
+          <p>Artify Tools sets no cookies until you agree. We count page visits with Vercel Web Analytics, which works without cookies, and, if you accept, with Google Analytics, which sets cookies. We load no advertising or cross-site tracking scripts; see the <Link href="/privacy">Privacy Policy</Link> for what is recorded.</p>
+          <AnalyticsChoice labels={{ unset: "You haven’t chosen yet. Google Analytics is off.", on: "Google Analytics is on.", off: "Google Analytics is off.", accept: "Accept", decline: "Decline" }} />
+
+          <h2>Google Analytics cookies</h2>
+          <ul>
+            <li><code>_ga</code> and <code>_ga_G-3ENMEZHTYZ</code> — set by Google Analytics only after you accept. They tell visits apart so we can count them, and last up to two years.</li>
+          </ul>
+          <p>We turn off Google’s advertising features, and we remove query strings from the page address before sending it. Choose Decline above (or clear your site data) to stop it at any time.</p>
 
           <h2>What we store in your browser</h2>
           <p>The only thing saved is your colour-theme preference, if you choose one:</p>
@@ -36,7 +44,7 @@ export default async function CookiesPage() {
           <p>Fonts are served from our own domain. The site doesn’t embed third-party widgets. AI tools send the text you submit to an AI provider only when you press the button; see the <Link href="/privacy">Privacy Policy</Link>.</p>
 
           <h2>If this changes</h2>
-          <p>Should we ever add cookies, we will update this page first and ask for your consent where the law requires it.</p>
+          <p>If we add other cookies, we will update this page first and ask for your consent where the law requires it.</p>
         </div>
       </div>
     </>
