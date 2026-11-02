@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { IdleHint, Panel, Workspace } from "@/components/tools/parts";
+import { IdleHint, Panel } from "@/components/tools/parts";
 import { CopyButton } from "@/components/ui/actions";
 import { StatusMessage } from "@/components/ui/feedback";
 import { Checkbox, Field, Select, TextInput } from "@/components/ui/form";
@@ -67,7 +67,8 @@ export default function AmountInWords() {
   const english = parsed ? amountInEnglish(parsed.whole, parsed.fraction, currency, { only, fractionAsNumber, uppercase: upper, currencyFirst }) : "";
 
   return (
-    <Workspace>
+    // One panel under the other: the words need the full width, which the sidebar leaves too little of for two columns.
+    <div className="grid gap-5">
       <Panel title={t.input}>
         <Field label={t.amount} hint={t.amountHint(decimals)} error={amount.trim() && !parsed ? t.invalid(decimals) : null}>
           {(p) => <TextInput {...p} dir="ltr" inputMode="decimal" autoComplete="off" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder={decimals === 3 ? "1250.750" : "1250.50"} className="text-lg" />}
@@ -108,6 +109,6 @@ export default function AmountInWords() {
           </div>
         )}
       </Panel>
-    </Workspace>
+    </div>
   );
 }
