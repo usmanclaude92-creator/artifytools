@@ -6,20 +6,20 @@ import { CopyButton } from "@/components/ui/actions";
 import { StatusMessage } from "@/components/ui/feedback";
 import { Checkbox, Field, Select, TextInput } from "@/components/ui/form";
 import { useLocale } from "@/components/i18n/locale-provider";
-import { amountInArabic, amountInEnglish, currencies, getCurrency, parseAmount } from "@/lib/words";
+import { amountInArabic, amountInEnglish, currencies, getCurrency, parseAmount, prefersCurrencyFirst } from "@/lib/words";
 
 const STORAGE_KEY = "artify-amount-currency";
 
 const strings = {
   en: {
     input: "Amount", amount: "Amount", amountHint: (d: number) => (d ? `Up to ${d} decimal places for this currency.` : "Whole numbers only."),
-    currency: "Currency", only: "Add “Only” / «فقط … لا غير»", fraction: "Write decimals as a fraction (50/1000)", upper: "English in CAPITALS",
+    currency: "Currency", only: "Add “Only” / «فقط … لا غير»", fraction: "Write decimals as a fraction (50/1000)", upper: "English in CAPITALS", currencyFirst: "Currency name first (Gulf bank style)",
     arabic: "Arabic", english: "English", idle: "Type an amount to see it in words.", invalid: (d: number) => `Enter a number like 1250${d ? `.${"5".padEnd(d, "0")}` : ""}, with at most ${d} decimal places and no more than 999,999,999,999.`,
     copyAr: "Arabic text", copyEn: "English text",
   },
   ar: {
     input: "المبلغ", amount: "المبلغ", amountHint: (d: number) => (d ? `حتى ${d} منازل عشرية لهذه العملة.` : "أعداد صحيحة فقط."),
-    currency: "العملة", only: "إضافة «فقط … لا غير» / “Only”", fraction: "كتابة الكسور ككسر (50/1000)", upper: "الإنجليزية بأحرف كبيرة",
+    currency: "العملة", only: "إضافة «فقط … لا غير» / “Only”", fraction: "كتابة الكسور ككسر (50/1000)", upper: "الإنجليزية بأحرف كبيرة", currencyFirst: "اسم العملة أولًا (أسلوب البنوك الخليجية)",
     arabic: "بالعربية", english: "بالإنجليزية", idle: "اكتب مبلغًا لتراه مكتوبًا بالحروف.", invalid: (d: number) => `أدخل رقمًا مثل 1250${d ? `.${"5".padEnd(d, "0")}` : ""}، بحد أقصى ${d} منازل عشرية ولا يتجاوز 999,999,999,999.`,
     copyAr: "النص العربي", copyEn: "النص الإنجليزي",
   },
@@ -40,6 +40,7 @@ export default function AmountInWords() {
   const [only, setOnly] = useState(true);
   const [fractionAsNumber, setFractionAsNumber] = useState(false);
   const [upper, setUpper] = useState(false);
+  const [currencyFirstChoice, setCurrencyFirstChoice] = useState<boolean | null>(null);
 
   // Remember the last currency on this device (a convenience; the page works without it).
   useEffect(() => {
@@ -51,16 +52,19 @@ export default function AmountInWords() {
   }, []);
   function chooseCurrency(c: string) {
     setCode(c);
+    setCurrencyFirstChoice(null);
     try {
       localStorage.setItem(STORAGE_KEY, c);
     } catch {}
   }
 
   const currency = getCurrency(code)!;
+  // Gulf and Arab currencies follow their banks' style by default; the checkbox overrides it until the currency changes.
+  const currencyFirst = currencyFirstChoice ?? prefersCurrencyFirst(code);
   const decimals = currency.minor === 1000 ? 3 : currency.minor === 100 ? 2 : 0;
   const parsed = useMemo(() => (amount.trim() ? parseAmount(amount, currency.minor) : null), [amount, currency.minor]);
   const arabic = parsed ? amountInArabic(parsed.whole, parsed.fraction, currency, { only, fractionAsNumber }) : "";
-  const english = parsed ? amountInEnglish(parsed.whole, parsed.fraction, currency, { only, fractionAsNumber, uppercase: upper }) : "";
+  const english = parsed ? amountInEnglish(parsed.whole, parsed.fraction, currency, { only, fractionAsNumber, uppercase: upper, currencyFirst }) : "";
 
   return (
     <Workspace>
@@ -81,6 +85,7 @@ export default function AmountInWords() {
           <Checkbox label={t.only} checked={only} onChange={(e) => setOnly(e.target.checked)} />
           <Checkbox label={t.fraction} checked={fractionAsNumber} onChange={(e) => setFractionAsNumber(e.target.checked)} disabled={!currency.minor} />
           <Checkbox label={t.upper} checked={upper} onChange={(e) => setUpper(e.target.checked)} />
+          <Checkbox label={t.currencyFirst} checked={currencyFirst} onChange={(e) => setCurrencyFirstChoice(e.target.checked)} />
         </div>
       </Panel>
 

@@ -15,7 +15,7 @@ import { loadSavedLayouts, storeSavedLayouts, isSavedLayout, type SavedLayout } 
 import { CATALOG, countryName, GENERIC_BANK, locate, scaleFields, sizeLabel } from "@/lib/cheque/catalog";
 import { sharedSizeFrom } from "@/lib/cheque/share";
 import { FIELD_IDS, LAYOUTS, type DateFormat, type FieldId } from "@/lib/cheque/templates";
-import { amountInArabic, amountInEnglish, currencies, getCurrency, parseAmount } from "@/lib/words";
+import { amountInArabic, amountInEnglish, currencies, getCurrency, parseAmount, prefersCurrencyFirst } from "@/lib/words";
 import { A4Scan, type ScanResult } from "./a4-scan";
 import { AR_FONT, ChequeFace, LATIN_FONT, type ChequeValues, type FaceGeometry } from "./cheque-face";
 
@@ -146,7 +146,7 @@ export default function ChequePrinter() {
       const words = parsed
         ? rtl
           ? amountInArabic(parsed.whole, parsed.fraction, currency, { only })
-          : amountInEnglish(parsed.whole, parsed.fraction, currency, { only, uppercase: true })
+          : amountInEnglish(parsed.whole, parsed.fraction, currency, { only, uppercase: true, currencyFirst: prefersCurrencyFirst(currency.code) })
         : "";
       const fit = words ? fitTwoLines(words, work.fields.words1.w, work.fields.words2.w, (s, pt) => measureMm(s, pt, rtl), work.fontSize, 7) : { line1: "", line2: "", size: work.fontSize };
       const crossingText = crossing === "none" ? "" : t.crossings[crossing] ?? "";

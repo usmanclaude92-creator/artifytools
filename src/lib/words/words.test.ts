@@ -65,6 +65,10 @@ describe("English", () => {
   test("amounts", () => {
     expect(amountInEnglish(523, 50, OMR, { only: true })).toBe("Five Hundred Twenty-Three Omani Rials and Fifty Baisa Only");
     expect(amountInEnglish(1, 1, SAR)).toBe("One Saudi Riyal and One Halala");
+    expect(amountInEnglish(1250, 751, OMR, { only: true, currencyFirst: true })).toBe("Omani Rials One Thousand Two Hundred Fifty and Baisa Seven Hundred Fifty One Only");
+    expect(amountInEnglish(0, 500, OMR, { currencyFirst: true, uppercase: true })).toBe("BAISA FIVE HUNDRED");
+    expect(amountInEnglish(21, 0, SAR, { currencyFirst: true })).toBe("Saudi Riyals Twenty One");
+    expect(amountInEnglish(1, 0, SAR, { currencyFirst: true, only: true })).toBe("Saudi Riyal One Only");
     expect(amountInEnglish(100, 5, OMR, { fractionAsNumber: true, uppercase: true })).toBe("ONE HUNDRED OMANI RIALS AND 005/1000");
     expect(amountInEnglish(150000, 0, INR)).toBe("One Lakh Fifty Thousand Indian Rupees");
   });
