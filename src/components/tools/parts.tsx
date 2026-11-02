@@ -7,7 +7,7 @@ import { useMessages } from "@/components/i18n/locale-provider";
 
 /** Two-column workspace on desktop (input | output), single column on mobile. */
 export function Workspace({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cx("grid gap-5 lg:grid-cols-2", className)}>{children}</div>;
+  return <div className={cx("grid gap-5 @4xl:grid-cols-2", className)}>{children}</div>;
 }
 
 export function Panel({

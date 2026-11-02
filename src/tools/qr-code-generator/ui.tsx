@@ -98,7 +98,7 @@ export default function QrCodeGenerator() {
   const svgUrl = current?.artifacts ? `data:image/svg+xml;charset=utf-8,${encodeURIComponent(current.artifacts.svg)}` : null;
 
   return (
-    <Workspace className="lg:grid-cols-[3fr_2fr]">
+    <Workspace className="@4xl:grid-cols-[3fr_2fr]">
       <Panel
         title={t.content}
         actions={

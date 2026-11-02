@@ -306,7 +306,7 @@ export default function DocumentTranslator() {
       <Segmented legend={t.mode} value={mode} onChange={(m) => { if (!busy) { setMode(m); setResult(null); setError(null); } }} options={[{ value: "text", label: t.text }, { value: "file", label: t.file }]} />
 
       {mode === "text" ? (
-        <div className="grid gap-5 lg:grid-cols-2">
+        <div className="grid gap-5 @4xl:grid-cols-2">
           <Panel title={t.input} actions={<Button variant="ghost" size="sm" disabled={!text} onClick={clear}><Icon name="rotate-ccw" size={16} /> {t.clear}</Button>}>
             <Field label={<span className="sr-only">{t.input}</span>} error={tooLong ? t.tooLongText(text.length, MAX_TEXT_CHARS) : null} hint={t.count(text.length, MAX_TEXT_CHARS)}>
               {(p) => <TextArea {...p} rows={12} value={text} onChange={(e) => { setText(e.target.value); }} placeholder={t.placeholder} className="font-sans text-base" />}

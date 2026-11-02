@@ -44,7 +44,7 @@ export default function WordCounter() {
   ].join("\n");
 
   return (
-    <Workspace className="lg:grid-cols-[3fr_2fr]">
+    <Workspace className="@4xl:grid-cols-[3fr_2fr]">
       <Panel
         title={t.yourText}
         actions={

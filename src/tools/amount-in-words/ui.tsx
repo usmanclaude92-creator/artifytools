@@ -70,6 +70,9 @@ export default function AmountInWords() {
     // One panel under the other: the words need the full width, which the sidebar leaves too little of for two columns.
     <div className="grid gap-5">
       <Panel title={t.input}>
+        {/* The fields on one side and the options on the other, once the panel is wide enough. */}
+        <div className="grid gap-5 @2xl:grid-cols-2 @2xl:items-start">
+        <div className="flex flex-col gap-5">
         <Field label={t.amount} hint={t.amountHint(decimals)} error={amount.trim() && !parsed ? t.invalid(decimals) : null}>
           {(p) => <TextInput {...p} dir="ltr" inputMode="decimal" autoComplete="off" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder={decimals === 3 ? "1250.750" : "1250.50"} className="text-lg" />}
         </Field>
@@ -82,11 +85,13 @@ export default function AmountInWords() {
             </Select>
           )}
         </Field>
-        <div>
+        </div>
+        <div className="flex flex-col gap-1">
           <Checkbox label={t.only} checked={only} onChange={(e) => setOnly(e.target.checked)} />
           <Checkbox label={t.fraction} checked={fractionAsNumber} onChange={(e) => setFractionAsNumber(e.target.checked)} disabled={!currency.minor} />
           <Checkbox label={t.upper} checked={upper} onChange={(e) => setUpper(e.target.checked)} />
           <Checkbox label={t.currencyFirst} checked={currencyFirst} onChange={(e) => setCurrencyFirstChoice(e.target.checked)} />
+        </div>
         </div>
       </Panel>
 

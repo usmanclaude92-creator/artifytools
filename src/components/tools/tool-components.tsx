@@ -5,7 +5,7 @@ import type { ComponentType } from "react";
 
 function ToolSkeleton() {
   return (
-    <div className="grid animate-pulse gap-5 lg:grid-cols-2" aria-hidden="true">
+    <div className="grid animate-pulse gap-5 @4xl:grid-cols-2" aria-hidden="true">
       <div className="card h-80 bg-surface-2" />
       <div className="card h-80 bg-surface-2" />
     </div>

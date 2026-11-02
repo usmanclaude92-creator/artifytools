@@ -59,7 +59,7 @@ export default function PasswordGenerator() {
   const strength = outcome?.ok ? strengthLabel(outcome.entropyBits) : null;
 
   return (
-    <Workspace className="lg:grid-cols-[2fr_3fr]">
+    <Workspace className="@4xl:grid-cols-[2fr_3fr]">
       <Panel title={t.settings}>
         <div className="flex flex-col gap-3">
           <Field label={t.length(MIN_LENGTH, MAX_LENGTH)} error={lengthValid ? null : t.lengthError(MIN_LENGTH, MAX_LENGTH)}>

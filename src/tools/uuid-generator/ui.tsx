@@ -52,7 +52,7 @@ export default function UuidGenerator() {
   const joined = shown.join("\n");
 
   return (
-    <Workspace className="lg:grid-cols-[2fr_3fr]">
+    <Workspace className="@4xl:grid-cols-[2fr_3fr]">
       <Panel title={t.options}>
         <Segmented legend={t.version} value={version} onChange={setVersion} options={[{ value: "v4", label: t.v4 }, { value: "v7", label: t.v7 }]} />
         <Field label={t.howMany(MAX_UUID_COUNT)} error={countValid ? null : t.countError(MAX_UUID_COUNT)}>
