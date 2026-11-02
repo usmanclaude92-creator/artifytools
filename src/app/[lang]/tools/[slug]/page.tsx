@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
+import { WithSidebar } from "@/components/layout/with-sidebar";
 import { ToolWorkspace } from "@/components/tools/tool-components";
 import { Examples, Faq, HowTo, PrivacyDisclosure, RelatedTools, StatusNotice, ToolHeader } from "@/components/tools/tool-sections";
 import { JsonLd } from "@/components/ui/json-ld";
@@ -45,7 +46,7 @@ export default async function ToolPage({ params }: { params: Promise<Params> }) 
   const abs = (path: string) => absoluteUrl(localizeHref(path, locale));
 
   const category = localizeCategory(getCategory(tool.category), locale);
-  const related = getRelatedTools(raw, 3).map((r) => toDirectoryItem(r, locale));
+  const related = getRelatedTools(raw, 8).map((r) => toDirectoryItem(r, locale));
   const url = abs(`/tools/${tool.slug}`);
 
   const structuredData: Record<string, unknown>[] = [
@@ -99,22 +100,19 @@ export default async function ToolPage({ params }: { params: Promise<Params> }) 
         </div>
       </div>
       <div className="container-page py-8 sm:py-10">
-        <StatusNotice tool={tool} />
-        {/* The workspace comes first: people arrive to use the tool, not to read about it. */}
-        {tool.status !== "coming-soon" && <ToolWorkspace toolId={tool.id} />}
+        <WithSidebar sidebar={<RelatedTools tools={related} />}>
+          <StatusNotice tool={tool} />
+          {/* The workspace comes first: people arrive to use the tool, not to read about it. */}
+          {tool.status !== "coming-soon" && <ToolWorkspace toolId={tool.id} />}
 
-        <div className="mt-8">
-          <PrivacyDisclosure tool={tool} />
-        </div>
+          <div className="mt-8">
+            <PrivacyDisclosure tool={tool} />
+          </div>
 
-        <div className="mt-10 grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
-          <div className="space-y-4">
+          <div className="mt-10 space-y-4">
             <HowTo steps={tool.howTo} />
             <Examples examples={tool.examples} />
             <Faq faqs={tool.faqs} />
-          </div>
-          <div className="space-y-6">
-            <RelatedTools tools={related} />
             <section aria-labelledby="about-heading" className="card p-5">
               <h2 id="about-heading" className="text-[0.95rem] font-semibold">{t.toolPage.about}</h2>
               <div className="mt-3 space-y-3 text-sm leading-relaxed text-muted">
@@ -124,7 +122,7 @@ export default async function ToolPage({ params }: { params: Promise<Params> }) 
               </div>
             </section>
           </div>
-        </div>
+        </WithSidebar>
       </div>
     </>
   );

@@ -274,3 +274,38 @@ test("AI summarizer is marked coming soon and the API stays switched off", async
   expect(res.status()).toBe(503);
   expect((await res.json()).error).toBe("not_configured");
 });
+
+test.describe("sidebar", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+  test("tool pages list related tools at the end of the line, and the page content is beside it", async ({ page }) => {
+    await page.goto("/tools/crop-pdf", { waitUntil: "networkidle" });
+    const side = page.getByRole("complementary");
+    await expect(side.getByRole("heading", { name: "Related tools" })).toBeVisible();
+    await expect(side.getByRole("link")).toHaveCount(8);
+    await expect(side.getByRole("link", { name: "Crop PDF" })).toHaveCount(0);
+    const main = (await page.getByRole("heading", { name: "Choose a PDF" }).boundingBox())!;
+    const bar = (await side.boundingBox())!;
+    expect(bar.x).toBeGreaterThan(main.x + 400); // to the right of the tool
+    await side.getByRole("link", { name: "Rotate PDF" }).click();
+    await expect(page).toHaveURL(/\/tools\/rotate-pdf$/);
+  });
+  test("category pages list the other categories, without the current one", async ({ page }) => {
+    await page.goto("/categories/pdf-editor", { waitUntil: "networkidle" });
+    const side = page.getByRole("complementary");
+    await expect(side.getByRole("heading", { name: "Other categories" })).toBeVisible();
+    await expect(side.getByRole("link", { name: "Edit & Organise PDF" })).toHaveCount(0);
+    await expect(side.getByRole("link", { name: "Images" })).toBeVisible();
+    await expect(side.getByRole("link", { name: /All categories/ })).toBeVisible();
+  });
+  test("Arabic pages put the sidebar on the left", async ({ page }) => {
+    await page.goto("/ar/tools/crop-pdf", { waitUntil: "networkidle" });
+    const side = (await page.getByRole("complementary").boundingBox())!;
+    expect(side.x).toBeLessThan(400);
+  });
+  test("the home page and text pages have no sidebar", async ({ page }) => {
+    for (const url of ["/", "/about", "/privacy", "/categories"]) {
+      await page.goto(url, { waitUntil: "networkidle" });
+      await expect(page.getByRole("complementary"), url).toHaveCount(0);
+    }
+  });
+});
