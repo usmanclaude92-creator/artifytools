@@ -112,6 +112,48 @@ test.describe("Crop PDF turning and straightening", () => {
   });
 });
 
+test.describe("Remove Pages from PDF", () => {
+  test("removes pages by tapping and by typing", async ({ page }) => {
+    await open(page, "/tools/remove-pages-from-pdf");
+    await page.locator('input[type="file"]').setInputFiles(fixture("plain-3-pages.pdf"));
+    await expect(page.getByRole("button", { name: "Page 3, tap to remove" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Save PDF" })).toBeDisabled();
+    await page.getByRole("button", { name: "Page 2, tap to remove" }).click();
+    await expect(page.getByLabel("Pages to remove")).toHaveValue("2");
+    await expect(page.getByText("1 page will be removed, 2 kept.")).toBeVisible();
+    await page.getByRole("button", { name: "Save PDF" }).click();
+    const [d1] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download" }).click()]);
+    expect(d1.suggestedFilename()).toBe("plain-3-pages-edited.pdf");
+    expect((await PDFDocument.load(await bytesOf(d1))).getPageCount()).toBe(2);
+    // Typing works too, and removing every page is refused.
+    await page.getByLabel("Pages to remove").fill("1-3");
+    await expect(page.getByText("You can't remove every page. Keep at least one.")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Save PDF" })).toBeDisabled();
+    await page.getByLabel("Pages to remove").fill("9");
+    await expect(page.getByText("This PDF has 3 pages, so page 9 doesn't exist.")).toBeVisible();
+    await page.getByLabel("Pages to remove").fill("1, 3");
+    await page.getByRole("button", { name: "Save PDF" }).click();
+    const [d2] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download" }).click()]);
+    expect((await PDFDocument.load(await bytesOf(d2))).getPageCount()).toBe(1);
+  });
+});
+
+test.describe("Crop PDF quick crop", () => {
+  test("a quick crop takes half the page", async ({ page }) => {
+    await open(page, "/tools/crop-pdf");
+    await page.locator('input[type="file"]').setInputFiles(fixture("plain-3-pages.pdf"));
+    await expect(page.getByRole("img", { name: "Page 1" })).toBeVisible();
+    await page.getByRole("button", { name: "Top half" }).click();
+    await page.getByRole("button", { name: "Save cropped PDF" }).click();
+    const [d] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download" }).click()]);
+    const pages = (await PDFDocument.load(await bytesOf(d))).getPages();
+    const half = pages.map((p) => p.getCropBox());
+    for (const b of half) expect(b.height).toBeGreaterThan(0);
+    const orig = await PDFDocument.load(readFileSync(fixture("plain-3-pages.pdf")));
+    expect(half[0]!.height).toBeCloseTo(orig.getPages()[0]!.getSize().height / 2, 0);
+  });
+});
+
 test.describe("Organize PDF", () => {
   test("turning a page keeps its card the same size", async ({ page }) => {
     await open(page, "/tools/organize-pdf");

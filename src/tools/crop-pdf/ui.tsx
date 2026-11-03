@@ -22,6 +22,12 @@ const FULL: CropRect = { x0: 0, y0: 0, x1: 1, y1: 1 };
 const clamp = (v: number, lo = 0, hi = 1) => Math.min(hi, Math.max(lo, v));
 const isFull = (r: CropRect) => r.x0 <= 0 && r.y0 <= 0 && r.x1 >= 1 && r.y1 >= 1;
 const TILT_MAX = 10;
+const PRESETS: Record<"top" | "bottom" | "left" | "right", CropRect> = {
+  top: { x0: 0, y0: 0, x1: 1, y1: 0.5 },
+  bottom: { x0: 0, y0: 0.5, x1: 1, y1: 1 },
+  left: { x0: 0, y0: 0, x1: 0.5, y1: 1 },
+  right: { x0: 0.5, y0: 0, x1: 1, y1: 1 },
+};
 const NONE: PageAdjust = { turn: 0, tilt: 0 };
 /** Where a crop box lands when the page it sits on is turned a quarter, so the same part of the page stays selected. */
 const turnRect = (r: CropRect, dir: 1 | -1): CropRect =>
@@ -32,7 +38,7 @@ const strings = {
     choose: "Choose a PDF", types: "PDF", pages: (n: number) => `${n} page${n === 1 ? "" : "s"}`, reading: "Reading your PDF…",
     cropTitle: "Crop area", hint: "Drag the corner dots or edges to set what stays. Drag inside the box to move it, or draw a new box on the page.",
     scope: "Apply to", all: "All pages", one: "This page only", reset: "Reset", box: "Crop box", handle: (n: string) => `Crop handle ${n}`,
-    turnLeft: "Turn page left", turnRight: "Turn page right", straighten: "Straighten", straightenHint: "Tilts the page a few degrees so crooked scans line up with the grid. Drag the slider, then place the box.", degrees: (v: number) => `${v > 0 ? "+" : ""}${v.toFixed(1)}°`, straightenReset: "Reset tilt", matchAll: "Match all pages", matchAllHint: "Copies this box to every page.", turned: (n: number) => `${n} page${n === 1 ? "" : "s"} will be turned or straightened.`,
+    quick: "Quick crop", presets: { top: "Top half", bottom: "Bottom half", left: "Left half", right: "Right half" }, turnLeft: "Turn page left", turnRight: "Turn page right", straighten: "Straighten", straightenHint: "Tilts the page a few degrees so crooked scans line up with the grid. Drag the slider, then place the box.", degrees: (v: number) => `${v > 0 ? "+" : ""}${v.toFixed(1)}°`, straightenReset: "Reset tilt", matchAll: "Match all pages", matchAllHint: "Copies this box to every page.", turned: (n: number) => `${n} page${n === 1 ? "" : "s"} will be turned or straightened.`,
     page: (n: number) => `Page ${n}`, of: (n: number, total: number) => `Page ${n} of ${total}`, prev: "Previous page", next: "Next page",
     save: "Save cropped PDF", saving: "Saving…", nothing: "Set a crop box first.", cropped: (n: number) => `${n} page${n === 1 ? "" : "s"} will be cropped.`,
     errors: { encrypted: "This PDF is password-protected. Unlock it first, then choose it again.", invalid: "This file couldn't be read as a PDF. It may be damaged." } as Record<PdfErrorCode, string>,
@@ -42,7 +48,7 @@ const strings = {
     choose: "اختر ملف PDF", types: "PDF", pages: (n: number) => arCount(n, "صفحة واحدة", "صفحتان", "صفحات", "صفحة"), reading: "جارٍ قراءة ملف PDF…",
     cropTitle: "منطقة القص", hint: "اسحب النقاط في الزوايا أو الحواف لتحديد ما يبقى. اسحب داخل المربع لتحريكه، أو ارسم مربعًا جديدًا على الصفحة.",
     scope: "التطبيق على", all: "كل الصفحات", one: "هذه الصفحة فقط", reset: "إعادة ضبط", box: "مربع القص", handle: (n: string) => `مقبض القص ${n}`,
-    turnLeft: "تدوير الصفحة لليسار", turnRight: "تدوير الصفحة لليمين", straighten: "تعديل الميل", straightenHint: "يُميل الصفحة بضع درجات لتصطف المسوحات المائلة مع الشبكة. حرّك الشريط ثم ضع المربع.", degrees: (v: number) => `${v > 0 ? "+" : ""}${v.toFixed(1)}°`, straightenReset: "إلغاء الميل", matchAll: "مطابقة كل الصفحات", matchAllHint: "ينسخ هذا المربع إلى كل الصفحات.", turned: (n: number) => `سيتم تدوير أو تعديل ميل ${arCount(n, "صفحة واحدة", "صفحتين", "صفحات", "صفحة")}.`,
+    quick: "قص سريع", presets: { top: "النصف العلوي", bottom: "النصف السفلي", left: "النصف الأيسر", right: "النصف الأيمن" }, turnLeft: "تدوير الصفحة لليسار", turnRight: "تدوير الصفحة لليمين", straighten: "تعديل الميل", straightenHint: "يُميل الصفحة بضع درجات لتصطف المسوحات المائلة مع الشبكة. حرّك الشريط ثم ضع المربع.", degrees: (v: number) => `${v > 0 ? "+" : ""}${v.toFixed(1)}°`, straightenReset: "إلغاء الميل", matchAll: "مطابقة كل الصفحات", matchAllHint: "ينسخ هذا المربع إلى كل الصفحات.", turned: (n: number) => `سيتم تدوير أو تعديل ميل ${arCount(n, "صفحة واحدة", "صفحتين", "صفحات", "صفحة")}.`,
     page: (n: number) => `الصفحة ${n}`, of: (n: number, total: number) => `الصفحة ${n} من ${total}`, prev: "الصفحة السابقة", next: "الصفحة التالية",
     save: "حفظ الملف بعد القص", saving: "جارٍ الحفظ…", nothing: "حدد مربع القص أولًا.", cropped: (n: number) => `سيتم قص ${arCount(n, "صفحة واحدة", "صفحتين", "صفحات", "صفحة")}.`,
     errors: { encrypted: "هذا الملف محمي بكلمة مرور. فك حمايته أولًا ثم اختره مجددًا.", invalid: "تعذّرت قراءة هذا الملف كملف PDF، وقد يكون تالفًا." } as Record<PdfErrorCode, string>,
@@ -248,6 +254,12 @@ export default function CropPdf() {
             <Button variant="secondary" size="sm" aria-label={t.prev} disabled={page <= 1} onClick={() => setPage(page - 1)}><Icon name="chevron-right" size={16} className="rotate-180" /></Button>
             <span className="min-w-28 text-center text-sm font-medium">{t.of(page, count)}</span>
             <Button variant="secondary" size="sm" aria-label={t.next} disabled={page >= count} onClick={() => setPage(page + 1)}><Icon name="chevron-right" size={16} /></Button>
+          </div>
+          <div className="mx-auto flex w-full max-w-2xl flex-wrap items-center justify-center gap-2" role="group" aria-label={t.quick}>
+            <span className="text-sm font-medium">{t.quick}</span>
+            {(["top", "bottom", "left", "right"] as const).map((k) => (
+              <Button key={k} variant="secondary" size="sm" onClick={() => setBox(PRESETS[k])}>{t.presets[k]}</Button>
+            ))}
           </div>
           <div className="mx-auto flex w-full max-w-2xl flex-wrap items-center justify-center gap-x-4 gap-y-3">
             <div className="flex gap-1.5">

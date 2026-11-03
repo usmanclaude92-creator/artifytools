@@ -33,5 +33,5 @@ export const meta: ToolDefinition = {
   ],
   files: { inputFormats: ["PDF"], accept: ["application/pdf", ".pdf"], outputFormats: ["PDF"], maxFileBytes: 100_000_000, maxTotalBytes: 300_000_000, maxFiles: 10 },
   popularRank: 2.4,
-  related: ["merge-pdf", "split-pdf", "rotate-pdf"],
+  related: ["merge-pdf", "split-pdf", "rotate-pdf", "remove-pages-from-pdf"],
 };
