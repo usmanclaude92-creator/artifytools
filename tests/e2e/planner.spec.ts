@@ -16,6 +16,7 @@ test.describe("Adv. Project Planner", () => {
     await open(page);
     // A starting plan: the blank template has two levels, each with its own band and heading.
     await expect(page.locator("[data-level-band]")).toHaveCount(2);
+    await page.getByRole("radio", { name: "Levels and tags" }).check({ force: true });
     await page.getByLabel("Level name 1").fill("Vision");
     await page.getByLabel("Level name 2").fill("Initiative");
     await expect(page.locator("svg text", { hasText: "Vision" })).toBeVisible();
@@ -24,6 +25,7 @@ test.describe("Adv. Project Planner", () => {
     await page.getByRole("button", { name: "Add child" }).click();
     await expect(page.locator("[data-level-band]")).toHaveCount(3);
     await page.getByLabel("Title", { exact: true }).fill("Deep task");
+    await page.getByRole("radio", { name: "Levels and tags" }).check({ force: true });
     await page.getByLabel("Level name 3").fill("Action");
     await expect(page.locator("svg text", { hasText: "Action" })).toBeVisible();
     await expect(node(page, "Deep task")).toBeVisible();
@@ -39,8 +41,10 @@ test.describe("Adv. Project Planner", () => {
     await page.getByLabel("Status").selectOption("doing");
     await page.getByLabel("Due date").fill("2026-12-01");
     await expect(page.locator("[data-node]", { hasText: "2026-12-01" })).toBeVisible();
+    await page.getByRole("radio", { name: "Levels and tags" }).check({ force: true });
     await page.getByRole("button", { name: "Add tag" }).click();
     await page.getByLabel("Tag name").fill("Urgent");
+    await page.getByRole("radio", { name: "Box details" }).check({ force: true });
     await expect(page.getByRole("checkbox", { name: "Urgent" })).toBeVisible();
     await page.getByRole("button", { name: "Undo" }).click();
     await expect(page.getByRole("button", { name: "Redo" })).toBeEnabled();
@@ -57,15 +61,15 @@ test.describe("Adv. Project Planner", () => {
     await page.getByLabel("Start a new plan from").selectOption("project");
     await page.getByRole("button", { name: "Create" }).click();
     for (const name of ["Left-to-right", "Radial"]) {
-      await page.getByRole("radio", { name }).check({ force: true });
+      await page.getByRole("button", { name, exact: true }).click();
       await expect(node(page, "Define the scope")).toBeVisible();
     }
-    await page.getByRole("radio", { name: "Top-down" }).check({ force: true });
+    await page.getByRole("button", { name: "Top-down" }).click();
     await page.getByRole("button", { name: "Collapse: Plan" }).click();
     await expect(page.locator("[data-node]", { hasText: "Define the scope" })).toHaveCount(0);
     await page.getByRole("button", { name: "Expand: Plan" }).click();
     await expect(node(page, "Define the scope")).toBeVisible();
-    await page.getByRole("radio", { name: "Outline" }).check({ force: true });
+    await page.getByRole("button", { name: "Outline", exact: true }).click();
     await expect(page.getByRole("tree")).toContainText("Collect feedback");
   });
 
@@ -119,11 +123,25 @@ test.describe("Adv. Project Planner", () => {
     await expect(node(page, "B")).toBeVisible();
   });
 
+  test("the tools sit at the left, the site sidebar is gone, and full screen works", async ({ page }) => {
+    await open(page);
+    await expect(page.getByRole("complementary")).toHaveCount(0);
+    const rail = page.getByRole("navigation", { name: "Planner tools" });
+    const canvas = page.getByTestId("planner-canvas");
+    expect((await rail.boundingBox())!.x).toBeLessThan((await canvas.boundingBox())!.x);
+    await page.getByRole("button", { name: "Full screen" }).click();
+    await expect(page.getByRole("button", { name: "Exit full screen" }).first()).toBeVisible();
+    await expect(node(page, "Item 1")).toBeVisible();
+    await page.getByRole("button", { name: "Exit full screen" }).first().click();
+    await expect(page.getByRole("button", { name: "Full screen" })).toBeVisible();
+  });
+
   test("the Arabic page works", async ({ page }) => {
     await open(page, "/ar/tools/adv-project-planner");
     await expect(page.getByRole("heading", { level: 1 })).toContainText("مخطط المشاريع المتقدم");
+    await page.getByRole("radio", { name: "المستويات والوسوم" }).check({ force: true });
     await expect(page.getByLabel("اسم المستوى 1")).toBeVisible();
-    await page.getByRole("radio", { name: "قائمة" }).check({ force: true });
+    await page.getByRole("button", { name: "قائمة", exact: true }).click();
     await expect(page.getByRole("tree")).toBeVisible();
   });
 });

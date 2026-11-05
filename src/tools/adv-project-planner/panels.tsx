@@ -1,21 +1,18 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox, Field, Select, TextArea, TextInput } from "@/components/ui/form";
 import { Icon } from "@/components/ui/icon";
-import { addChild, addSibling, canRemoveLevel, childrenOf, depths, moveSibling, nodeById, removeNode, STATUSES, subtreeIds, uid, updateNode, levelColor, MAX_LEVELS, type PlannerData, type Status } from "@/lib/planner/model";
+import { canRemoveLevel, depths, nodeById, STATUSES, uid, updateNode, levelColor, MAX_LEVELS, type PlannerData, type Status } from "@/lib/planner/model";
 import type { PlannerStrings } from "./strings";
 
 type Commit = (next: PlannerData) => void;
 
-/** Details and actions for the selected box. */
-export function Inspector({ data, id, commit, select, readOnly, t }: { data: PlannerData; id: string | null; commit: Commit; select: (id: string | null) => void; readOnly: boolean; t: PlannerStrings }) {
-  const [confirm, setConfirm] = useState<string | null>(null);
+/** Details of the selected box. (The actions that change the structure live in the tool list beside the map.) */
+export function Inspector({ data, id, commit, readOnly, t }: { data: PlannerData; id: string | null; commit: Commit; readOnly: boolean; t: PlannerStrings }) {
   const node = id ? nodeById(data, id) : undefined;
   if (!node) return <p className="rounded-xl border border-dashed border-line-strong p-4 text-sm text-muted">{t.pick}</p>;
   const level = data.levels[depths(data).get(node.id) ?? 0];
-  const inside = subtreeIds(data, node.id).size - 1;
   const set = (patch: Parameters<typeof updateNode>[2]) => commit(updateNode(data, node.id, patch));
 
   if (readOnly) {
@@ -31,23 +28,18 @@ export function Inspector({ data, id, commit, select, readOnly, t }: { data: Pla
     );
   }
 
-  const isRoot = node.parent === null;
-  const sibs = node.parent ? childrenOf(data, node.parent) : [];
-  const at = sibs.findIndex((s) => s.id === node.id);
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-line bg-surface p-4" data-testid="planner-details">
       <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: level?.color }}>{t.level}: {level?.name}</p>
       <Field label={t.title}>{(p) => <TextInput {...p} value={node.title} onChange={(e) => set({ title: e.target.value.slice(0, 200) })} placeholder={t.untitled} />}</Field>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Field label={t.status}>
-          {(p) => (
-            <Select {...p} value={node.status} onChange={(e) => set({ status: e.target.value as Status })}>
-              {STATUSES.map((s) => <option key={s} value={s}>{t.statuses[s]}</option>)}
-            </Select>
-          )}
-        </Field>
-        <Field label={t.due}>{(p) => <TextInput {...p} type="date" dir="ltr" value={node.due} onChange={(e) => set({ due: e.target.value })} />}</Field>
-      </div>
+      <Field label={t.status}>
+        {(p) => (
+          <Select {...p} value={node.status} onChange={(e) => set({ status: e.target.value as Status })}>
+            {STATUSES.map((s) => <option key={s} value={s}>{t.statuses[s]}</option>)}
+          </Select>
+        )}
+      </Field>
+      <Field label={t.due}>{(p) => <TextInput {...p} type="date" dir="ltr" value={node.due} onChange={(e) => set({ due: e.target.value })} />}</Field>
       <Field label={t.note}>{(p) => <TextArea {...p} rows={3} value={node.note} onChange={(e) => set({ note: e.target.value.slice(0, 2000) })} />}</Field>
       {data.tags.length > 0 && (
         <fieldset className="flex flex-col gap-1">
@@ -56,20 +48,6 @@ export function Inspector({ data, id, commit, select, readOnly, t }: { data: Pla
             <Checkbox key={tag.id} label={<span className="inline-flex items-center gap-2"><span className="size-3 rounded-full" style={{ background: tag.color }} />{tag.name || t.newTag}</span>} checked={node.tags.includes(tag.id)} onChange={(e) => set({ tags: e.target.checked ? [...node.tags, tag.id] : node.tags.filter((x) => x !== tag.id) })} />
           ))}
         </fieldset>
-      )}
-      <div className="flex flex-wrap gap-2 border-t border-line pt-3">
-        <Button size="sm" onClick={() => { const r = addChild(data, node.id, ""); commit(r.data); select(r.id); }}><Icon name="plus" size={15} /> {t.addChild}</Button>
-        {!isRoot && <Button size="sm" variant="secondary" onClick={() => { const r = addSibling(data, node.id, ""); commit(r.data); select(r.id); }}>{t.addSibling}</Button>}
-        {!isRoot && <Button size="sm" variant="ghost" disabled={at <= 0} onClick={() => commit(moveSibling(data, node.id, -1))}>{t.earlier}</Button>}
-        {!isRoot && <Button size="sm" variant="ghost" disabled={at < 0 || at >= sibs.length - 1} onClick={() => commit(moveSibling(data, node.id, 1))}>{t.later}</Button>}
-        {!isRoot && confirm !== node.id && <Button size="sm" variant="ghost" className="text-danger" onClick={() => (inside > 0 ? setConfirm(node.id) : (select(node.parent), commit(removeNode(data, node.id))))}><Icon name="trash" size={15} /> {t.remove}</Button>}
-      </div>
-      {confirm === node.id && (
-        <div role="alert" className="flex flex-wrap items-center gap-2 rounded-lg bg-danger-soft p-3 text-sm">
-          <span className="flex-1">{t.removeBranch(inside)}</span>
-          <Button size="sm" variant="secondary" onClick={() => setConfirm(null)}>{t.cancel}</Button>
-          <Button size="sm" className="!bg-danger" onClick={() => { setConfirm(null); select(node.parent); commit(removeNode(data, node.id)); }}>{t.confirmRemove}</Button>
-        </div>
       )}
     </div>
   );
@@ -82,7 +60,7 @@ export function StructurePanel({ data, commit, t }: { data: PlannerData; commit:
   const setLevel = (i: number, patch: Partial<{ name: string; color: string }>) => commit({ ...data, levels: data.levels.map((l, k) => (k === i ? { ...l, ...patch } : l)) });
   const setTag = (id: string, patch: Partial<{ name: string; color: string }>) => commit({ ...data, tags: data.tags.map((x) => (x.id === id ? { ...x, ...patch } : x)) });
   return (
-    <div className="grid gap-6 @2xl:grid-cols-2">
+    <div className="flex flex-col gap-6">
       <section aria-labelledby="levels-h" className="flex flex-col gap-3">
         <div>
           <h3 id="levels-h" className="text-sm font-semibold">{t.levels}</h3>

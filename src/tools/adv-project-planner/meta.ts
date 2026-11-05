@@ -16,6 +16,7 @@ export const meta: ToolDefinition = {
   status: "active",
   processingMode: "browser-local",
   privacyNote: "Your plan is built and saved in this browser. It is never uploaded. A shared link carries the plan inside the link itself, not on our servers.",
+  fullWidth: true,
   seoTitle: "Project Planner and Org Chart Maker Online Free | Artify Tools",
   seoDescription: "Plan projects, org charts and processes with levels you name yourself. Top-down, left-to-right, radial and outline layouts, export, and read-only links. Free and private.",
   lastUpdated: "2026-11-05",

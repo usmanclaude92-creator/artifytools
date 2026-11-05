@@ -3,7 +3,7 @@ import {
   ChevronDown, ChevronRight, ChevronUp, Combine, Scissors, File, LoaderCircle, Trash2, FolderArchive, CircleAlert, CircleCheck, Clock, Cloud, Copy, Download, Eraser, ExternalLink,
   FileText, Fingerprint, Image, Info, KeyRound, Laptop, Layers, Link2, ListX, Lock, Menu, Palette, Percent,
   Crop, FlipHorizontal2, RotateCw, Printer, QrCode, Receipt, RefreshCw, RotateCcw, Search, Server, ShieldCheck, SlidersHorizontal, Sparkles, Sun, Moon,
-  Tag, TriangleAlert, Code, Signature, FilePen, Eye, Database, Type, Upload, WholeWord, X, Zap, Wand2, Globe, Hash, Plus, Minus, Columns3, Rows3,
+  Tag, TriangleAlert, Code, Signature, FilePen, Eye, Database, Type, Upload, WholeWord, X, Zap, Wand2, Globe, Hash, Plus, Minus, Columns3, Rows3, Maximize2, Minimize2,
   type LucideIcon,
 } from "lucide-react";
 
@@ -27,6 +27,8 @@ const icons = {
   loader: LoaderCircle,
   trash: Trash2,
   plus: Plus,
+  maximize: Maximize2,
+  minimize: Minimize2,
   minus: Minus,
   columns: Columns3,
   rows: Rows3,

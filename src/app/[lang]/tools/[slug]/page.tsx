@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { WithSidebar } from "@/components/layout/with-sidebar";
+import type { ReactNode } from "react";
 import { ToolWorkspace } from "@/components/tools/tool-components";
 import { Examples, Faq, HowTo, PrivacyDisclosure, RelatedTools, StatusNotice, ToolHeader } from "@/components/tools/tool-sections";
 import { JsonLd } from "@/components/ui/json-ld";
@@ -14,6 +15,11 @@ import { getLocale, getT } from "@/lib/locale-server";
 import { localizeHref } from "@/lib/i18n";
 
 type Params = { slug: string };
+
+/** The usual page has a sidebar of related tools; a full-width tool (a big workspace) goes without. */
+function MaybeSidebar({ on, sidebar, children }: { on: boolean; sidebar: ReactNode; children: ReactNode }) {
+  return on ? <WithSidebar sidebar={sidebar}>{children}</WithSidebar> : <div className="min-w-0 @container">{children}</div>;
+}
 
 export function generateStaticParams(): Params[] {
   return getPublishedTools().map((t) => ({ slug: t.slug }));
@@ -100,7 +106,7 @@ export default async function ToolPage({ params }: { params: Promise<Params> }) 
         </div>
       </div>
       <div className="container-page py-8 sm:py-10">
-        <WithSidebar sidebar={<RelatedTools tools={related} />}>
+        <MaybeSidebar on={!tool.fullWidth} sidebar={<RelatedTools tools={related} />}>
           <StatusNotice tool={tool} />
           {/* The workspace comes first: people arrive to use the tool, not to read about it. */}
           {tool.status !== "coming-soon" && <ToolWorkspace toolId={tool.id} />}
@@ -122,7 +128,8 @@ export default async function ToolPage({ params }: { params: Promise<Params> }) 
               </div>
             </section>
           </div>
-        </WithSidebar>
+          {tool.fullWidth && <div className="mt-6"><RelatedTools tools={related} /></div>}
+        </MaybeSidebar>
       </div>
     </>
   );

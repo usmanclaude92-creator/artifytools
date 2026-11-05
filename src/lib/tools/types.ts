@@ -76,6 +76,8 @@ export interface ToolDefinition {
   aiPowered?: boolean;
   /** Set only when real pricing exists. Currently unused. */
   pricing?: { model: "free" | "paid"; note?: string };
+  /** Give the page the full width and no sidebar (for tools that are a big workspace). */
+  fullWidth?: boolean;
   seoTitle: string;
   seoDescription: string;
   /** ISO date (YYYY-MM-DD) the tool was added / last materially updated. */

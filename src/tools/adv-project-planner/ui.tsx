@@ -6,12 +6,13 @@ import { Button } from "@/components/ui/button";
 import { downloadBlob } from "@/components/ui/actions";
 import { StatusMessage } from "@/components/ui/feedback";
 import { Field, Segmented, Select, TextArea, TextInput } from "@/components/ui/form";
+import type { IconName } from "@/components/ui/icon";
 import { Icon } from "@/components/ui/icon";
 import { useLocale } from "@/components/i18n/locale-provider";
 import { safeFileName } from "@/lib/files/names";
 import { toSvg } from "@/lib/planner/export";
 import { layout, type LayoutKind } from "@/lib/planner/layout";
-import { nodeById, parseOutline, sanitize, setCollapsedAll, TEMPLATE_IDS, template, updateNode, type PlannerData, type TemplateId } from "@/lib/planner/model";
+import { addChild, addSibling, childrenOf, moveSibling, nodeById, parseOutline, removeNode, sanitize, setCollapsedAll, subtreeIds, TEMPLATE_IDS, template, updateNode, type PlannerData, type TemplateId } from "@/lib/planner/model";
 import { decodeShare, shareLink, tokenFromHash } from "@/lib/planner/share";
 import { loadStored, newMapId, saveStored, type StoredMap } from "@/lib/planner/store";
 import { finish, lib } from "@/lib/pdf/pdf";
@@ -41,6 +42,20 @@ async function svgToPng(svg: string, width: number, height: number): Promise<Blo
   }
 }
 
+function Tool({ icon, label, onClick, disabled, pressed, danger }: { icon: IconName; label: string; onClick: () => void; disabled?: boolean; pressed?: boolean; danger?: boolean }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={pressed}
+      disabled={disabled}
+      onClick={onClick}
+      className={`inline-flex min-h-9 items-center gap-2 rounded-lg px-2.5 text-start text-sm font-medium hover:bg-surface-2 disabled:pointer-events-none disabled:opacity-40 aria-pressed:bg-accent-soft aria-pressed:text-accent-text @4xl:w-full ${danger ? "text-danger" : ""}`}
+    >
+      <Icon name={icon} size={16} className="shrink-0" /> {label}
+    </button>
+  );
+}
+
 export default function AdvProjectPlanner() {
   const locale = useLocale();
   const t = strings[locale];
@@ -58,6 +73,10 @@ export default function AdvProjectPlanner() {
   const [outline, setOutline] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [counts, setCounts] = useState({ undo: 0, redo: 0 });
+  const [full, setFull] = useState(false);
+  const [tab, setTab] = useState<"details" | "structure">("details");
+  const [confirmBox, setConfirmBox] = useState<string | null>(null);
+  const wrap = useRef<HTMLDivElement>(null);
   const hist = useRef<{ past: PlannerData[]; future: PlannerData[]; at: number }>({ past: [], future: [], at: 0 });
   const loaded = useRef(false);
 
@@ -231,6 +250,113 @@ export default function AdvProjectPlanner() {
 
   const hasKids = useMemo(() => data.nodes.some((n) => n.parent), [data]);
 
+  // Full screen: the browser's own full-screen mode where it exists, otherwise the same layout laid over the page.
+  async function toggleFull() {
+    if (full) {
+      if (document.fullscreenElement) await document.exitFullscreen().catch(() => undefined);
+      setFull(false);
+      return;
+    }
+    setFull(true);
+    try { await wrap.current?.requestFullscreen?.(); } catch { /* the overlay still works */ }
+  }
+  useEffect(() => {
+    const onChange = () => { if (!document.fullscreenElement) setFull(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape" && !document.fullscreenElement) setFull(false); };
+    document.addEventListener("fullscreenchange", onChange);
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("fullscreenchange", onChange); document.removeEventListener("keydown", onKey); };
+  }, []);
+  useEffect(() => {
+    if (!full) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [full]);
+
+  // The tools beside the map act on the selected box.
+  const sel = selected ? nodeById(data, selected) : undefined;
+  const sibs = sel?.parent ? childrenOf(data, sel.parent) : [];
+  const at = sel ? sibs.findIndex((x) => x.id === sel.id) : -1;
+  const inside = sel ? subtreeIds(data, sel.id).size - 1 : 0;
+  const addChildSel = () => { if (!sel) return; const r = addChild(data, sel.id, ""); commit(r.data); setSelected(r.id); setTab("details"); };
+  const addSiblingSel = () => { if (!sel?.parent) return; const r = addSibling(data, sel.id, ""); commit(r.data); setSelected(r.id); setTab("details"); };
+  const doRemove = () => { if (!sel?.parent) return; setConfirmBox(null); setSelected(sel.parent); commit(removeNode(data, sel.id)); };
+  const removeSel = () => { if (!sel?.parent) return; if (inside > 0) setConfirmBox(sel.id); else doRemove(); };
+
+  const group = (title: string, items: React.ReactNode) => (
+    <div role="group" aria-label={title} className="flex flex-col gap-1">
+      <p className="px-1 text-[11px] font-semibold uppercase tracking-wide text-muted">{title}</p>
+      <div className="flex flex-wrap gap-1 @4xl:flex-col @4xl:flex-nowrap">{items}</div>
+    </div>
+  );
+  const layoutIcons: Record<ViewKind, IconName> = { down: "rows", right: "columns", radial: "globe", outline: "menu" };
+
+  const rail = (
+    <nav aria-label={t.toolsLabel} className="flex flex-col gap-4 rounded-xl border border-line bg-surface p-3 @4xl:sticky @4xl:top-24 @4xl:self-start">
+      {group(t.railLayout, (["down", "right", "radial", "outline"] as ViewKind[]).map((v) => <Tool key={t.views[v]} icon={layoutIcons[v]} label={t.views[v]} onClick={() => setView(v)} pressed={view === v} />))}
+      {!readOnly && group(t.railEdit, [
+        <Tool key={t.addChild} icon={"plus"} label={t.addChild} onClick={addChildSel} disabled={!sel} />,
+        <Tool key={t.addSibling} icon={"rows"} label={t.addSibling} onClick={addSiblingSel} disabled={!sel?.parent} />,
+        <Tool key={t.earlier} icon={"chevron-up"} label={t.earlier} onClick={() => sel && commit(moveSibling(data, sel.id, -1))} disabled={!sel?.parent || at <= 0} />,
+        <Tool key={t.later} icon={"chevron-down"} label={t.later} onClick={() => sel && commit(moveSibling(data, sel.id, 1))} disabled={!sel?.parent || at < 0 || at >= sibs.length - 1} />,
+        <Tool key={t.remove} icon={"trash"} label={t.remove} onClick={removeSel} disabled={!sel?.parent} danger={true} />,
+      ])}
+      {confirmBox && confirmBox === selected && (
+        <div className="flex flex-col gap-2 rounded-lg bg-danger-soft p-2.5 text-sm">
+          <span>{t.removeBranch(inside)}</span>
+          <div className="flex gap-2">
+            <Button size="sm" className="!bg-danger" onClick={doRemove}>{t.confirmRemove}</Button>
+            <Button size="sm" variant="secondary" onClick={() => setConfirmBox(null)}>{t.cancel}</Button>
+          </div>
+        </div>
+      )}
+      {group(t.railView, [
+        ...(readOnly ? [] : [<Tool key={t.undo} icon={"rotate-ccw"} label={t.undo} onClick={undo} disabled={counts.undo === 0} />, <Tool key={t.redo} icon={"rotate-cw"} label={t.redo} onClick={redo} disabled={counts.redo === 0} />]),
+        ...(hasKids ? [
+          <Tool key={t.collapseAll} icon={"chevron-up"} label={t.collapseAll} onClick={() => (readOnly ? setData(setCollapsedAll(data, true)) : commit(setCollapsedAll(data, true)))} />,
+          <Tool key={t.expandAll} icon={"chevron-down"} label={t.expandAll} onClick={() => (readOnly ? setData(setCollapsedAll(data, false)) : commit(setCollapsedAll(data, false)))} />,
+        ] : []),
+        <Tool key={full ? t.exitFullScreen : t.fullScreen} icon={full ? "minimize" : "maximize"} label={full ? t.exitFullScreen : t.fullScreen} onClick={() => void toggleFull()} pressed={full} />,
+      ])}
+      {group(t.railShare, [
+        <Tool key={t.share} icon={"link"} label={t.share} onClick={() => void share()} />,
+        ...(["png", "svg", "pdf", "json"] as const).map((k) => <Tool key={k} icon={"download"} label={t[k]} onClick={() => void exportAs(k)} disabled={busy !== null} />),
+      ])}
+      {busy && <p className="px-1 text-xs text-muted">{busy}</p>}
+    </nav>
+  );
+
+  const center = view === "outline" ? (
+    <div style={full ? { maxHeight: "calc(100dvh - 7rem)", overflow: "auto" } : undefined}>
+      <OutlineView data={data} selected={selected} onSelect={setSelected} onToggle={toggle} t={t} />
+    </div>
+  ) : (
+    <MapCanvas data={data} kind={kind} selected={selected} onSelect={setSelected} onToggle={toggle} t={t} fitKey={fitKey} full={full} />
+  );
+
+  const side = (
+    <div className="flex min-w-0 flex-col gap-3" style={full ? { maxHeight: "calc(100dvh - 7rem)", overflow: "auto" } : undefined}>
+      {!readOnly && <Segmented legend={t.panelTabs} value={tab} onChange={setTab} options={[{ value: "details", label: t.details }, { value: "structure", label: t.structure }]} />}
+      {tab === "details" || readOnly ? <Inspector data={data} id={selected} commit={commit} readOnly={readOnly} t={t} /> : <StructurePanel data={data} commit={commit} t={t} />}
+    </div>
+  );
+
+  const workspace = (
+    <div className="grid gap-4 @4xl:grid-cols-[12.5rem_minmax(0,1fr)_17.5rem] @4xl:items-start">
+      {rail}
+      <div className="min-w-0">{center}</div>
+      {side}
+    </div>
+  );
+
+  const extras = (
+    <>
+      {link && <Field label={t.shareField}>{(p) => <TextInput {...p} readOnly dir="ltr" value={link} onFocus={(e) => e.currentTarget.select()} />}</Field>}
+      {notice && <StatusMessage tone={notice.tone}>{notice.text}</StatusMessage>}
+    </>
+  );
+
   return (
     <div className="flex flex-col gap-5">
       {readOnly && (
@@ -243,50 +369,26 @@ export default function AdvProjectPlanner() {
         </div>
       )}
 
-      <Panel title={data.name}>
-        <div className="flex flex-wrap items-center gap-3">
-          <Segmented legend={t.viewLabel} value={view} onChange={setView} options={(["down", "right", "radial", "outline"] as ViewKind[]).map((v) => ({ value: v, label: t.views[v] }))} />
-          <div className="flex flex-wrap items-center gap-1.5">
-            {!readOnly && (
-              <>
-                <Button size="sm" variant="secondary" aria-label={t.undo} title={t.undo} disabled={counts.undo === 0} onClick={undo}><Icon name="rotate-ccw" size={16} /></Button>
-                <Button size="sm" variant="secondary" aria-label={t.redo} title={t.redo} disabled={counts.redo === 0} onClick={redo}><Icon name="rotate-cw" size={16} /></Button>
-              </>
-            )}
-            {hasKids && (
-              <>
-                <Button size="sm" variant="ghost" onClick={() => (readOnly ? setData(setCollapsedAll(data, true)) : commit(setCollapsedAll(data, true)))}>{t.collapseAll}</Button>
-                <Button size="sm" variant="ghost" onClick={() => (readOnly ? setData(setCollapsedAll(data, false)) : commit(setCollapsedAll(data, false)))}>{t.expandAll}</Button>
-              </>
-            )}
+      <div ref={wrap} className="@container">
+        {full ? (
+          <div className="fixed inset-0 z-50 flex flex-col gap-3 overflow-auto bg-canvas p-3 text-fg">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="min-w-0 truncate text-lg font-semibold">{data.name}</h2>
+              <Button size="sm" variant="secondary" onClick={() => void toggleFull()}><Icon name="minimize" size={15} /> {t.exitFullScreen}</Button>
+            </div>
+            {workspace}
+            {extras}
           </div>
-        </div>
-
-        <div className="grid gap-4 @4xl:grid-cols-[minmax(0,1fr)_20rem] @4xl:items-start">
-          {view === "outline" ? (
-            <OutlineView data={data} selected={selected} onSelect={setSelected} onToggle={toggle} t={t} />
-          ) : (
-            <MapCanvas data={data} kind={kind} selected={selected} onSelect={setSelected} onToggle={toggle} t={t} fitKey={fitKey} />
-          )}
-          <Inspector data={data} id={selected} commit={commit} select={setSelected} readOnly={readOnly} t={t} />
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 border-t border-line pt-4">
-          <Button size="sm" variant="secondary" onClick={share}><Icon name="link" size={15} /> {t.share}</Button>
-          <span className="text-sm font-medium text-muted">{t.exportTitle}:</span>
-          {(["png", "svg", "pdf", "json"] as const).map((k) => (
-            <Button key={k} size="sm" variant="ghost" disabled={busy !== null} onClick={() => void exportAs(k)}><Icon name="download" size={15} /> {t[k]}</Button>
-          ))}
-          {busy && <span className="text-sm text-muted">{busy}</span>}
-        </div>
-        {link && <Field label={t.shareField}>{(p) => <TextInput {...p} readOnly dir="ltr" value={link} onFocus={(e) => e.currentTarget.select()} />}</Field>}
-        {notice && <StatusMessage tone={notice.tone}>{notice.text}</StatusMessage>}
-      </Panel>
+        ) : (
+          <Panel title={data.name}>
+            {workspace}
+            {extras}
+          </Panel>
+        )}
+      </div>
 
       {!readOnly && (
         <>
-          <Panel title={t.structure}><StructurePanel data={data} commit={commit} t={t} /></Panel>
-
           <Panel title={t.mapsTitle}>
             <div className="grid gap-5 @3xl:grid-cols-2">
               <div className="flex flex-col gap-3">

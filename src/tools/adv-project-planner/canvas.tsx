@@ -14,7 +14,7 @@ const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 interface View { x: number; y: number; k: number }
 
 /** The plan drawn on a canvas you can drag and zoom. Boxes are real buttons, so the keyboard and screen readers work. */
-export function MapCanvas({ data, kind, selected, onSelect, onToggle, t, fitKey }: {
+export function MapCanvas({ data, kind, selected, onSelect, onToggle, t, fitKey, full = false }: {
   data: PlannerData;
   kind: LayoutKind;
   selected: string | null;
@@ -23,6 +23,8 @@ export function MapCanvas({ data, kind, selected, onSelect, onToggle, t, fitKey 
   t: PlannerStrings;
   /** Changes when the view should be fitted again (new plan, new layout). */
   fitKey: string;
+  /** Full-screen mode: as tall as the screen. */
+  full?: boolean;
 }) {
   const lay = useMemo(() => layout(data, kind), [data, kind]);
   const dep = useMemo(() => depths(data), [data]);
@@ -51,17 +53,18 @@ export function MapCanvas({ data, kind, selected, onSelect, onToggle, t, fitKey 
   useEffect(() => {
     const el = box.current;
     if (!el) return;
-    const measure = () => { setWidth(el.clientWidth); setMaxH(Math.round(window.innerHeight * 0.7)); };
+    const measure = () => { setWidth(el.clientWidth); setMaxH(full ? Math.max(340, window.innerHeight - 96) : Math.round(window.innerHeight * 0.7)); };
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-  const height = width ? Math.round(Math.min(maxH, Math.max(340, (width * lay.height) / Math.max(lay.width, 1) + 64))) : 480;
+    window.addEventListener("resize", measure);
+    return () => { ro.disconnect(); window.removeEventListener("resize", measure); };
+  }, [full]);
+  const height = full ? maxH : width ? Math.round(Math.min(maxH, Math.max(340, (width * lay.height) / Math.max(lay.width, 1) + 64))) : 480;
 
   const measured = width > 0;
   // Refit only when the plan or layout is replaced, not on every edit.
-  useLayoutEffect(() => { fit(); }, [fitKey, kind, fit, measured]);
+  useLayoutEffect(() => { fit(); }, [fitKey, kind, fit, measured, full]);
 
   const zoomAt = useCallback((factor: number, cx?: number, cy?: number) => {
     const el = box.current;

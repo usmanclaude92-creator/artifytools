@@ -11,7 +11,7 @@ export interface PlannerStrings {
   tags: string; tagsHelp: string; tagName: string; addTag: string; removeTag: string; newTag: string;
   details: string; pick: string; title: string; note: string; status: string; due: string; tagsOf: string; level: string; statuses: Record<Status, string>;
   addChild: string; addSibling: string; earlier: string; later: string; remove: string; removeBranch: (n: number) => string; confirmRemove: string; cancel: string; untitled: string; newBox: string; childrenCount: (n: number) => string;
-  expand: string; collapse: string; mapLabel: string; emptyHint: string;
+  expand: string; collapse: string; mapLabel: string; emptyHint: string; toolsLabel: string; railLayout: string; railEdit: string; railView: string; railShare: string; fullScreen: string; exitFullScreen: string; panelTabs: string;
   names: { blank: string; project: string; company: string; process: string; root: Record<TemplateId, string>; levels: Record<TemplateId, string[]> };
   defaultName: string;
 }
@@ -31,7 +31,7 @@ export const strings: Record<"en" | "ar", PlannerStrings> = {
     details: "Box details", pick: "Select a box to see and edit its details.", title: "Title", note: "Notes", status: "Status", due: "Due date", tagsOf: "Tags", level: "Level",
     statuses: { none: "No status", todo: "To do", doing: "In progress", done: "Done", blocked: "Blocked" },
     addChild: "Add child", addSibling: "Add sibling", earlier: "Move earlier", later: "Move later", remove: "Delete", removeBranch: (n) => `Delete this box and ${n} inside it`, confirmRemove: "Yes, delete", cancel: "Cancel", untitled: "Untitled", newBox: "New box", childrenCount: (n) => `${n} inside`,
-    expand: "Expand", collapse: "Collapse", mapLabel: "Plan map", emptyHint: "Select a box, then use Add child to grow the plan.",
+    expand: "Expand", collapse: "Collapse", mapLabel: "Plan map", emptyHint: "Select a box, then use Add child to grow the plan.", toolsLabel: "Planner tools", railLayout: "Layout", railEdit: "Edit the selected box", railView: "View", railShare: "Share and export", fullScreen: "Full screen", exitFullScreen: "Exit full screen", panelTabs: "Panel",
     names: {
       blank: "Blank plan", project: "Project plan", company: "Company structure", process: "Process map",
       root: { blank: "My plan", project: "Launch the product", company: "My company", process: "Order to delivery" },
@@ -53,7 +53,7 @@ export const strings: Record<"en" | "ar", PlannerStrings> = {
     details: "تفاصيل المربع", pick: "اختر مربعًا لعرض تفاصيله وتعديلها.", title: "العنوان", note: "ملاحظات", status: "الحالة", due: "تاريخ الاستحقاق", tagsOf: "الوسوم", level: "المستوى",
     statuses: { none: "بلا حالة", todo: "للتنفيذ", doing: "قيد التنفيذ", done: "منجز", blocked: "متعثر" },
     addChild: "إضافة فرع", addSibling: "إضافة مربع مجاور", earlier: "تقديم", later: "تأخير", remove: "حذف", removeBranch: (n) => `حذف هذا المربع و${n} بداخله`, confirmRemove: "نعم، احذف", cancel: "إلغاء", untitled: "بلا عنوان", newBox: "مربع جديد", childrenCount: (n) => `${n} بداخله`,
-    expand: "توسيع", collapse: "طي", mapLabel: "خريطة الخطة", emptyHint: "اختر مربعًا ثم استخدم «إضافة فرع» لتوسيع الخطة.",
+    expand: "توسيع", collapse: "طي", mapLabel: "خريطة الخطة", emptyHint: "اختر مربعًا ثم استخدم «إضافة فرع» لتوسيع الخطة.", toolsLabel: "أدوات المخطط", railLayout: "التخطيط", railEdit: "تعديل المربع المحدد", railView: "العرض", railShare: "المشاركة والتصدير", fullScreen: "ملء الشاشة", exitFullScreen: "إنهاء ملء الشاشة", panelTabs: "اللوحة",
     names: {
       blank: "خطة فارغة", project: "خطة مشروع", company: "هيكل شركة", process: "خريطة عملية",
       root: { blank: "خطتي", project: "إطلاق المنتج", company: "شركتي", process: "من الطلب إلى التسليم" },
