@@ -32,7 +32,6 @@ import { metaAr as pdfToExcel } from "@/tools/pdf-to-excel/meta.ar";
 import { metaAr as rotatePdf } from "@/tools/rotate-pdf/meta.ar";
 import { metaAr as cropPdf } from "@/tools/crop-pdf/meta.ar";
 import { metaAr as removePages } from "@/tools/remove-pages-from-pdf/meta.ar";
-import { metaAr as advProjectPlanner } from "@/tools/adv-project-planner/meta.ar";
 import { metaAr as organizePdf } from "@/tools/organize-pdf/meta.ar";
 import { metaAr as addPageNumbers } from "@/tools/add-page-numbers/meta.ar";
 import { metaAr as watermarkPdf } from "@/tools/watermark-pdf/meta.ar";
@@ -86,7 +85,6 @@ export const toolTranslationsAr: Record<string, ToolTranslation> = {
   "rotate-pdf": rotatePdf,
   "crop-pdf": cropPdf,
   "remove-pages-from-pdf": removePages,
-  "adv-project-planner": advProjectPlanner,
   "organize-pdf": organizePdf,
   "add-page-numbers": addPageNumbers,
   "watermark-pdf": watermarkPdf,
