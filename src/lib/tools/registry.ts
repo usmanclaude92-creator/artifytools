@@ -39,6 +39,7 @@ import { meta as pdfToExcel } from "@/tools/pdf-to-excel/meta";
 import { meta as rotatePdf } from "@/tools/rotate-pdf/meta";
 import { meta as cropPdf } from "@/tools/crop-pdf/meta";
 import { meta as removePages } from "@/tools/remove-pages-from-pdf/meta";
+import { meta as advProjectPlanner } from "@/tools/adv-project-planner/meta";
 import { meta as organizePdf } from "@/tools/organize-pdf/meta";
 import { meta as addPageNumbers } from "@/tools/add-page-numbers/meta";
 import { meta as watermarkPdf } from "@/tools/watermark-pdf/meta";
@@ -101,6 +102,7 @@ export const tools: readonly ToolDefinition[] = [
   rotatePdf,
   cropPdf,
   removePages,
+  advProjectPlanner,
   organizePdf,
   addPageNumbers,
   watermarkPdf,

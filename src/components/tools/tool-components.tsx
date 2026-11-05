@@ -56,6 +56,7 @@ const components: Record<string, ComponentType> = {
   "rotate-pdf": load(() => import("@/tools/rotate-pdf/ui")),
   "crop-pdf": load(() => import("@/tools/crop-pdf/ui")),
   "remove-pages-from-pdf": load(() => import("@/tools/remove-pages-from-pdf/ui")),
+  "adv-project-planner": load(() => import("@/tools/adv-project-planner/ui")),
   "organize-pdf": load(() => import("@/tools/organize-pdf/ui")),
   "add-page-numbers": load(() => import("@/tools/add-page-numbers/ui")),
   "watermark-pdf": load(() => import("@/tools/watermark-pdf/ui")),
