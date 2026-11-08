@@ -13,6 +13,8 @@ import { getPublishedTools, getRelatedTools, getTool, toDirectoryItem } from "@/
 import { localizeCategory, localizeTool } from "@/lib/tools/localize";
 import { getLocale, getT } from "@/lib/locale-server";
 import { localizeHref } from "@/lib/i18n";
+import { GuideList } from "@/components/guides/guide-list";
+import { guidesForTool } from "@/lib/guides/guides";
 
 type Params = { slug: string };
 
@@ -54,6 +56,7 @@ export default async function ToolPage({ params }: { params: Promise<Params> }) 
   const category = localizeCategory(getCategory(tool.category), locale);
   const related = getRelatedTools(raw, 8).map((r) => toDirectoryItem(r, locale));
   const url = abs(`/tools/${tool.slug}`);
+  const toolGuides = guidesForTool(tool.id);
 
   const structuredData: Record<string, unknown>[] = [
     {
@@ -127,6 +130,12 @@ export default async function ToolPage({ params }: { params: Promise<Params> }) 
                 ))}
               </div>
             </section>
+            {toolGuides.length > 0 && (
+              <section aria-labelledby="guides-heading" lang="en" dir="ltr" className="card p-5">
+                <h2 id="guides-heading" className="text-[0.95rem] font-semibold">Guides</h2>
+                <div className="mt-4"><GuideList items={toolGuides} /></div>
+              </section>
+            )}
           </div>
           {tool.fullWidth && <div className="mt-6"><RelatedTools tools={related} /></div>}
         </MaybeSidebar>

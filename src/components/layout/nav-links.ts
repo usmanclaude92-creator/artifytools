@@ -32,6 +32,7 @@ export const footerGroups: readonly { title: "explore" | "company" | "legal"; li
       { href: "/about", key: "about" },
       { href: "/contact", key: "contact" },
       { href: "/help", key: "help" },
+      { href: "/guides", key: "guides" },
       { href: "/changelog", key: "changelog" },
     ],
   },

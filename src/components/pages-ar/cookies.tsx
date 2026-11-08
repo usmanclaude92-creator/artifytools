@@ -1,3 +1,4 @@
+import { adsenseClient } from "@/lib/adsense";
 import { AnalyticsChoice } from "@/components/layout/google-analytics";
 import Link from "@/components/ui/locale-link";
 import { PageHeader } from "@/components/layout/page-header";
@@ -22,6 +23,13 @@ export function CookiesAr() {
             <li><code>_ga</code> و<code>_ga_G-3ENMEZHTYZ</code> — يضعها Google Analytics بعد موافقتك فقط. تميّز الزيارات لنحصيها، وتدوم حتى سنتين.</li>
           </ul>
           <p>نعطّل ميزات الإعلانات لدى Google ونحذف معاملات الاستعلام من عنوان الصفحة قبل إرساله. اختر «رفض» أعلاه (أو امسح بيانات الموقع) لإيقافه في أي وقت.</p>
+
+          {adsenseClient() && (
+            <>
+              <h2>الإعلانات</h2>
+              <p>تعرض بعض الصفحات إعلانات من Google AdSense. قد تستخدم Google وشركاؤها ملفات تعريف الارتباط أو تقنيات مشابهة لعرض الإعلانات وقياسها. وفي الاتحاد الأوروبي والمملكة المتحدة ومناطق مشابهة لا تُستخدم ملفات الإعلانات إلا بموافقتك عبر رسالة الموافقة التي تعرضها Google. وفي غيرها يمكنك إدارة الإعلانات المخصصة من <a href="https://adssettings.google.com" rel="noopener noreferrer">إعدادات الإعلانات</a> لدى Google، أو الاطلاع على <a href="https://policies.google.com/technologies/ads" rel="noopener noreferrer">سياسة الإعلانات</a> الخاصة بها. لا تُشارك مع المعلنين أي نصوص تكتبها في الأدوات ولا أي ملفات تفتحها.</p>
+            </>
+          )}
 
           <h2>ما نحفظه في متصفحك</h2>
           <p>الشيء الوحيد المحفوظ هو تفضيلك لمظهر الألوان، إذا اخترت واحداً:</p>

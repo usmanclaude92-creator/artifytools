@@ -1,3 +1,4 @@
+import { adsenseClient } from "@/lib/adsense";
 import type { Metadata } from "next";
 import Link from "@/components/ui/locale-link";
 import { PageHeader } from "@/components/layout/page-header";
@@ -24,7 +25,7 @@ export default async function CookiesPage() {
       <div className="container-page py-10">
         <div className="prose-artify">
           <h2 className="!mt-0">Cookies only if you accept</h2>
-          <p>Artify Tools sets no cookies until you agree. We count page visits with Vercel Web Analytics, which works without cookies, and with Google Analytics. Google Analytics starts in a restricted mode, with no cookies and no identifiers, and only sends anonymous pings (page address without its query string, browser and device type, approximate location). If you accept, it also sets cookies. We load no advertising or cross-site tracking scripts; see the <Link href="/privacy">Privacy Policy</Link> for what is recorded.</p>
+          <p>Artify Tools sets no cookies until you agree. We count page visits with Vercel Web Analytics, which works without cookies, and with Google Analytics. Google Analytics starts in a restricted mode, with no cookies and no identifiers, and only sends anonymous pings (page address without its query string, browser and device type, approximate location). If you accept, it also sets cookies. {adsenseClient() ? "Pages that show Google AdSense ads load Google’s advertising scripts (see Advertising below). " : "We load no advertising or cross-site tracking scripts. "}See the <Link href="/privacy">Privacy Policy</Link> for what is recorded.</p>
           <AnalyticsChoice labels={{ unset: "You haven’t chosen yet. Google Analytics is in cookieless mode.", on: "Analytics cookies are on.", off: "Analytics cookies are off (cookieless mode).", accept: "Accept", decline: "Decline" }} />
 
           <h2>Google Analytics cookies</h2>
@@ -32,6 +33,13 @@ export default async function CookiesPage() {
             <li><code>_ga</code> and <code>_ga_G-3ENMEZHTYZ</code> — set by Google Analytics only after you accept. They tell visits apart so we can count them, and last up to two years.</li>
           </ul>
           <p>We turn off Google’s advertising features, and we remove query strings from the page address before sending it. Choose Decline above (or clear your site data) to turn the cookies off at any time.</p>
+
+          {adsenseClient() && (
+            <>
+              <h2>Advertising</h2>
+              <p>Some pages show ads from Google AdSense. Google and its partners may use cookies or similar technologies to show and measure ads. In the EU, UK and similar regions, ad cookies are used only if you agree through the consent message Google shows. Elsewhere, you can manage personalised ads in Google’s <a href="https://adssettings.google.com" rel="noopener noreferrer">Ads Settings</a>, or learn more in Google’s <a href="https://policies.google.com/technologies/ads" rel="noopener noreferrer">advertising policy</a>. Nothing you type into a tool and no file you open is shared with advertisers.</p>
+            </>
+          )}
 
           <h2>What we store in your browser</h2>
           <p>The only thing saved is your colour-theme preference, if you choose one:</p>

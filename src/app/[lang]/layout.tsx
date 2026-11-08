@@ -10,6 +10,8 @@ import { GoogleAnalytics } from "@/components/layout/google-analytics";
 import { SiteAnalytics } from "@/components/layout/site-analytics";
 import { ToastProvider } from "@/components/ui/toast";
 import { themeInitScript } from "@/components/ui/theme";
+import Script from "next/script";
+import { adsenseClient } from "@/lib/adsense";
 import { siteConfig } from "@/lib/config";
 import { getPopularTools, getPublishedCategories, getToolsByCategory, toDirectoryItem } from "@/lib/tools/registry";
 import { LocaleProvider } from "@/components/i18n/locale-provider";
@@ -51,6 +53,8 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
     applicationName: siteConfig.name,
     openGraph: { type: "website", siteName: siteConfig.name, locale: lang === "ar" ? "ar_AR" : "en_US" },
     twitter: { card: "summary_large_image" },
+    // Lets Google verify site ownership when applying for AdSense.
+    ...(adsenseClient() ? { other: { "google-adsense-account": adsenseClient()! } } : {}),
   };
 }
 
@@ -99,6 +103,9 @@ export default async function RootLayout({ children, params }: { children: React
         </LocaleProvider>
         <SiteAnalytics />
         <GoogleAnalytics />
+        {adsenseClient() && process.env.NEXT_PUBLIC_VERCEL_ENV === "production" && (
+          <Script async src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient()}`} crossOrigin="anonymous" strategy="afterInteractive" />
+        )}
       </body>
     </html>
   );

@@ -1,3 +1,4 @@
+import { adsenseClient } from "@/lib/adsense";
 import type { Metadata } from "next";
 import Link from "@/components/ui/locale-link";
 import { PageHeader } from "@/components/layout/page-header";
@@ -32,7 +33,7 @@ export default async function PrivacyPage() {
             <li>You don’t need an account, and we don’t ask for personal information to use the tools.</li>
             <li>Most tools process what you enter <strong>inside your browser</strong>. That input is not sent to us.</li>
             <li>The exceptions are listed below. They are labelled on the tool’s page before you use them.</li>
-            <li>We don’t use advertising. We count page visits with cookieless analytics, and with Google Analytics (cookies only if you accept); nothing you type into a tool is included.</li>
+            <li>{adsenseClient() ? "Some pages show Google AdSense ads (see Advertising below). " : "We don’t use advertising. "}We count page visits with cookieless analytics, and with Google Analytics (cookies only if you accept); nothing you type into a tool is included.</li>
           </ul>
 
           <h2>How each tool processes your data</h2>
@@ -71,6 +72,13 @@ export default async function PrivacyPage() {
           <p>
             Artify sets no cookies unless you accept analytics cookies. Google Analytics runs in a restricted, cookieless mode until then, sending Google the page address (without its query string), your browser and device type, and approximate location; once you accept it also sets <code>_ga</code> cookies. We switch off its advertising features, and you can decline or withdraw at any time on the <Link href="/cookies">Cookies</Link> page. If you switch themes, your choice is saved in your browser’s local storage under the key <code>artify-theme</code>. See the <Link href="/cookies">Cookies</Link> page.
           </p>
+
+          {adsenseClient() && (
+            <>
+              <h2>Advertising</h2>
+              <p>Some pages show ads from Google AdSense. Google and its partners may use cookies or similar technologies to show and measure ads. In the EU, UK and similar regions, ad cookies are used only if you agree through the consent message Google shows. Elsewhere, you can manage personalised ads in Google’s <a href="https://adssettings.google.com" rel="noopener noreferrer">Ads Settings</a>, or learn more in Google’s <a href="https://policies.google.com/technologies/ads" rel="noopener noreferrer">advertising policy</a>. Nothing you type into a tool and no file you open is shared with advertisers.</p>
+            </>
+          )}
 
           <h2>Your choices and rights</h2>
           <p>
