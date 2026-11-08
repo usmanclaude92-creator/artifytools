@@ -1,9 +1,12 @@
+/** The site's AdSense publisher ID (public: it appears in /ads.txt and in page source). */
+const DEFAULT_CLIENT = "ca-pub-5321065144371084";
+
 /**
- * Google AdSense publisher ID, set in the NEXT_PUBLIC_ADSENSE_CLIENT environment variable as "ca-pub-1234567890123456".
- * Until it is set, no AdSense code is added to pages and /ads.txt does not exist.
+ * Google AdSense publisher ID. NEXT_PUBLIC_ADSENSE_CLIENT overrides it; set it to "off" to remove all AdSense code
+ * from pages and make /ads.txt return 404.
  */
 export function adsenseClient(): string | undefined {
-  const v = process.env.NEXT_PUBLIC_ADSENSE_CLIENT?.trim();
+  const v = (process.env.NEXT_PUBLIC_ADSENSE_CLIENT?.trim() || DEFAULT_CLIENT);
   return v && /^ca-pub-\d{10,20}$/.test(v) ? v : undefined;
 }
 

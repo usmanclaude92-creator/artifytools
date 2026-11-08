@@ -24,10 +24,12 @@ test.describe("Guides", () => {
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://tools.artifysols.com/guides/how-to-merge-pdf-files");
   });
 
-  test("ads.txt does not exist until AdSense is set up, and no ad code is on the page", async ({ request, page }) => {
-    expect((await request.get("/ads.txt")).status()).toBe(404);
+  test("ads.txt authorizes Google, and the AdSense verification tag is on the page", async ({ request, page }) => {
+    const res = await request.get("/ads.txt");
+    expect(res.status()).toBe(200);
+    expect(await res.text()).toBe("google.com, pub-5321065144371084, DIRECT, f08c47fec0942fa0\n");
     await page.goto("/");
-    expect(await page.locator('script[src*="googlesyndication"]').count()).toBe(0);
+    await expect(page.locator('meta[name="google-adsense-account"]')).toHaveAttribute("content", "ca-pub-5321065144371084");
   });
 
   test("an unknown guide is a 404", async ({ request }) => {
