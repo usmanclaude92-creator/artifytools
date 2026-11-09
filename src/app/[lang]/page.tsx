@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Hero } from "@/components/home/hero";
-import { ClosingCta, CoreSections, HowItWorks, MoreTools, PopularTools, PrivacySection, PromoBanner, TrustStrip } from "@/components/home/sections";
+import { ClosingCta, CoreSections, GuidesSection, HowItWorks, MoreTools, PopularTools, PrivacySection, PromoBanner, TrustStrip } from "@/components/home/sections";
 import { JsonLd } from "@/components/ui/json-ld";
 import { absoluteUrl, siteConfig } from "@/lib/config";
 import { getPublishedCategories } from "@/lib/tools/registry";
@@ -42,11 +42,23 @@ export default async function HomePage() {
           },
         }}
       />
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: siteConfig.name,
+          url: siteConfig.url,
+          logo: absoluteUrl("/brand/artify-tools-logo-light-600.webp"),
+          description: t.site.description,
+          ...(siteConfig.contactEmail ? { email: siteConfig.contactEmail } : {}),
+        }}
+      />
       <Hero categories={categories} />
       <CoreSections />
       <PopularTools />
       <TrustStrip />
       <MoreTools />
+      <GuidesSection />
       <PromoBanner />
       <HowItWorks />
       <PrivacySection />

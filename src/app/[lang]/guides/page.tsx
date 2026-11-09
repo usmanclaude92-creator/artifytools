@@ -1,33 +1,28 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/layout/page-header";
 import { GuideList } from "@/components/guides/guide-list";
-import { guides } from "@/lib/guides/guides";
+import { guidesFor } from "@/lib/guides/guides";
+import { guideText } from "@/lib/guides/text";
 import { pageMetadata } from "@/lib/seo/metadata";
 import { getLocale } from "@/lib/locale-server";
 import { absoluteUrl } from "@/lib/config";
+import { localizeHref } from "@/lib/i18n";
 
-/** Guides are written in English; the Arabic URL shows the same text and points search engines at the English page. */
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
-  const meta = pageMetadata({
-    title: "Guides",
-    description: "Step-by-step guides for everyday document and file tasks: merging and compressing PDFs, converting bank statements, writing cheque amounts in words, resizing images and keeping files private.",
-    path: "/guides",
-  });
-  const english = { canonical: absoluteUrl("/guides") };
-  return locale === "ar" ? { ...meta, alternates: english, robots: { index: false, follow: true } } : { ...meta, alternates: english };
+  const t = guideText[locale];
+  const meta = pageMetadata({ title: t.indexTitle, description: t.indexMeta, path: "/guides", locale });
+  return { ...meta, alternates: { canonical: absoluteUrl(localizeHref("/guides", locale)) } };
 }
 
-export default function GuidesPage() {
+export default async function GuidesPage() {
+  const locale = await getLocale();
+  const t = guideText[locale];
   return (
     <>
-      <PageHeader
-        title="Guides"
-        description="Plain-language, step-by-step help for everyday document and file tasks, with the free tools that do the job."
-        breadcrumbs={[{ name: "Home", href: "/" }, { name: "Guides" }]}
-      />
-      <div lang="en" dir="ltr" className="container-page py-10">
-        <GuideList items={guides} />
+      <PageHeader title={t.indexTitle} description={t.indexIntro} breadcrumbs={[{ name: t.home, href: "/" }, { name: t.guides }]} />
+      <div className="container-page py-10">
+        <GuideList items={guidesFor(locale)} />
       </div>
     </>
   );

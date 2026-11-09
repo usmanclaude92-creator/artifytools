@@ -1,4 +1,7 @@
 import Link from "@/components/ui/locale-link";
+import { GuideList } from "@/components/guides/guide-list";
+import { guidesFor } from "@/lib/guides/guides";
+import { guideText } from "@/lib/guides/text";
 import { CategoryCard } from "@/components/categories/category-card";
 import { ToolGrid } from "@/components/tools/tool-card";
 import { ButtonLink } from "@/components/ui/button";
@@ -317,6 +320,20 @@ export async function ClosingCta() {
           </div>
         </div>
       </div>
+    </section>
+  );
+}
+
+/** Latest guides, so visitors and search engines find the written content from the home page. */
+export async function GuidesSection() {
+  const locale = await getLocale();
+  const t = guideText[locale];
+  const items = guidesFor(locale).slice(0, 6);
+  if (!items.length) return null;
+  return (
+    <section aria-labelledby="guides-home-heading" className="container-page py-10 sm:py-14">
+      <SectionTitle id="guides-home-heading" title={t.indexTitle} description={t.indexIntro} linkHref="/guides" linkLabel={t.allGuides} />
+      <div className="mt-6"><GuideList items={items} /></div>
     </section>
   );
 }

@@ -378,7 +378,7 @@ const ar: Messages = {
     contact: "تواصل معنا",
     help: "المساعدة",
     changelog: "سجل التحديثات",
-    guides: "الأدلة (بالإنجليزية)",
+    guides: "الأدلة",
     privacy: "الخصوصية",
     terms: "الشروط",
     cookies: "ملفات تعريف الارتباط",

@@ -15,6 +15,8 @@ import { getLocale, getT } from "@/lib/locale-server";
 import { localizeHref } from "@/lib/i18n";
 import { GuideList } from "@/components/guides/guide-list";
 import { guidesForTool } from "@/lib/guides/guides";
+import { Rich } from "@/components/guides/rich";
+import { deepDiveFor } from "@/lib/tools/deep-dives";
 
 type Params = { slug: string };
 
@@ -56,7 +58,8 @@ export default async function ToolPage({ params }: { params: Promise<Params> }) 
   const category = localizeCategory(getCategory(tool.category), locale);
   const related = getRelatedTools(raw, 8).map((r) => toDirectoryItem(r, locale));
   const url = abs(`/tools/${tool.slug}`);
-  const toolGuides = guidesForTool(tool.id);
+  const toolGuides = guidesForTool(tool.id, locale);
+  const deepDive = deepDiveFor(tool.id, locale);
 
   const structuredData: Record<string, unknown>[] = [
     {
@@ -130,9 +133,22 @@ export default async function ToolPage({ params }: { params: Promise<Params> }) 
                 ))}
               </div>
             </section>
+            {deepDive && (
+              <section aria-labelledby="tips-heading" className="card p-5">
+                <h2 id="tips-heading" className="text-[0.95rem] font-semibold">{locale === "ar" ? `نصائح ومشكلات شائعة: ${tool.name}` : `Tips and common problems: ${tool.name}`}</h2>
+                {deepDive.map((d) => (
+                  <div key={d.heading} className="mt-4">
+                    <h3 className="text-sm font-semibold">{d.heading}</h3>
+                    <div className="mt-2 space-y-3 text-sm leading-relaxed text-muted">
+                      {d.paragraphs.map((p) => <p key={p}><Rich text={p} /></p>)}
+                    </div>
+                  </div>
+                ))}
+              </section>
+            )}
             {toolGuides.length > 0 && (
-              <section aria-labelledby="guides-heading" lang="en" dir="ltr" className="card p-5">
-                <h2 id="guides-heading" className="text-[0.95rem] font-semibold">Guides</h2>
+              <section aria-labelledby="guides-heading" className="card p-5">
+                <h2 id="guides-heading" className="text-[0.95rem] font-semibold">{locale === "ar" ? "الأدلة" : "Guides"}</h2>
                 <div className="mt-4"><GuideList items={toolGuides} /></div>
               </section>
             )}

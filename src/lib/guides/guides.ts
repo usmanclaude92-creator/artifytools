@@ -7,6 +7,8 @@ export interface GuideSection {
 }
 
 export interface Guide {
+  /** Language of the article. Defaults to English. */
+  lang?: "en" | "ar";
   slug: string;
   title: string;
   description: string;
@@ -14,12 +16,17 @@ export interface Guide {
   updated: string;
   /** Ids of the tools this guide is about; the first is the main one. */
   tools: string[];
+  /** A two-sentence direct answer shown first (also what search and AI assistants quote). */
+  summary?: string;
+  /** Slugs of related guides in the same language, shown under the article. */
+  related?: string[];
+  /** Paragraphs may contain links written as [text](/tools/merge-pdf). */
   intro: string;
   sections: GuideSection[];
   faqs: { question: string; answer: string }[];
 }
 
-export const guides: Guide[] = [
+const baseGuides: Guide[] = [
   {
     slug: "how-to-merge-pdf-files",
     title: "How to merge PDF files into one document",
@@ -482,10 +489,21 @@ export const guides: Guide[] = [
   },
 ];
 
-export function getGuide(slug: string): Guide | undefined {
-  return guides.find((g) => g.slug === slug);
+import { moreGuides } from "./guides-more";
+import { guidesAr } from "./guides-ar";
+
+export const guides: Guide[] = [...baseGuides, ...moreGuides];
+export const allGuides: Guide[] = [...guides, ...guidesAr];
+
+/** Guides written in the given language. */
+export function guidesFor(locale: "en" | "ar"): Guide[] {
+  return locale === "ar" ? guidesAr : guides;
 }
 
-export function guidesForTool(toolId: string): Guide[] {
-  return guides.filter((g) => g.tools.includes(toolId));
+export function getGuide(slug: string, locale: "en" | "ar" = "en"): Guide | undefined {
+  return guidesFor(locale).find((g) => g.slug === slug);
+}
+
+export function guidesForTool(toolId: string, locale: "en" | "ar" = "en"): Guide[] {
+  return guidesFor(locale).filter((g) => g.tools.includes(toolId));
 }
