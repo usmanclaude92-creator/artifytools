@@ -46,6 +46,7 @@ const components: Record<string, ComponentType> = {
   "pdf-to-jpg": load(() => import("@/tools/pdf-to-jpg/ui")),
   "resize-image": load(() => import("@/tools/resize-image/ui")),
   "crop-image": load(() => import("@/tools/crop-image/ui")),
+  "pdf-to-text": load(() => import("@/tools/pdf-to-text/ui")),
   "pdf-to-word": load(() => import("@/tools/pdf-to-word/ui")),
   "word-to-pdf": load(() => import("@/tools/word-to-pdf/ui")),
   "image-to-text": load(() => import("@/tools/image-to-text/ui")),

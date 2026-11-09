@@ -44,6 +44,7 @@ import { meta as addPageNumbers } from "@/tools/add-page-numbers/meta";
 import { meta as watermarkPdf } from "@/tools/watermark-pdf/meta";
 import { meta as unlockPdf } from "@/tools/unlock-pdf/meta";
 import { meta as protectPdf } from "@/tools/protect-pdf/meta";
+import { meta as pdfToText } from "@/tools/pdf-to-text/meta";
 import { meta as pdfToWord } from "@/tools/pdf-to-word/meta";
 import { meta as resizeImage } from "@/tools/resize-image/meta";
 import { meta as endOfServiceCalculator } from "@/tools/end-of-service-calculator/meta";
@@ -91,6 +92,7 @@ export const tools: readonly ToolDefinition[] = [
   resizeImage,
   cropImage,
   imageConverter,
+  pdfToText,
   pdfToWord,
   wordToPdf,
   imageToText,

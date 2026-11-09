@@ -43,6 +43,7 @@ import { metaAr as bankStatementConverter } from "@/tools/bank-statement-convert
 import { metaAr as signPdf } from "@/tools/sign-pdf/meta.ar";
 import { metaAr as editPdf } from "@/tools/edit-pdf/meta.ar";
 import { metaAr as imageConverter } from "@/tools/image-converter/meta.ar";
+import { metaAr as pdfToText } from "@/tools/pdf-to-text/meta.ar";
 import { metaAr as pdfToWord } from "@/tools/pdf-to-word/meta.ar";
 import { metaAr as resizeImage } from "@/tools/resize-image/meta.ar";
 import { metaAr as documentTranslator } from "@/tools/document-translator/meta.ar";
@@ -75,6 +76,7 @@ export const toolTranslationsAr: Record<string, ToolTranslation> = {
   "pdf-to-jpg": pdfToJpg,
   "resize-image": resizeImage,
   "crop-image": cropImage,
+  "pdf-to-text": pdfToText,
   "pdf-to-word": pdfToWord,
   "word-to-pdf": wordToPdf,
   "image-to-text": imageToText,

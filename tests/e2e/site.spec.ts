@@ -247,7 +247,7 @@ test.describe("directory", () => {
   test("filters by category, combines with search, syncs the URL, and clears", async ({ page }) => {
     await page.goto("/tools");
     const count = page.getByRole("status").filter({ hasText: /tools?(\s|$)/ }).first();
-    await expect(count).toContainText("47 tools");
+    await expect(count).toContainText("48 tools");
     await page.getByRole("button", { name: /^Business & Finance/ }).click();
     await expect(page).toHaveURL(/category=business-finance/);
     await expect(count).toContainText("5 tools");
@@ -256,7 +256,7 @@ test.describe("directory", () => {
     await expect(count).toContainText("1 tool");
     await expect(page.getByRole("button", { name: /Category: Business & Finance/ })).toBeVisible();
     await page.getByRole("button", { name: "Clear all" }).click();
-    await expect(count).toContainText("47 tools");
+    await expect(count).toContainText("48 tools");
     await expect(page.getByLabel("Search all tools")).toHaveValue("");
   });
 
@@ -276,7 +276,7 @@ test.describe("directory", () => {
     await page.getByLabel("Processing").selectOption("");
     await page.getByLabel("Works with").selectOption("pdf");
     await expect(page).toHaveURL(/kind=pdf/);
-    await expect(page.locator("article h2")).toHaveText(["PDF to Word", "Compress PDF", "Merge PDF", "PDF to JPG", "Sign PDF", "Edit PDF", "Bank Statement Converter", "PDF to Excel", "Split PDF", "Document Translator", "Remove Pages from PDF", "Rotate PDF"]);
+    await expect(page.locator("article h2")).toHaveText(["PDF to Word", "PDF to Text", "Compress PDF", "Merge PDF", "PDF to JPG", "Sign PDF", "Edit PDF", "Bank Statement Converter", "PDF to Excel", "Split PDF", "Document Translator", "Remove Pages from PDF", "Rotate PDF"]);
     await page.getByLabel("Works with").selectOption("images");
     await expect(page.locator("article h2")).toHaveText(["JPG to PDF", "Remove Background", "Compress Image", "Image Converter", "Resize Image", "Crop Image"]);
   });
