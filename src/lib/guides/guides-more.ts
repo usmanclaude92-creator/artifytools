@@ -619,7 +619,7 @@ export const moreGuides: Guide[] = [
     title: "How to translate a Word, PDF or Excel document and keep its layout",
     description: "Translate whole documents between Arabic, English and 20 other languages privately, while tables, fonts and pictures stay in place.",
     updated: "2026-11-09",
-    tools: ["document-translator", "pdf-to-word", "ai-text-summarizer"],
+    tools: ["document-translator", "pdf-to-word", "image-to-text"],
     summary: "Upload the document to a document translator, choose the target language and download the translated file. For Word, Excel and PowerPoint only the words change, so tables, fonts and pictures stay. PDF files come back as an editable Word file, so their layout may differ.",
     related: ["how-to-convert-pdf-to-word-keep-formatting", "how-to-extract-text-from-a-pdf", "how-to-extract-text-from-an-image-ocr"],
     intro: "Translating a document by copying and pasting paragraphs into a translator destroys the formatting and takes hours. A document translator replaces the words in place, so you get a translated file that looks like the original.",
@@ -660,10 +660,6 @@ export const moreGuides: Guide[] = [
         paragraphs: [
           "Translation runs on your own device, so confidential documents are not sent to a translation service. That matters for contracts, medical reports and internal files.",
         ],
-      },
-      {
-        heading: "When you only need the gist",
-        paragraphs: ["If you want to know what a long document says rather than a full translation, summarise it first with [AI Text Summarizer](/tools/ai-text-summarizer) and then translate only the important parts."],
       },
     ],
     faqs: [

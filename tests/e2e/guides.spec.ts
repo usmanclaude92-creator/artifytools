@@ -6,7 +6,7 @@ test.describe("Guides", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Guides" })).toBeVisible();
     await page.getByRole("link", { name: /How to merge PDF files/ }).click();
     await expect(page.getByRole("heading", { level: 1 })).toContainText("merge PDF files");
-    await expect(page.getByRole("link", { name: "Merge PDF", exact: true })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Merge PDF", exact: true }).first()).toBeVisible();
     const ld = await page.locator('script[type="application/ld+json"]').evaluateAll((els) => els.map((e) => e.textContent ?? ""));
     expect(ld.some((t) => t.includes('"@type":"Article"'))).toBe(true);
   });
@@ -61,6 +61,15 @@ test.describe("Guides", () => {
     expect(await res.text()).toBe("google.com, pub-5321065144371084, DIRECT, f08c47fec0942fa0\n");
     await page.goto("/");
     await expect(page.locator('meta[name="google-adsense-account"]')).toHaveAttribute("content", "ca-pub-5321065144371084");
+  });
+
+  test("the contact page shows a real email address, and unfinished pages stay out of search", async ({ page }) => {
+    await page.goto("/contact");
+    await expect(page.getByRole("link", { name: "usmanclaude92@gmail.com" }).first()).toHaveAttribute("href", "mailto:usmanclaude92@gmail.com");
+    for (const path of ["/apps", "/ai-tools"]) {
+      await page.goto(path);
+      await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+    }
   });
 
   test("an unknown guide is a 404", async ({ request }) => {

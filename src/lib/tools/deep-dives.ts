@@ -62,6 +62,82 @@ const en: Record<string, DeepDiveSection[]> = {
     { heading: "Making your signature look right", paragraphs: ["Draw it slowly, type your name in a handwriting style, or upload a photo of your real signature signed in dark ink on white paper and cropped tightly. Place it on the line, resize it, and add initials or the date on the other pages that need them.", "An image signature is accepted for many everyday documents. Some contracts and official filings need a certificate-based digital signature, so ask the recipient what they accept."] },
     { heading: "Before you send it", paragraphs: ["Fill in other fields with [Edit PDF](/tools/edit-pdf), and lock the file with a password using [Protect PDF](/tools/protect-pdf) if it is confidential. Our guide on [signing a PDF online](/guides/how-to-sign-a-pdf-online-for-free) has the full steps."] },
   ],
+  "organize-pdf": [
+    { heading: "Reorder, rotate and delete in one pass", paragraphs: ["Every page appears as a thumbnail you can drag into place, rotate or delete, and you can bring in pages from other PDFs with Add More Files. Pages are copied as they are, so quality does not change. Press Reset to bring back every page in its original order before you save.", "Check the result page by page before sending it, especially after deleting pages."] },
+    { heading: "Related jobs", paragraphs: ["To only take pages out, [Remove Pages from PDF](/tools/remove-pages-from-pdf) is quicker. To join whole files, use [Merge PDF](/tools/merge-pdf). Our guide on [splitting a PDF and extracting pages](/guides/how-to-split-a-pdf-and-extract-pages) shows common workflows."] },
+  ],
+  "rotate-pdf": [
+    { heading: "Fixing sideways pages", paragraphs: ["Each page has its own rotate buttons, and there are buttons to turn all pages at once. Rotating changes only the page's orientation setting, so nothing is redrawn or compressed.", "If a scan is slightly tilted rather than sideways, use the straighten control in [Crop PDF](/tools/crop-pdf)."] },
+    { heading: "Protected files", paragraphs: ["A password-protected PDF must be unlocked first with [Unlock PDF](/tools/unlock-pdf). To rotate and reorder at the same time, use [Organize PDF](/tools/organize-pdf)."] },
+  ],
+  "crop-pdf": [
+    { heading: "Cropping margins and labels", paragraphs: ["Drag the crop box over the part you want to keep and choose whether it applies to all pages or just one. Quick crop buttons help with common cases such as the top half of a page, which is handy for shipping labels printed on A4. Turn and straighten fix sideways or crooked scans before you set the box.", "Cropping hides the outside area without redrawing the content, so quality stays the same."] },
+    { heading: "Confidential content", paragraphs: ["The cropped-away area may still exist inside the file. If it is confidential, print the cropped result to a new PDF. Our guide on [cropping and rotating PDF pages](/guides/how-to-crop-and-rotate-pdf-pages) explains the steps."] },
+  ],
+  "edit-pdf": [
+    { heading: "Correcting text in a PDF", paragraphs: ["You can cover existing text with a white-out box and type the correction on top, which works for most changes. Add text, dates, images and signatures anywhere on the page, and move or resize each item before saving. Arabic text is drawn correctly shaped and right to left.", "Retyping text inside the original paragraph flow is not possible in a PDF, so keep corrections short."] },
+    { heading: "Finishing the document", paragraphs: ["Add your signature with [Sign PDF](/tools/sign-pdf), number the pages with [Add Page Numbers](/tools/add-page-numbers), and lock the file with [Protect PDF](/tools/protect-pdf) if it is confidential."] },
+  ],
+  "watermark-pdf": [
+    { heading: "Choosing a good watermark", paragraphs: ["Use short text such as DRAFT or CONFIDENTIAL, or a transparent PNG logo. Set a diagonal angle and moderate transparency so the page stays readable. Arabic text is supported.", "A watermark is drawn on top of the page, so someone with PDF editing software could remove it. For real protection also use [Protect PDF](/tools/protect-pdf)."] },
+    { heading: "Order of work", paragraphs: ["Merge and edit first, then add page numbers and the watermark. Our guide on [adding page numbers and a watermark to a PDF](/guides/how-to-add-page-numbers-and-watermark-to-a-pdf) has the details."] },
+  ],
+  "add-page-numbers": [
+    { heading: "Numbering long documents", paragraphs: ["Choose the position, the style such as Page 1 of 12, and the starting number. Tick Don't number the first page to skip a cover. If pages have content near the edge, increase the distance from the edge so numbers do not overlap it.", "Arabic documents can use Arabic words and digits, for example «صفحة ١ من ١٢»."] },
+    { heading: "Before and after", paragraphs: ["Merge your files first with [Merge PDF](/tools/merge-pdf) so numbering runs through the whole document. Add a watermark afterwards with [Watermark PDF](/tools/watermark-pdf) if needed."] },
+  ],
+  "protect-pdf": [
+    { heading: "Choosing a password", paragraphs: ["Use a long password that is not easy to guess; the password is what keeps the file safe. The PDF is encrypted with AES-128 on your device. Send the password by a different channel from the file, and keep a record, because a forgotten password cannot be recovered.", "You can also decide whether readers may print, copy or edit. Standard PDF apps respect these settings, but they are not a guarantee against someone who can already open the file."] },
+    { heading: "Related", paragraphs: ["Create a strong password with [Password Generator](/tools/password-generator), and remove protection later with [Unlock PDF](/tools/unlock-pdf). Read more in our guide on [protecting and unlocking a PDF](/guides/how-to-password-protect-and-unlock-a-pdf)."] },
+  ],
+  "unlock-pdf": [
+    { heading: "What it can and cannot do", paragraphs: ["Enter the password you know and save a copy that opens without it, or remove printing and copying restrictions from a PDF that opens freely. Standard PDF passwords are supported, including AES-128 and AES-256 used by banks and modern apps.", "It does not guess or crack passwords. Unlock only files you own or have permission to change."] },
+    { heading: "Next steps", paragraphs: ["Statements and payslips that are unlocked can be merged with [Merge PDF](/tools/merge-pdf) or converted with [Bank Statement Converter](/tools/bank-statement-converter). Learn more in our guide on [protecting and unlocking a PDF](/guides/how-to-password-protect-and-unlock-a-pdf)."] },
+  ],
+  "pdf-to-jpg": [
+    { heading: "Choosing resolution and format", paragraphs: ["150 DPI suits screens, chats and documents. Choose 300 DPI for printing or when you need to zoom into small text, and 72 DPI for the smallest files. JPG files are much smaller and fine for most pages; PNG keeps text and lines perfectly sharp and supports transparent backgrounds but is larger.", "A password-protected PDF must be unlocked first with [Unlock PDF](/tools/unlock-pdf)."] },
+    { heading: "Working with the images", paragraphs: ["Make the pictures smaller with [Compress Image](/tools/compress-image) or [Resize Image](/tools/resize-image), or put them back into a PDF with [JPG to PDF](/tools/jpg-to-pdf). If you want the words instead, use [PDF to Text](/tools/pdf-to-text)."] },
+  ],
+  "resize-image": [
+    { heading: "Keeping the proportions", paragraphs: ["Fill in only the width or only the height and the other side is worked out from each image's proportions. When you set both, choose fit, fill and crop, borders or stretch. Making an image bigger than the original cannot add detail, so it can look soft; shrinking keeps it sharp.", "Quick sizes cover square posts, stories, Full HD, video thumbnails, banners and profile photos, and you can resize many images and download them as a ZIP."] },
+    { heading: "Meeting a file size limit", paragraphs: ["Resize first, then use [Compress Image](/tools/compress-image) with a target size. See our guides on [resizing and compressing images](/guides/how-to-resize-and-compress-images) and [getting an image to 100 KB](/guides/how-to-compress-an-image-to-100kb)."] },
+  ],
+  "crop-image": [
+    { heading: "Cropping to an exact shape or size", paragraphs: ["Choose a shape such as 1:1 or 16:9, or type the width and height in pixels. Cropping does not resize the pixels you keep, so quality is unchanged: PNG stays lossless and JPG and WebP are saved at high quality.", "To crop many images the same way, use [Resize Image](/tools/resize-image) with Fill and crop."] },
+    { heading: "Typical uses", paragraphs: ["Crop a signature or photo before compressing it for a form, frame a product before [removing the background](/tools/remove-background), or trim a page before running [OCR](/tools/image-to-text)."] },
+  ],
+  "image-converter": [
+    { heading: "Choosing the output format", paragraphs: ["JPG is best for photos you want to share or upload anywhere, PNG for screenshots, logos and images with transparency, and WebP for the smallest files on websites. JPG cannot be transparent, so transparent areas are filled with the background colour you choose, white by default.", "HEIC photos from an iPhone convert to JPG in your browser, many at once, and can be downloaded as a ZIP."] },
+    { heading: "After converting", paragraphs: ["Make files smaller with [Compress Image](/tools/compress-image), or combine them into a document with [JPG to PDF](/tools/jpg-to-pdf). See our guide on [converting JPG to PDF](/guides/how-to-convert-jpg-to-pdf)."] },
+  ],
+  "document-translator": [
+    { heading: "Getting a better translation", paragraphs: ["Fix typos in the source first, use short clear sentences, and avoid slang. Check names, numbers, dates and legal terms by hand, because machine translation can contain mistakes.", "The first time you use a language pair your browser downloads its translation model (about 80 to 120 MB) and keeps it, so later translations start quickly and nothing you translate is sent anywhere."] },
+    { heading: "Layout and file types", paragraphs: ["Word, PowerPoint, Excel, HTML, CSV, Markdown and subtitle files come back in the same format with their layout kept; PDF, OpenDocument and RTF come back as an editable Word file. Read our guide on [translating a document and keeping the layout](/guides/how-to-translate-a-document-and-keep-the-layout)."] },
+  ],
+  "password-generator": [
+    { heading: "Making passwords you can manage", paragraphs: ["Use at least 12 characters, and 16 or more for important accounts, with a different password on every site. Passwords are created with the browser's secure random generator and are never sent or stored. Exclude look-alike characters such as O and 0 only when you must type the password by hand.", "Store passwords in a password manager and turn on two-step verification."] },
+    { heading: "Related", paragraphs: ["Protect a sensitive file with a strong password using [Protect PDF](/tools/protect-pdf). Read our guide on [creating a strong password](/guides/how-to-create-a-strong-password)."] },
+  ],
+  "word-to-pdf": [
+    { heading: "Why a print window opens", paragraphs: ["Your browser has the best PDF engine on your device, with full support for Arabic and other scripts. Choose Save as PDF in the print window to write a real PDF with selectable text. Fonts that are not installed on your device are replaced with similar ones, which can move line or page breaks slightly.", "Old .doc files must be saved as .docx in Word, Google Docs or LibreOffice first."] },
+    { heading: "After converting", paragraphs: ["Reduce the size with [Compress PDF](/tools/compress-pdf), join documents with [Merge PDF](/tools/merge-pdf), or add [page numbers](/tools/add-page-numbers) and a [signature](/tools/sign-pdf)."] },
+  ],
+  "excel-to-pdf": [
+    { heading: "Fitting a spreadsheet on the page", paragraphs: ["With Fit to page width on, each sheet is scaled down to fit, and Automatic orientation switches to landscape when a sheet is wider than a portrait page. Values appear as Excel shows them, with number and date formats, fonts, fills, borders and merged cells kept.", "Charts, images and conditional formatting are not carried over. Old .xls files must be saved as .xlsx first."] },
+    { heading: "Related", paragraphs: ["To go the other way and pull tables out of a PDF, use [PDF to Excel](/tools/pdf-to-excel). Compress or number the result with [Compress PDF](/tools/compress-pdf) and [Add Page Numbers](/tools/add-page-numbers)."] },
+  ],
+  "remove-pages-from-pdf": [
+    { heading: "Deleting the right pages", paragraphs: ["Tap the pages to drop or type page numbers and ranges such as 2, 5-7, and check the count of pages that will be kept before saving. The rest of the document is copied as it is, so quality does not change.", "To keep only some pages as a new file, use [Split PDF](/tools/split-pdf) instead; to also reorder or rotate, use [Organize PDF](/tools/organize-pdf)."] },
+    { heading: "Making it smaller", paragraphs: ["Removing pages is one of the quickest ways to get under an upload limit. Follow it with [Compress PDF](/tools/compress-pdf) if the file is still too large, as described in our guide on [getting a PDF to a target size](/guides/compress-pdf-to-100kb-200kb-500kb-1mb)."] },
+  ],
+  "pdf-to-text": [
+    { heading: "Paragraphs or same lines", paragraphs: ["Paragraphs joins wrapped lines and separates blocks with a blank line, which reads best for letters and reports. Same lines keeps every line break, which suits tables, statements and code. Turn on page markers to see where each page starts.", "Pages that are pictures have no text, so keep OCR on to read them in Arabic and English."] },
+    { heading: "Related", paragraphs: ["Want formatting too? Use [PDF to Word](/tools/pdf-to-word). Need tables? Use [PDF to Excel](/tools/pdf-to-excel). Our guide on [extracting text from a PDF](/guides/how-to-extract-text-from-a-pdf) covers scanned files."] },
+  ],
+  "qr-code-generator": [
+    { heading: "Making a QR code that scans", paragraphs: ["Medium error correction suits most uses; choose Quartile or High for printed or outdoor codes or when you add a logo, though the pattern gets denser. Shorter content makes simpler codes that scan faster, and the tool accepts up to 2,000 characters.", "The data is encoded directly in the image with no tracking redirect, so the code works as long as the destination does."] },
+    { heading: "Printing tips", paragraphs: ["Keep a quiet border around the code, use dark on light colours, and test with two different phones before printing in bulk. Download SVG for large prints and PNG for screens."] },
+  ],
 };
 
 const ar: Record<string, DeepDiveSection[]> = {
@@ -88,6 +164,26 @@ const ar: Record<string, DeepDiveSection[]> = {
   "amount-in-words": [
     { heading: "استخدام الناتج في الشيكات والفواتير", paragraphs: ["انسخ الصياغة كما هي واقرأها مرة قبل التوقيع، فبعض البنوك تفضّل صياغتها الخاصة. اكتب الأرقام بجانب رمز العملة واملأ بقية السطر حتى لا يمكن الإضافة. والعملات ذات الخانات الثلاث، كالريال العماني والدينار الكويتي، وحدتها الصغرى جزء من ألف، فالخانة الثالثة مهمة.", "ويشرح دليلنا [كتابة المبلغ بالحروف في الشيك](/guides/amount-in-words-cheque-arabic) القواعد خطوة بخطوة."] },
     { heading: "قواعد العربية تُطبَّق عنك", paragraphs: ["تتغير كلمة العملة في العربية بحسب العدد: الواحد والاثنان والثلاثة إلى العشرة والأحد عشر إلى التسعة والتسعين والمئات المستديرة، لكل منها صيغة. والوحدات الصغرى كالبيسة والهللة مؤنثة. وتطبق الأداة هذه القواعد تلقائيًا. ولطباعة الناتج على الشيك استخدم [طباعة الشيكات](/tools/cheque-printer)."] },
+  ],
+  "protect-pdf": [
+    { heading: "اختيار كلمة المرور", paragraphs: ["استخدم كلمة مرور طويلة يصعب تخمينها، فهي ما يحمي الملف. يُشفَّر الملف بتشفير AES-128 على جهازك. أرسل كلمة المرور بقناة مختلفة عن الملف، واحتفظ بها، فلا يمكن استعادة كلمة مرور منسية.", "ويمكنك تحديد هل يسمح للقارئ بالطباعة أو النسخ أو التعديل. تحترم تطبيقات PDF المعتادة هذه الإعدادات، لكنها لا تضمن شيئًا ضد من يستطيع فتح الملف أصلًا."] },
+    { heading: "مواضيع مرتبطة", paragraphs: ["أنشئ كلمة مرور قوية بأداة [مولّد كلمات المرور](/tools/password-generator)، وأزل الحماية لاحقًا بأداة [فك حماية PDF](/tools/unlock-pdf)."] },
+  ],
+  "unlock-pdf": [
+    { heading: "ما الذي تفعله الأداة وما لا تفعله", paragraphs: ["أدخل كلمة المرور التي تعرفها واحفظ نسخة تُفتح دونها، أو أزل قيود الطباعة والنسخ من ملف يُفتح بحرية. تُدعم كلمات مرور PDF المعتادة بما فيها AES-128 وAES-256 التي تستخدمها البنوك والتطبيقات الحديثة.", "لا تخمّن الأداة كلمات المرور ولا تكسرها. فُك حماية الملفات التي تملكها أو لديك إذن بتعديلها فقط."] },
+    { heading: "الخطوات التالية", paragraphs: ["يمكن دمج الكشوف وكشوف الرواتب بعد فك حمايتها بأداة [دمج PDF](/tools/merge-pdf) أو تحويلها بأداة [محوّل كشوف الحساب](/tools/bank-statement-converter)."] },
+  ],
+  "split-pdf": [
+    { heading: "كتابة نطاقات الصفحات", paragraphs: ["افصل العناصر بفواصل. «2-4» تعني الصفحات من 2 إلى 4، و«7» الصفحة 7 وحدها، و«8-» من الصفحة 8 إلى النهاية. كل عنصر بين فاصلتين يصبح ملفًا مستقلًا. ولدمج صفحات من أماكن مختلفة في مستند واحد، قسّمها ثم اجمعها بأداة [دمج PDF](/tools/merge-pdf).", "وإن أردت حذف صفحات فقط فأداة [حذف صفحات من PDF](/tools/remove-pages-from-pdf) أسرع."] },
+    { heading: "متى تقسّم؟", paragraphs: ["من الأسباب الشائعة حدود حجم الرفع، وإرسال الجزء المعني فقط من مستند سري، وفصل دفعة من المسوحات. ويمكن أيضًا تقسيم ملف كبير لجعل كل جزء ضمن الحد المسموح، بعد الضغط بأداة [ضغط PDF](/tools/compress-pdf)."] },
+  ],
+  "resize-image": [
+    { heading: "الحفاظ على النسب", paragraphs: ["اكتب العرض وحده أو الارتفاع وحده فيُحسب الضلع الآخر من نسب كل صورة. وعند تحديد الاثنين اختر بين الملاءمة أو التعبئة مع القص أو الحدود أو التمديد. تكبير الصورة فوق حجمها الأصلي لا يضيف تفاصيل فقد تبدو ناعمة، أما التصغير فيبقيها حادة.", "تغطي الأحجام السريعة المنشورات المربعة والقصص وFull HD والصور المصغرة للفيديو واللافتات وصور الملف الشخصي، ويمكنك تغيير حجم صور كثيرة وتنزيلها في ملف ZIP."] },
+    { heading: "الالتزام بحد حجم الملف", paragraphs: ["غيّر الأبعاد أولًا ثم استخدم أداة [ضغط الصور](/tools/compress-image) بحجم مستهدف مثل 100 كيلوبايت."] },
+  ],
+  "jpg-to-pdf": [
+    { heading: "بناء ملف PDF مرتب من الصور", paragraphs: ["أضف الصور ورتّبها واختر A4 أو Letter مع هامش صغير للطباعة، أو أبقِ كل صفحة بحجم صورتها. توضع صور JPG كما هي فلا تنخفض الجودة. والصور المستقيمة المقصوصة أفضل، لذا قصّ الحواف بأداة [قص الصور](/tools/crop-image) أولًا.", "الصور الكثيرة تصنع ملف PDF كبيرًا، فاضغطه بعدها بأداة [ضغط PDF](/tools/compress-pdf)."] },
+    { heading: "صور الآيفون", paragraphs: ["يقرأ Safari صور HEIC من الآيفون، أما المتصفحات الأخرى فقد لا تقرؤها. حوّلها إلى JPG بأداة [محوّل الصور](/tools/image-converter) أو اضبط الكاميرا على «الأكثر توافقًا»."] },
   ],
 };
 

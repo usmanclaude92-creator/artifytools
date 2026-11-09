@@ -9,7 +9,8 @@ import { getLocale, getT } from "@/lib/locale-server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const p = (await getT()).pages.apps;
-  return pageMetadata({ title: p.title, description: p.metaDescription, path: "/apps", locale: await getLocale() });
+  // No apps are listed yet, so the page stays out of search until there is something on it.
+  return pageMetadata({ title: p.title, description: p.metaDescription, path: "/apps", locale: await getLocale(), noindex: true });
 }
 
 export default async function AppsPage() {

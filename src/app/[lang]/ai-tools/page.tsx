@@ -10,7 +10,8 @@ import { getPublishedTools, toDirectoryItem } from "@/lib/tools/registry";
 
 export async function generateMetadata(): Promise<Metadata> {
   const p = (await getT()).pages.ai;
-  return pageMetadata({ title: p.metaTitle, description: p.metaDescription, path: "/ai-tools", locale: await getLocale() });
+  // The AI tools are still planned, so the page stays out of search until they are live.
+  return pageMetadata({ title: p.metaTitle, description: p.metaDescription, path: "/ai-tools", locale: await getLocale(), noindex: true });
 }
 
 const plannedIcons: IconName[] = ["wand", "file-text", "layers", "list-x", "sparkles"];

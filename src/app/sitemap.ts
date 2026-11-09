@@ -8,7 +8,7 @@ import { getActiveTools, getPublishedCategories } from "@/lib/tools/registry";
 type Entry = { path: string; priority: number; lastModified?: Date };
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const staticPaths = ["/", "/tools", "/apps", "/categories", "/ai-tools", "/for-professionals", "/about", "/contact", "/help", "/privacy", "/terms", "/cookies", "/changelog"];
+  const staticPaths = ["/", "/tools", "/categories", "/for-professionals", "/about", "/contact", "/help", "/privacy", "/terms", "/cookies", "/changelog"];
   const guidePaths = (locale: Locale) => ["/guides", ...guidesFor(locale).map((g) => `/guides/${g.slug}`)];
   const entries: Entry[] = [
     ...staticPaths.map((p) => ({ path: p, priority: p === "/" ? 1 : 0.6 })),

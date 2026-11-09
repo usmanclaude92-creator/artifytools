@@ -33,6 +33,8 @@ const baseGuides: Guide[] = [
     description: "A practical guide to combining PDFs in the right order, keeping quality, and fixing the usual problems such as protected files and oversized results.",
     updated: "2026-11-08",
     tools: ["merge-pdf", "organize-pdf", "compress-pdf"],
+    summary: "Use a free PDF merger: add your files, put them in order with the arrows, press Merge and download one PDF. Pages are copied as they are, so quality is unchanged, and compressing the result afterwards keeps it small enough to email.",
+    related: ["how-to-split-a-pdf-and-extract-pages", "how-to-compress-a-pdf", "how-to-add-page-numbers-and-watermark-to-a-pdf"],
     intro: "Applications, tax filings, claims and project reports often need to go out as a single PDF. Merging is simple, but a few choices decide whether the result is tidy or a mess: the order of the files, the size of the output, and whether any file is locked. This guide walks through the whole job.",
     sections: [
       {
@@ -48,7 +50,7 @@ const baseGuides: Guide[] = [
         list: {
           ordered: true,
           items: [
-            "Open Merge PDF and choose or drop your files. You can add up to 30 at once.",
+            "Open [Merge PDF](/tools/merge-pdf) and choose or drop your files. You can add up to 30 at once.",
             "Use the up and down arrows to put the files in order. The file at the top becomes the first pages of the result.",
             "Press Merge PDFs and wait a moment. The page count of the result should equal the total of your files.",
             "Download the combined PDF and scroll through it once to confirm every section is present and the right way up.",
@@ -59,13 +61,13 @@ const baseGuides: Guide[] = [
         heading: "Keeping the result a sensible size",
         paragraphs: [
           "Merging copies pages as they are, so the combined file is roughly as large as all the originals added together. That can be a problem when an upload form limits you to 5 or 10 MB. The size is almost always caused by photos and scans rather than text.",
-          "If the merged file is too large, run it through Compress PDF afterwards. Choose the balanced level for email and uploads, or a stronger level when a portal has a tight limit. Compress after merging, not before, so you only do it once.",
+          "If the merged file is too large, run it through [Compress PDF](/tools/compress-pdf) afterwards. Choose the balanced level for email and uploads, or a stronger level when a portal has a tight limit. Compress after merging, not before, so you only do it once.",
         ],
       },
       {
         heading: "Fixing pages after the merge",
         paragraphs: [
-          "Sometimes one page ends up sideways, duplicated or in the wrong place. Instead of merging again, open the merged file in Organize PDF. You can rotate pages, delete the ones you do not need, and drag the rest into their proper positions. Remove Pages from PDF is quicker if you only need to take pages out.",
+          "Sometimes one page ends up sideways, duplicated or in the wrong place. Instead of merging again, open the merged file in [Organize PDF](/tools/organize-pdf). You can rotate pages, delete the ones you do not need, and drag the rest into their proper positions. [Remove Pages from PDF](/tools/remove-pages-from-pdf) is quicker if you only need to take pages out.",
         ],
       },
       {
@@ -87,6 +89,8 @@ const baseGuides: Guide[] = [
     description: "Why PDFs get so big, which compression level to pick for email, uploads and printing, and what to do when a file will not shrink.",
     updated: "2026-11-08",
     tools: ["compress-pdf", "merge-pdf", "split-pdf"],
+    summary: "PDFs are large because of the photos and scans inside them. Pick a compression level that shrinks those images while leaving text untouched: Balanced for email and uploads, Light for printing, Strong for tight limits.",
+    related: ["compress-pdf-to-100kb-200kb-500kb-1mb", "how-to-merge-pdf-files", "how-to-convert-jpg-to-pdf"],
     intro: "A PDF that is too large to email or upload is one of the most common office annoyances. The good news is that size is usually caused by one thing, the images inside it, and that can be reduced a lot without touching the text. Here is how to do it properly.",
     sections: [
       {
@@ -109,13 +113,13 @@ const baseGuides: Guide[] = [
       },
       {
         heading: "Step by step",
-        paragraphs: ["Open Compress PDF, choose your file and select a level. The tool shows the size before and after, so you can see whether it was worth it. If the result is still too big, try the next stronger level on the original file rather than compressing the already compressed copy again, which only adds quality loss."],
+        paragraphs: ["Open [Compress PDF](/tools/compress-pdf), choose your file and select a level. The tool shows the size before and after, so you can see whether it was worth it. If the result is still too big, try the next stronger level on the original file rather than compressing the already compressed copy again, which only adds quality loss."],
       },
       {
         heading: "When the file will not get smaller",
         paragraphs: [
           "If your PDF is mostly text, or its images were already compressed, there is little left to remove. In that case the tool tells you the original is already the best version rather than handing you a worse copy.",
-          "Another option is to split the document. Split PDF can cut a long file into parts that each fit under a limit, and you can send them separately. For scans, re-scanning at a lower resolution (150 to 200 DPI is enough for reading) gives a smaller file at the source.",
+          "Another option is to split the document. [Split PDF](/tools/split-pdf) can cut a long file into parts that each fit under a limit, and you can send them separately. For scans, re-scanning at a lower resolution (150 to 200 DPI is enough for reading) gives a smaller file at the source.",
         ],
       },
       {
@@ -135,6 +139,8 @@ const baseGuides: Guide[] = [
     description: "Turn a PDF bank statement into a clean spreadsheet with dates, debits, credits and balances, and check the numbers add up.",
     updated: "2026-11-08",
     tools: ["bank-statement-converter", "pdf-to-excel", "unlock-pdf"],
+    summary: "Use a bank statement converter: it rebuilds one row per transaction with date, description, debit, credit and balance, then checks the running balance so you can see if anything was missed. Scanned statements are read with OCR.",
+    related: ["how-to-convert-pdf-to-excel", "how-to-extract-text-from-a-pdf", "how-to-password-protect-and-unlock-a-pdf"],
     intro: "Accountants, loan officers and small business owners regularly need a bank statement as a spreadsheet. Copying and pasting from a PDF breaks columns and merges lines, so the work takes hours. A converter built for statements does the structure for you, and a balance check tells you whether anything was missed.",
     sections: [
       {
@@ -149,8 +155,8 @@ const baseGuides: Guide[] = [
         list: {
           ordered: true,
           items: [
-            "If the PDF is password-protected, remove the password first with Unlock PDF using the password the bank gave you.",
-            "Open Bank Statement Converter and choose the PDF. Pick Automatic Conversion for most statements.",
+            "If the PDF is password-protected, remove the password first with [Unlock PDF](/tools/unlock-pdf) using the password the bank gave you.",
+            "Open [Bank Statement Converter](/tools/bank-statement-converter) and choose the PDF. Pick Automatic Conversion for most statements.",
             "Review the preview. Check the first and last rows against the statement, and look at any rows flagged by the balance check.",
             "Download as Excel (XLSX) or CSV.",
           ],
@@ -189,6 +195,8 @@ const baseGuides: Guide[] = [
     description: "The rules for writing cheque amounts in words in English and Arabic, with examples for Gulf currencies, and how to avoid alteration.",
     updated: "2026-11-08",
     tools: ["amount-in-words", "cheque-printer"],
+    summary: "Write the full amount with the currency name and the smaller unit, then close the line with Only. Three-decimal currencies such as the Omani rial use a thousandth unit, and Arabic changes the currency word with the number.",
+    related: ["how-to-compress-a-pdf", "how-to-sign-a-pdf-online-for-free"],
     intro: "The amount in words is the line a bank trusts most on a cheque. If the figures and the words disagree, the words normally win, and a vague or unfinished line makes alteration easy. Writing it consistently also avoids a rejected cheque. This guide explains the conventions and shows how to produce the wording quickly.",
     sections: [
       {
@@ -213,13 +221,13 @@ const baseGuides: Guide[] = [
         heading: "Writing the amount in Arabic",
         paragraphs: [
           "Arabic amounts (tafqeet) follow grammar rules that change the currency word with the number: one rial, two rials as a dual, a plural for 3 to 10, and a different form after 11 to 99. The smaller unit has its own gender, for example بيسة and هللة. Writing this by hand is where mistakes creep in.",
-          "The Amount in Words tool applies these rules automatically in Arabic and English, supports many currencies, and gives you text to copy onto a cheque or invoice. Read the result once before signing, because some banks prefer their own phrasing.",
+          "The [Amount in Words](/tools/amount-in-words) tool applies these rules automatically in Arabic and English, supports many currencies, and gives you text to copy onto a cheque or invoice. Read the result once before signing, because some banks prefer their own phrasing.",
         ],
       },
       {
         heading: "Printing it onto the cheque",
         paragraphs: [
-          "If you issue many cheques, Cheque Printer fills in the date, payee, figures and words for you on the cheque leaves your bank provided. Run a test print on plain paper, hold it against a real leaf over a light, and adjust positions in millimetres before using the real one. It is for filling in leaves from your bank, not for printing blank cheques, which banks do not accept.",
+          "If you issue many cheques, [Cheque Printer](/tools/cheque-printer) fills in the date, payee, figures and words for you on the cheque leaves your bank provided. Run a test print on plain paper, hold it against a real leaf over a light, and adjust positions in millimetres before using the real one. It is for filling in leaves from your bank, not for printing blank cheques, which banks do not accept.",
         ],
       },
       {
@@ -241,6 +249,8 @@ const baseGuides: Guide[] = [
     description: "Trim margins, cut shipping labels out of larger pages, and fix sideways or crooked scans using free browser tools.",
     updated: "2026-11-08",
     tools: ["crop-pdf", "rotate-pdf", "organize-pdf"],
+    summary: "Open a PDF cropping tool, drag the crop box over the part to keep, choose all pages or one page, and save. Cropping changes only the visible area, so quality does not drop. Use turn and straighten to fix sideways or crooked scans.",
+    related: ["how-to-split-a-pdf-and-extract-pages", "how-to-merge-pdf-files", "how-to-convert-jpg-to-pdf"],
     intro: "A PDF page often carries more than you need: wide margins, a label on half of an A4 sheet, or a scan that came out sideways or slightly tilted. Cropping and rotating fix this without redrawing anything, so quality is unchanged.",
     sections: [
       {
@@ -255,7 +265,7 @@ const baseGuides: Guide[] = [
         list: {
           ordered: true,
           items: [
-            "Open Crop PDF and choose your file.",
+            "Open [Crop PDF](/tools/crop-pdf) and choose your file.",
             "Drag the crop box over the part you want to keep, or press a Quick crop button such as top half.",
             "Choose whether the crop applies to all pages or just this page. For documents with the same margins on every page, use all pages.",
             "Press Save cropped PDF and open the result to confirm nothing important was cut off.",
@@ -271,7 +281,7 @@ const baseGuides: Guide[] = [
       {
         heading: "Fix sideways and crooked pages",
         paragraphs: [
-          "If a page is sideways, use the turn buttons to rotate it in quarter turns. To fix a slightly tilted scan, the Straighten control tilts the page by a few degrees so text lines up with the grid before you place the crop box. For rotating whole documents, Rotate PDF is faster, and Organize PDF lets you rotate individual pages while also reordering or deleting them.",
+          "If a page is sideways, use the turn buttons to rotate it in quarter turns. To fix a slightly tilted scan, the Straighten control tilts the page by a few degrees so text lines up with the grid before you place the crop box. For rotating whole documents, [Rotate PDF](/tools/rotate-pdf) is faster, and [Organize PDF](/tools/organize-pdf) lets you rotate individual pages while also reordering or deleting them.",
         ],
       },
       {
@@ -293,6 +303,8 @@ const baseGuides: Guide[] = [
     description: "Choose the right pixel size, format and quality so photos load fast and meet upload limits without looking poor.",
     updated: "2026-11-08",
     tools: ["resize-image", "compress-image", "crop-image"],
+    summary: "Resize the picture to the pixel size you need first, then compress it. Use JPG or WebP for photos and PNG for graphics. Together these cut a multi-megabyte phone photo to well under 200 KB.",
+    related: ["how-to-compress-an-image-to-100kb", "how-to-remove-background-from-a-photo", "how-to-extract-text-from-an-image-ocr"],
     intro: "Phone photos are enormous: often 4,000 pixels wide and several megabytes. Websites, email and application forms rarely need that. Reducing the pixel size and then the file size makes pages load faster and satisfies upload limits, while still looking sharp at the size people see it.",
     sections: [
       {
@@ -316,19 +328,19 @@ const baseGuides: Guide[] = [
       {
         heading: "Resize step by step",
         paragraphs: [
-          "Open Resize Image and add one or many pictures. Fill in only the width or only the height to keep the proportions, or set both and choose whether to fit inside, crop to fill or add borders. Quick sizes cover common social media and banner dimensions. Avoid enlarging; it cannot add detail and looks soft.",
+          "Open [Resize Image](/tools/resize-image) and add one or many pictures. Fill in only the width or only the height to keep the proportions, or set both and choose whether to fit inside, crop to fill or add borders. Quick sizes cover common social media and banner dimensions. Avoid enlarging; it cannot add detail and looks soft.",
         ],
       },
       {
         heading: "Hitting an exact size such as 100 KB",
         paragraphs: [
-          "Government and job portals often demand a photo under 100 KB or 200 KB. In Compress Image, type the target size. The tool searches for the highest quality that fits, and reduces dimensions slightly only if it must. Using WebP or JPG as output gives much better results than PNG for photos.",
+          "Government and job portals often demand a photo under 100 KB or 200 KB. In [Compress Image](/tools/compress-image), type the target size. The tool searches for the highest quality that fits, and reduces dimensions slightly only if it must. Using WebP or JPG as output gives much better results than PNG for photos.",
         ],
       },
       {
         heading: "Cropping and privacy",
         paragraphs: [
-          "Crop Image helps you cut distracting edges or match an aspect ratio before resizing. Photos usually carry hidden data such as GPS location and the camera model. Compressing in the tool saves the picture without this metadata, which is worth doing before posting images publicly.",
+          "[Crop Image](/tools/crop-image) helps you cut distracting edges or match an aspect ratio before resizing. Photos usually carry hidden data such as GPS location and the camera model. Compressing in the tool saves the picture without this metadata, which is worth doing before posting images publicly.",
         ],
       },
     ],
@@ -344,6 +356,8 @@ const baseGuides: Guide[] = [
     description: "Add a password and permissions to a PDF, remove one you know, and understand what PDF protection does and does not guarantee.",
     updated: "2026-11-08",
     tools: ["protect-pdf", "unlock-pdf", "password-generator"],
+    summary: "Protect PDF adds a password and sets what readers may do. Unlock PDF removes a password you know. Use a long password, send it separately from the file, and remember a forgotten password cannot be recovered.",
+    related: ["how-to-sign-a-pdf-online-for-free", "how-to-add-page-numbers-and-watermark-to-a-pdf", "how-to-create-a-strong-password"],
     intro: "Payslips, contracts and IDs often need to be sent by email, where anyone along the way could read them. A password on the PDF is a simple safeguard. The opposite problem is also common: a statement that needs a password every time you open it or merge it. This guide covers both.",
     sections: [
       {
@@ -358,8 +372,8 @@ const baseGuides: Guide[] = [
         list: {
           ordered: true,
           items: [
-            "Open Protect PDF and choose the file.",
-            "Enter a password. Use a long one: 12 or more characters mixing words, numbers and symbols. The Password Generator can create one.",
+            "Open [Protect PDF](/tools/protect-pdf) and choose the file.",
+            "Enter a password. Use a long one: 12 or more characters mixing words, numbers and symbols. The [Password Generator](/tools/password-generator) can create one.",
             "Choose what readers may do: print, copy text and images, or edit.",
             "Save the protected PDF, then open it once to confirm the password works.",
             "Send the password by a different channel than the file, for example by phone or messaging app rather than the same email.",
@@ -369,7 +383,7 @@ const baseGuides: Guide[] = [
       {
         heading: "Unlocking a PDF you can open",
         paragraphs: [
-          "Unlock PDF removes the password from a file when you enter the right one, so you can merge, edit or print it freely. It also removes printing and copying restrictions from files that already open. It does not guess or crack forgotten passwords, and you should only unlock files you own or have permission to change.",
+          "[Unlock PDF](/tools/unlock-pdf) removes the password from a file when you enter the right one, so you can merge, edit or print it freely. It also removes printing and copying restrictions from files that already open. It does not guess or crack forgotten passwords, and you should only unlock files you own or have permission to change.",
         ],
       },
       {
@@ -395,6 +409,8 @@ const baseGuides: Guide[] = [
     description: "How to tell whether a website uploads your documents, why it matters for contracts and IDs, and how to check before you use a tool.",
     updated: "2026-11-08",
     tools: ["merge-pdf", "compress-pdf", "unlock-pdf"],
+    summary: "A tool is safest when it processes your file inside your browser, so nothing is uploaded. Check the privacy statement, look at the Network tab for large uploads, and be wary of vague claims such as deleted after one hour.",
+    related: ["how-to-password-protect-and-unlock-a-pdf", "how-to-create-a-strong-password", "how-to-merge-pdf-files"],
     intro: "Every day people drop passports, bank statements and contracts onto free websites to convert or shrink them. Many of those sites upload the file to their own servers. That is not automatically harmful, but you should know when it happens. This guide explains the two ways tools work and how to judge them.",
     sections: [
       {
@@ -425,7 +441,7 @@ const baseGuides: Guide[] = [
       {
         heading: "How Artify Tools handles this",
         paragraphs: [
-          "Most Artify tools, including the PDF, image, cheque and bank statement tools, process files in your browser, and each tool page states its processing mode. The few tools that use an external provider, such as AI features, say so before you use them. See the privacy policy for details.",
+          "Most Artify tools, including the PDF, image, cheque and bank statement tools, process files in your browser, and each tool page states its processing mode. The few tools that use an external provider, such as AI features, say so before you use them. See the [privacy policy](/privacy) for details.",
         ],
       },
       {
@@ -447,6 +463,8 @@ const baseGuides: Guide[] = [
     description: "What makes a password strong, how long it should be, and why a password manager and a random generator beat clever tricks.",
     updated: "2026-11-08",
     tools: ["password-generator"],
+    summary: "Use a random password of at least 12 characters, 16 or more for important accounts, unique for every site. Let a generator create it, store it in a password manager, and turn on two-step verification.",
+    related: ["are-online-file-tools-safe", "how-to-password-protect-and-unlock-a-pdf"],
     intro: "Most account break-ins do not involve clever hacking. Attackers try passwords leaked from other sites, or guess common patterns. A strong, unique password for every account stops most of this. The challenge is managing dozens of them, which is easier than it sounds.",
     sections: [
       {
@@ -465,7 +483,7 @@ const baseGuides: Guide[] = [
       {
         heading: "Let a generator do the random part",
         paragraphs: [
-          "People are poor at being random. We pick names, dates and keyboard patterns. A generator uses the browser's secure random source so every character is equally likely. In the Password Generator choose a length from 8 to 128, select character types, and optionally exclude look-alikes such as O and 0 if you must type it by hand. The password is created on your device and is never sent anywhere.",
+          "People are poor at being random. We pick names, dates and keyboard patterns. A generator uses the browser's secure random source so every character is equally likely. In the [Password Generator](/tools/password-generator) choose a length from 8 to 128, select character types, and optionally exclude look-alikes such as O and 0 if you must type it by hand. The password is created on your device and is never sent anywhere.",
         ],
       },
       {
