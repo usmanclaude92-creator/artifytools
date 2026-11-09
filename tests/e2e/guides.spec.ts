@@ -65,7 +65,7 @@ test.describe("Guides", () => {
 
   test("the contact page shows a real email address, and unfinished pages stay out of search", async ({ page }) => {
     await page.goto("/contact");
-    await expect(page.getByRole("link", { name: "usmanclaude92@gmail.com" }).first()).toHaveAttribute("href", "mailto:usmanclaude92@gmail.com");
+    await expect(page.getByRole("link", { name: "contact@artifysols.com" }).first()).toHaveAttribute("href", "mailto:contact@artifysols.com");
     for (const path of ["/apps", "/ai-tools"]) {
       await page.goto(path);
       await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
